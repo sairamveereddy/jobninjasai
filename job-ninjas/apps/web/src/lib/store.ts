@@ -32,6 +32,16 @@ const mockRoles: Role[] = [
     jobDescription: 'Design spatial interfaces for B2B SaaS...',
     status: 'open',
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'role-fde',
+    title: 'Forward Deployed Engineer',
+    department: 'Engineering',
+    location: 'San Francisco, CA (Hybrid)',
+    hiringManager: 'Alex Mercer',
+    jobDescription: 'Deploy and integrate our advanced AI agents into client systems. Requires deep systems knowledge, excellent communication, and rapid problem-solving skills.',
+    status: 'open',
+    createdAt: new Date().toISOString()
   }
 ];
 

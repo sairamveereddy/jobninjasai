@@ -2,7 +2,7 @@
 
 import { useBoardStore } from "@/store/board";
 import { LayerType } from "@/types/canvas";
-import { Settings2, X, GripVertical, Trash2, Play, Loader2, Upload } from "lucide-react";
+import { Settings2, X, GripVertical, Trash2, Play, Loader2, Upload, Bot } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { useDemoStore } from "@/lib/store";
 
@@ -201,6 +201,106 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
             </div>
 
             {/* Custom inputs based on agent role */}
+            {layer.agentRole === 'candidate-node' && (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-200">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center border border-indigo-200 shrink-0">
+                    <span className="text-xl font-bold text-indigo-700">{layer.value ? layer.value.charAt(0) : "C"}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <h4 className="font-bold text-slate-900 text-[15px]">{layer.value || "Unknown Candidate"}</h4>
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span> Final Interview
+                    </p>
+                    <p className="text-[12px] text-slate-600 mt-1">sarah.chen@example.com • +1 (555) 019-2831</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Resume Document</label>
+                  <div className="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-200 hover:border-indigo-400 transition-colors">
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/10 group-hover:to-indigo-900/20 z-10 transition-colors" />
+                    <div className="flex items-center justify-center p-8 bg-slate-50 relative overflow-hidden">
+                      {/* Fake Resume Thumbnail */}
+                      <div className="w-32 h-44 bg-white shadow-md border border-slate-200 p-3 flex flex-col gap-2 scale-90 group-hover:scale-95 transition-transform duration-300">
+                        <div className="h-2 w-1/2 bg-slate-300 rounded-sm"></div>
+                        <div className="h-1.5 w-1/3 bg-slate-200 rounded-sm"></div>
+                        <div className="h-4"></div>
+                        <div className="h-1 w-full bg-slate-200 rounded-sm"></div>
+                        <div className="h-1 w-full bg-slate-200 rounded-sm"></div>
+                        <div className="h-1 w-4/5 bg-slate-200 rounded-sm"></div>
+                        <div className="h-4"></div>
+                        <div className="h-1 w-full bg-slate-200 rounded-sm"></div>
+                        <div className="h-1 w-full bg-slate-200 rounded-sm"></div>
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 z-20 transition-opacity">
+                        <div className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-lg flex items-center gap-1.5">
+                          View PDF
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Candidate Notes</label>
+                  <textarea
+                    className="w-full px-4 py-3 text-[13px] text-slate-800 bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 rounded-xl outline-none resize-none min-h-[100px]"
+                    placeholder="Recruiter notes..."
+                    defaultValue={"- Exceptional systems knowledge\n- 5 years at Palantir as FDE\n- Great communicator"}
+                  />
+                </div>
+              </div>
+            )}
+
+            {layer.agentRole === 'ophelia-agent' && (
+              <div className="flex flex-col gap-6">
+                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-indigo-900 flex items-center gap-2">
+                      <Bot className="w-4 h-4" /> Ophelia Integration
+                    </h4>
+                    <span className="px-2 py-1 bg-indigo-200 text-indigo-700 text-[10px] font-bold uppercase rounded-md">Connected</span>
+                  </div>
+                  <p className="text-[13px] text-indigo-800/80 leading-relaxed">
+                    This agent uses Ophelia to fully automate post-interview candidate processing.
+                  </p>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Trigger Condition</label>
+                  <select className="w-full px-4 py-3 text-[14px] font-medium text-slate-900 bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 border border-slate-200/60 rounded-xl focus:outline-none transition-all shadow-sm">
+                    <option>When Candidate moved to "Offer"</option>
+                    <option>When Candidate is "Selected"</option>
+                    <option>Custom Webhook</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ophelia Workflows Executed</label>
+                  <div className="flex flex-col gap-2 mt-1">
+                    <div className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-[13px] font-medium text-slate-700">Generate Employment Contract</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-[13px] font-medium text-slate-700">Initiate Checkr Background Screen</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-[13px] font-medium text-slate-700">Send IT Equipment Form</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[14px] font-semibold transition-colors shadow-sm">
+                  <Play className="w-4 h-4 fill-current" />
+                  Run Test Execution
+                </button>
+              </div>
+            )}
+
             {layer.agentRole === 'database-connector' && (
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Database Connection</label>

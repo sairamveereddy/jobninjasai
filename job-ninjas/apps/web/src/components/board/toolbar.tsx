@@ -33,6 +33,7 @@ export const AGENTS = [
   { icon: BarChart, label: "Candidate Ranker", role: "candidate-ranker", color: "text-violet-600", bg: "bg-violet-100 dark:bg-violet-900/30 dark:text-violet-400" },
   { icon: Handshake, label: "Offer Negotiator", role: "offer-negotiator", color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/30 dark:text-green-400" },
   { icon: Mail, label: "Onboarding Agent", role: "onboarding-agent", color: "text-pink-600", bg: "bg-pink-100 dark:bg-pink-900/30 dark:text-pink-400" },
+  { icon: Bot, label: "Ophelia Agent (Post-Interview)", role: "ophelia-agent", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
   { icon: FileText, label: "Word Document", role: "word-doc", color: "text-blue-700", bg: "bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400" },
   { icon: TableProperties, label: "Excel Document", role: "excel-doc", color: "text-green-700", bg: "bg-green-50 dark:bg-green-900/30 dark:text-green-400" },
   { icon: Bot, label: "Custom Agent", role: "custom-agent", color: "text-foreground", bg: "bg-muted dark:bg-muted/50" },
