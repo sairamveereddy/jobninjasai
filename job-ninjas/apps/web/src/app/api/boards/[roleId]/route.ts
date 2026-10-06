@@ -256,6 +256,7 @@ export async function GET(
           return NextResponse.json(boardData);
         }
       }
+    }
 
       if (request.url.includes('role-fde')) {
         const LayerType = { Agent: 5 };
