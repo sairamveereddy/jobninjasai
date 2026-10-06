@@ -123,16 +123,17 @@ export class OpheliaClient {
 
     if (!response.ok) throw new Error(`Ophelia availability check failed: ${response.statusText}`);
     const data = await response.json();
+    const firstSlot = data.slots && data.slots[0];
     return {
-      availability_id: data.availability_id || data.id,
+      availability_id: firstSlot ? firstSlot.availability_id : undefined,
       venue_id: request.venue_id,
-      room_name: data.room_name || data.name,
-      price_per_night: data.price_per_night,
-      total_price: data.total_price || data.amount,
-      currency: data.currency || 'USD',
-      cancellation_policy: data.cancellation_policy,
+      room_name: firstSlot && firstSlot.offer ? firstSlot.offer.label : '',
+      price_per_night: firstSlot && firstSlot.offer ? firstSlot.offer.amount : 250,
+      total_price: firstSlot && firstSlot.offer ? firstSlot.offer.amount : 250,
+      currency: firstSlot && firstSlot.offer ? firstSlot.offer.currency : 'USD',
+      cancellation_policy: 'Flexible',
       card_required: data.card_required,
-      available: data.available !== false
+      available: !!firstSlot
     };
   }
 
@@ -249,8 +250,22 @@ export class OpheliaClient {
   }
 
   async bookHotel(hotelId: string, candidateDetails: any): Promise<OpheliaBookingConfirmation> {
+    // 1. First get real availability slots for this hotel
+    const availability = await this.checkAvailability({
+      venue_id: hotelId,
+      check_in: '2026-10-14',
+      check_out: '2026-10-15',
+      party_size: 1,
+      rooms: 1
+    });
+
+    if (!availability.availability_id) {
+       return { status: 'failed', error: 'No availability found' };
+    }
+
+    // 2. Now create booking using the REAL availability_id
     const result = await this.createBooking({
-      availability_id: `avail_${hotelId}`,
+      availability_id: availability.availability_id,
       venue_id: hotelId,
       party_size: 1,
       check_in: '2026-10-14',
