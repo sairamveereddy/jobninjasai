@@ -1,0 +1,60 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "web": {
+      "root": "job-ninjas/apps/web",
+      "framework": "nextjs"
+    },
+    "ai-workflow": {
+      "root": "job-ninjas/services/ai-workflow",
+      "framework": "fastapi"
+    },
+    "legacy-frontend": {
+      "root": "frontend",
+      "framework": "create-react-app"
+    },
+    "saas-app": {
+      "root": "saas-app",
+      "framework": "nextjs"
+    },
+    "backend": {
+      "root": "backend",
+      "framework": "fastapi",
+      "bindings": [
+        { "type": "service", "service": "web", "format": "url", "env": "FRONTEND_URL" }
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/ai-workflow/(.*)",
+      "destination": {
+        "service": "ai-workflow"
+      }
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/legacy/(.*)",
+      "destination": {
+        "service": "legacy-frontend"
+      }
+    },
+    {
+      "source": "/interview/(.*)",
+      "destination": {
+        "service": "saas-app"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "web"
+      }
+    }
+  ]
+}
