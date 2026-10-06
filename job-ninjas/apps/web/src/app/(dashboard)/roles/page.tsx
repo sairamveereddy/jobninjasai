@@ -90,15 +90,7 @@ export default function RolesPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-slate-900">Boards in this team</h1>
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => {
-              localStorage.removeItem('job-ninjas-demo-storage');
-              seedDemoData();
-              window.location.reload();
-            }}
-            className="px-3.5 py-2 text-[13px] font-medium text-red-600 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-            Reset Demo Data
-          </button>
+          
           <button className="px-3.5 py-2 text-[13px] font-medium text-slate-600 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 transition-colors">
             Explore templates
           </button>

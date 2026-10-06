@@ -40,11 +40,7 @@ function HotelCard({ hotel, recommended, selected, onSelect, onApprove, disabled
           <Zap className="w-3 h-3" /> AI RECOMMENDED
         </div>
       )}
-      {hotel.providerData?.practice && (
-        <div className="absolute top-8 left-3 bg-indigo-900/80 backdrop-blur-sm text-indigo-100 text-[9px] font-black tracking-wider px-2 py-0.5 rounded shadow-sm z-10 border border-indigo-500/30">
-          PRACTICE MODE
-        </div>
-      )}
+      
       <div className="h-32 w-full bg-slate-100 relative">
         {hotel.image ? (
           <img src={hotel.image} alt={hotel.name} className="w-full h-full object-cover" />
@@ -283,17 +279,6 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: { layerId
           <Plane className="w-32 h-32 text-white -rotate-12 transform translate-x-8 -translate-y-8" />
         </div>
       </div>
-
-      <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-1.5 flex items-center justify-between text-[10px] font-bold text-indigo-700">
-        <div className="flex items-center gap-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div> PRACTICE MODE
-          <span className="font-normal ml-1 text-indigo-500">— Running against Ophelia's practice environment. No real purchases made.</span>
-        </div>
-        <div className="flex items-center gap-1 opacity-70">
-          <Shield className="w-3 h-3" /> Ophelia Connected
-        </div>
-      </div>
-
       {/* ── TABS ── */}
       <div className="flex border-b border-slate-200 bg-slate-50/50 px-4 pt-2 gap-2">
         {['overview', 'stay', 'flights', 'dining', 'itinerary', 'activity'].map(tab => (

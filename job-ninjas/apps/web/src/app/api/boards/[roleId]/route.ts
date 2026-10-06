@@ -81,6 +81,7 @@ export async function GET(
         addNode('a10', 'word-doc', 4300, 200, 'Employee Handbook', 250, 120);
         addNode('a11', 'sourcing-agent', 4300, 425, 'IT Equipment Provisioning', 250, 120, { instructions: 'Order 16-inch MacBook Pro M3 Max and 27-inch 4K Monitor. Ship to candidate home address.' });
         addNode('a12', 'entry-node', 4300, 650, 'Background Check Agent', 250, 120, { instructions: 'Initiate standard background and reference check via API.' });
+        addNode('o3', 'candidate-concierge', 4300, 875, 'Relocation Concierge (Sarah)', 960, 560, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', date: 'Oct 14', budget: '800' });
 
         // Edges
         addEdge('e1', 'a1', 'a3');
@@ -121,6 +122,7 @@ export async function GET(
         addEdge('e15', 'a9', 'a10');
         addEdge('e16', 'a9', 'a11');
         addEdge('e17', 'a9', 'a12');
+        addEdge('e18', 'a9', 'o3');
 
         const boardData = {
           id: 'demo-ophelia',
