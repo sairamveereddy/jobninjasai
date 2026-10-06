@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  connectors Connector[]
+  candidates Candidate[]
+  workflows  Workflow[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  name           String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Connector {
+  id             String       @id @default(uuid())
+  organizationId String
+  provider       String       // e.g., "GREENHOUSE", "WORKDAY", "LEVER"
+  accessToken    String?
+  refreshToken   String?
+  webhookId      String?
+  status         String       @default("ACTIVE")
+  lastSyncAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Candidate {
+  id             String       @id @default(uuid())
+  organizationId String
+  atsId          String       // Original ID in ATS
+  firstName      String
+  lastName       String
+  email          String
+  resumeUrl      String?
+  linkedinUrl    String?
+  status         String       @default("NEW") // "SCREENING", "INTERVIEW", "OFFER", "HIRED", "REJECTED"
+  
+  // Agentic Signals
+  fraudScore     Float?
+  technicalScore Float?
+  cultureScore   Float?
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  agentRuns      AgentRun[]
+}
+
+model Workflow {
+  id             String       @id @default(uuid())
+  organizationId String
+  name           String
+  nodesJson      Json         // UI layout definition for visual builder
+  edgesJson      Json         
+  isActive       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model AgentRun {
+  id             String       @id @default(uuid())
+  candidateId    String
+  agentType      String       // "RESUME_PARSER", "TRANSCRIPT_ANALYZER", "FRAUD_VERIFIER"
+  status         String       // "QUEUED", "RUNNING", "COMPLETED", "FAILED"
+  inputPayload   Json?
+  outputPayload  Json?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  
+  candidate      Candidate    @relation(fields: [candidateId], references: [id])
+}
