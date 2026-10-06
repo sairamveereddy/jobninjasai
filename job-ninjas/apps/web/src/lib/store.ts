@@ -42,6 +42,16 @@ const mockRoles: Role[] = [
     jobDescription: 'Deploy and integrate our advanced AI agents into client systems. Requires deep systems knowledge, excellent communication, and rapid problem-solving skills.',
     status: 'open',
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'role-ophelia-demo',
+    title: 'AI Engineer (Final Round → Onsite)',
+    department: 'Engineering',
+    location: 'New York, NY',
+    hiringManager: 'Maya Rodriguez',
+    jobDescription: 'Full recruiting pipeline demo with Ophelia integration. Shows start-to-end workflow: sourcing → screening → technical → final interview (2 candidates) → candidate selection → Ophelia travel booking → onsite confirmation.',
+    status: 'open',
+    createdAt: new Date().toISOString()
   }
 ];
 

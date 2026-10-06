@@ -697,14 +697,23 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         )}
         
         {layer.type === LayerType.Agent && (
+          <>
+          {layer.agentRole === 'candidate-concierge' ? (
+            <foreignObject
+              width={Math.max(layer.width || 960, 960)}
+              height={Math.max(layer.height || 560, 560)}
+              className="overflow-visible"
+              style={{ position: 'relative', zIndex: 10 }}
+            >
+              <CandidateConciergeNode layerId={layerId} layer={layer} isSelected={isSelected} />
+            </foreignObject>
+          ) : (
           <foreignObject
             width={layer.width || 250}
             height={Math.max(layer.height || 164, 164)}
             className="overflow-visible"
           >
-            {layer.agentRole === 'candidate-concierge' ? (
-              <CandidateConciergeNode layerId={layerId} layer={layer} isSelected={isSelected} />
-            ) : layer.agentRole === 'candidate-node' ? (
+            {layer.agentRole === 'candidate-node' ? (
               <CandidateNodeBlock layer={layer} isSelected={isSelected} />
             ) : ((layer.agentRole === 'word-doc' || layer.agentRole === 'excel-doc') && !(layer as any).displayMode) ? (
               <div className="w-full h-full rounded-xl border-2 border-indigo-500 shadow-xl flex flex-col items-center justify-center p-4 bg-card gap-4">
@@ -823,6 +832,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             </div>
             )}
           </foreignObject>
+          )}
+          </>
         )}
 
         {layer.type === LayerType.Note && (
