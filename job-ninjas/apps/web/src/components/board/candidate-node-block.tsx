@@ -14,8 +14,8 @@ export const CandidateNodeBlock = ({ layer, isSelected }: { layer: any, isSelect
             <UserCheck className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-foreground">Sarah Chen</h3>
-            <p className="text-[10px] uppercase font-semibold text-pink-600 dark:text-pink-400">Final Interview</p>
+            <h3 className="font-bold text-sm text-foreground">{layer.config?.candidateName || 'Sarah Chen'}</h3>
+            <p className="text-[10px] uppercase font-semibold text-pink-600 dark:text-pink-400">{layer.config?.status || 'Final Interview'}</p>
           </div>
         </div>
       </div>
@@ -23,19 +23,19 @@ export const CandidateNodeBlock = ({ layer, isSelected }: { layer: any, isSelect
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
             <MapPin className="w-4 h-4" />
-            <span>From: <b>Atlanta, GA</b></span>
+            <span>From: <b>{layer.config?.fromLocation || 'Atlanta, GA'}</b></span>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
             <MapPin className="w-4 h-4 text-rose-500" />
-            <span>To: <b>New York, NY</b></span>
+            <span>To: <b>{layer.config?.toLocation || 'New York, NY'}</b></span>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
             <Calendar className="w-4 h-4" />
-            <span>October 15, 2026 • 10:00 AM</span>
+            <span>{layer.config?.date || 'October 15, 2026 • 10:00 AM'}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
             <DollarSign className="w-4 h-4" />
-            <span>Budget: <b>$800</b></span>
+            <span>Budget: <b>${layer.config?.budget || '800'}</b></span>
           </div>
         </div>
         
