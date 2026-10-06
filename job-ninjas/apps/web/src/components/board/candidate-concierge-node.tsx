@@ -519,10 +519,12 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: { layerId
               <div className="space-y-4">
                 <h4 className="font-bold text-[16px]">Available Flights</h4>
                 {flights.map((f, i) => (
-                  <div key={f.id} className={`p-4 border rounded-xl flex justify-between items-center bg-white ${i===0?'border-violet-500 shadow-sm':'border-slate-200'}`}>
-                    <div>
+                  <div key={f.id} className={`p-4 border rounded-xl flex items-center gap-4 bg-white ${i===0?'border-violet-500 shadow-sm':'border-slate-200'}`}>
+                    {f.logo && <img src={f.logo} className="w-10 h-10 rounded-full object-cover border border-slate-200" />}
+                    <div className="flex-1">
                       <p className="font-bold">{f.airline}</p>
-                      <p className="text-sm text-slate-500">{f.time} • {f.type}</p>
+                      <p className="text-sm text-slate-500">{f.time}</p>
+                      <p className="text-xs font-medium text-violet-600">{f.type} • {f.duration}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-black text-lg">{f.price}</p>
@@ -562,13 +564,15 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: { layerId
               <div className="space-y-4">
                 <h4 className="font-bold text-[16px]">Dining Options</h4>
                 {diningOptions.map((d, i) => (
-                  <div key={d.id} className={`p-4 border rounded-xl flex justify-between items-center bg-white ${i===0?'border-violet-500 shadow-sm':'border-slate-200'}`}>
-                    <div>
+                  <div key={d.id} className={`p-4 border rounded-xl flex items-center gap-4 bg-white ${i===0?'border-violet-500 shadow-sm':'border-slate-200'}`}>
+                    {d.image && <img src={d.image} className="w-16 h-16 rounded-lg object-cover border border-slate-200" />}
+                    <div className="flex-1">
                       <p className="font-bold">{d.name}</p>
-                      <p className="text-sm text-slate-500">{d.type} • ★ {d.rating} • {d.dist}</p>
+                      <p className="text-sm text-slate-500">{d.type}</p>
+                      <p className="text-xs font-medium text-violet-600">★ {d.rating} • {d.dist}</p>
                     </div>
                     <button onPointerDown={(e) => { e.stopPropagation(); }} className="bg-violet-100 text-violet-700 px-4 py-2 text-xs font-bold rounded-lg cursor-pointer pointer-events-auto hover:bg-violet-200">
-                      Reserve Table
+                      Reserve
                     </button>
                   </div>
                 ))}
