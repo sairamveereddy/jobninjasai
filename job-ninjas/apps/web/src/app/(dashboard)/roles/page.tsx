@@ -6,7 +6,7 @@ import {
   Plus, X, LayoutGrid, List, ChevronDown,
   Star, MoreHorizontal, Users, Clock, Search, Filter
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Role } from "../../../../shared/types";
 
@@ -38,8 +38,14 @@ function timeAgo(iso: string) {
 }
 
 export default function RolesPage() {
-  const { roles, addRole } = useDemoStore();
+  const { roles, addRole, isSeeded, seedDemoData } = useDemoStore();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isSeeded || !roles.find(r => r.id === 'role-fde')) {
+      seedDemoData();
+    }
+  }, [isSeeded, seedDemoData, roles]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
