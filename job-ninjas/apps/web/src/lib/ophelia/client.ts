@@ -79,16 +79,17 @@ export class OpheliaClient {
 
     if (!response.ok) throw new Error(`Ophelia venue search failed: ${response.statusText}`);
     const data = await response.json();
-    return (data.results || []).map((r: any) => ({
+    const venues = data.venues || data.results || [];
+    return venues.map((r: any) => ({
       id: r.id,
       name: r.name,
-      price: r.price_per_night || r.price,
+      price: r.price_per_night || r.price || (r.metadata && r.metadata.price) || 250,
       currency: r.currency || 'USD',
-      location: r.location || r.neighborhood || r.address,
+      location: r.location || r.city || r.neighborhood || r.address || 'New York',
       distanceFromInterview: '',
-      image: r.image_url || r.images?.[0] || '',
-      availability: r.available !== false,
-      rating: r.rating,
+      image: r.image_url || (r.metadata && r.metadata.image) || r.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+      availability: r.bookable !== false && r.available !== false,
+      rating: r.rating || 4.5,
       providerData: r
     }));
   }

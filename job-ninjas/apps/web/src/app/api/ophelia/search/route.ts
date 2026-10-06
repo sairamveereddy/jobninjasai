@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       party_size: payload.party_size || 1,
       rooms: payload.rooms || 1,
       budget: payload.budget,
-      term: payload.term
+      term: payload.term || 'hotel'
     });
     return NextResponse.json({ results, practiceMode: ophelia.practiceMode });
   } catch (error: any) {
