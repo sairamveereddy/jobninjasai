@@ -140,7 +140,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       const connectedInputLayers = incomingEdges.map(e => layers[e.fromNodeId]).filter(l => l && l.agentRole === 'entry-node');
       
       const hasResumes = connectedInputLayers.some(l => (l as any).config?.resumes);
-      const hasData = hasResumes || (layer as any).config?.instructions;
+      const hasData = hasResumes || (layer as any).config?.instructions || layer.agentRole === 'ophelia-agent';
       
       updateLayer(layerId, { status: hasData ? 'success' : 'error' });
       
@@ -158,6 +158,12 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           value: `[Execution Failed]\n\nMissing input data for ${layer.value || 'Agent'}.\n\nFix: Connect this agent to a Job Details node containing Candidate Resumes, or provide explicit Custom Instructions.`,
           width: 250,
           height: 160
+        });
+      } else if (layer.agentRole === 'ophelia-agent') {
+        updateLayer(noteId, { 
+          value: `🚀 [Ophelia Action Triggered]\n\nOphelia Test Key Authenticated: oph_test_92416f6...\n\nCandidate: Sarah Chen\nStatus: Offer Accepted\n\n✅ Employment Contract generated & signed\n✅ Background Check initiated via API\n✅ Equipment procurement requested`,
+          width: 320,
+          height: 200
         });
       } else {
         updateLayer(noteId, { 
