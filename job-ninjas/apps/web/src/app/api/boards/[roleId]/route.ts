@@ -48,80 +48,62 @@ export async function GET(
             jobDescription: 'Verified 22 candidates. 15 passed employment verification. 7 flagged for discrepancies.'
         });
 
-        // 3 Rounds for David Kim
-        addNode('d_r1', 'culture-fit-interviewer', 800, 100, 'Round 1: Culture Fit (David)', 250, 120, { instructions: 'Assess communication and values.' });
-        addNode('d_t1', 'entry-node', 1100, 100, 'Transcript Analyzer (R1)', 250, 120, { instructions: 'Analyze R1 transcript for red flags.', jobDescription: 'Candidate shows strong communication and empathy.' });
+        // 3 Shared Rounds
+        addNode('r1', 'culture-fit-interviewer', 800, 100, 'Round 1: Culture Fit', 250, 120, { instructions: 'Assess communication and values for all candidates.' });
+        addNode('t1', 'entry-node', 1100, 100, 'Transcript Analyzer (R1)', 250, 120, { instructions: 'Analyze R1 transcript for red flags.', jobDescription: 'David and Sarah showed strong communication and empathy.' });
         
-        addNode('d_r2', 'tech-assessor', 800, 250, 'Round 2: Technical (David)', 250, 120, { instructions: 'Live coding in Python and React.' });
-        addNode('d_t2', 'entry-node', 1100, 250, 'Transcript Analyzer (R2)', 250, 120, { instructions: 'Analyze code quality from R2.', jobDescription: 'Passed Python algorithm check. React hooks knowledge was average.' });
+        addNode('r2', 'tech-assessor', 800, 425, 'Round 2: Technical', 250, 120, { instructions: 'Live coding in Python and React for all candidates.' });
+        addNode('t2', 'entry-node', 1100, 425, 'Transcript Analyzer (R2)', 250, 120, { instructions: 'Analyze code quality from R2.', jobDescription: 'David passed Python algorithm check. Sarah had flawless execution.' });
         
-        addNode('d_r3', 'tech-assessor', 800, 400, 'Round 3: System Design (David)', 250, 120, { instructions: 'Whiteboard a scalable AI backend.' });
-        addNode('d_t3', 'entry-node', 1100, 400, 'Transcript Analyzer (R3)', 250, 120, { instructions: 'Evaluate system design viability.', jobDescription: 'Solid architecture but missed some edge cases with rate limiting.' });
+        addNode('r3', 'tech-assessor', 800, 750, 'Round 3: System Design', 250, 120, { instructions: 'Whiteboard a scalable AI backend for all candidates.' });
+        addNode('t3', 'entry-node', 1100, 750, 'Transcript Analyzer (R3)', 250, 120, { instructions: 'Evaluate system design viability.', jobDescription: 'Both candidates demonstrated great distributed systems knowledge.' });
         
-        addNode('c1', 'candidate-node', 1400, 250, 'David Kim', 250, 120, { candidateName: 'David Kim', fromLocation: 'Seattle, WA', toLocation: 'New York, NY', role: 'AI Engineer' });
-
-        // 3 Rounds for Sarah Chen
-        addNode('s_r1', 'culture-fit-interviewer', 800, 600, 'Round 1: Culture Fit (Sarah)', 250, 120, { instructions: 'Assess communication and values.' });
-        addNode('s_t1', 'entry-node', 1100, 600, 'Transcript Analyzer (R1)', 250, 120, { instructions: 'Analyze R1 transcript for red flags.', jobDescription: 'Exceptional answers regarding team conflict resolution.' });
-        
-        addNode('s_r2', 'tech-assessor', 800, 750, 'Round 2: Technical (Sarah)', 250, 120, { instructions: 'Live coding in Python and React.' });
-        addNode('s_t2', 'entry-node', 1100, 750, 'Transcript Analyzer (R2)', 250, 120, { instructions: 'Analyze code quality from R2.', jobDescription: 'Flawless execution. Wrote custom React hooks seamlessly.' });
-        
-        addNode('s_r3', 'tech-assessor', 800, 900, 'Round 3: System Design (Sarah)', 250, 120, { instructions: 'Whiteboard a scalable AI backend.' });
-        addNode('s_t3', 'entry-node', 1100, 900, 'Transcript Analyzer (R3)', 250, 120, { instructions: 'Evaluate system design viability.', jobDescription: 'Great distributed systems knowledge.' });
-
-        addNode('c2', 'candidate-node', 1400, 750, 'Sarah Chen', 250, 120, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', role: 'AI Engineer' });
+        // Finalists
+        addNode('c1', 'candidate-node', 1500, 250, 'David Kim', 250, 120, { candidateName: 'David Kim', fromLocation: 'Seattle, WA', toLocation: 'New York, NY', role: 'AI Engineer' });
+        addNode('c2', 'candidate-node', 1500, 600, 'Sarah Chen', 250, 120, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', role: 'AI Engineer' });
         
         // Ophelia Concierges
-        addNode('o1', 'candidate-concierge', 1750, 100, 'Candidate Concierge (David)', 960, 560, { candidateName: 'David Kim', fromLocation: 'Seattle, WA', toLocation: 'New York, NY', date: 'Oct 14', budget: '1200' });
-        addNode('o2', 'candidate-concierge', 1750, 700, 'Candidate Concierge (Sarah)', 960, 560, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', date: 'Oct 14', budget: '800' });
+        addNode('o1', 'candidate-concierge', 1850, 100, 'Candidate Concierge (David)', 960, 560, { candidateName: 'David Kim', fromLocation: 'Seattle, WA', toLocation: 'New York, NY', date: 'Oct 14', budget: '1200' });
+        addNode('o2', 'candidate-concierge', 1850, 700, 'Candidate Concierge (Sarah)', 960, 560, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', date: 'Oct 14', budget: '800' });
 
         // Final Interview
-        addNode('a6', 'entry-node', 2800, 425, 'Final Interview Panel', 250, 120, { instructions: 'Conduct 4-hour onsite interview loop. Record feedback from 4 interviewers.' });
+        addNode('a6', 'entry-node', 2900, 425, 'Final Interview Panel', 250, 120, { instructions: 'Conduct 4-hour onsite interview loop. Record feedback from 4 interviewers.' });
         
         // Decision
-        addNode('a7', 'offer-negotiator', 3150, 425, 'Decision Engine', 250, 120, { instructions: 'Synthesize feedback. Prepare offer for selected candidate. Negotiate up to 10% above base if pushed.' });
+        addNode('a7', 'offer-negotiator', 3250, 425, 'Decision Engine', 250, 120, { instructions: 'Synthesize feedback. Prepare offer for selected candidate. Negotiate up to 10% above base if pushed.' });
         
         // Selected Candidate
-        addNode('c3', 'candidate-node', 3500, 425, 'Sarah Chen (Selected)', 250, 120, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', role: 'AI Engineer', status: 'Offer Accepted' });
+        addNode('c3', 'candidate-node', 3600, 425, 'Sarah Chen (Selected)', 250, 120, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', role: 'AI Engineer', status: 'Offer Accepted' });
         
         // Onboarding
-        addNode('a9', 'entry-node', 3850, 425, 'Onboarding Coordinator', 250, 120, { instructions: 'Trigger all post-acceptance onboarding tasks across departments.' });
+        addNode('a9', 'entry-node', 3950, 425, 'Onboarding Coordinator', 250, 120, { instructions: 'Trigger all post-acceptance onboarding tasks across departments.' });
         
-        addNode('a10', 'word-doc', 4200, 200, 'Employee Handbook', 250, 120);
-        addNode('a11', 'sourcing-agent', 4200, 425, 'IT Equipment Provisioning', 250, 120, { instructions: 'Order 16-inch MacBook Pro M3 Max and 27-inch 4K Monitor. Ship to candidate home address.' });
-        addNode('a12', 'entry-node', 4200, 650, 'Background Check Agent', 250, 120, { instructions: 'Initiate standard background and reference check via API.' });
+        addNode('a10', 'word-doc', 4300, 200, 'Employee Handbook', 250, 120);
+        addNode('a11', 'sourcing-agent', 4300, 425, 'IT Equipment Provisioning', 250, 120, { instructions: 'Order 16-inch MacBook Pro M3 Max and 27-inch 4K Monitor. Ship to candidate home address.' });
+        addNode('a12', 'entry-node', 4300, 650, 'Background Check Agent', 250, 120, { instructions: 'Initiate standard background and reference check via API.' });
 
         // Edges
         addEdge('e1', 'a1', 'a3');
         addEdge('e2', 'a2', 'a3');
         
         // From Verifier to Rounds
-        addEdge('e3', 'a3', 'd_r1');
-        addEdge('e4', 'a3', 'd_r2');
-        addEdge('e5', 'a3', 'd_r3');
-        
-        addEdge('e6', 'a3', 's_r1');
-        addEdge('e7', 'a3', 's_r2');
-        addEdge('e8', 'a3', 's_r3');
+        addEdge('e3', 'a3', 'r1');
+        addEdge('e4', 'a3', 'r2');
+        addEdge('e5', 'a3', 'r3');
 
         // Rounds to Transcripts
-        addEdge('e_d1', 'd_r1', 'd_t1');
-        addEdge('e_d2', 'd_r2', 'd_t2');
-        addEdge('e_d3', 'd_r3', 'd_t3');
+        addEdge('e_d1', 'r1', 't1');
+        addEdge('e_d2', 'r2', 't2');
+        addEdge('e_d3', 'r3', 't3');
 
-        addEdge('e_s1', 's_r1', 's_t1');
-        addEdge('e_s2', 's_r2', 's_t2');
-        addEdge('e_s3', 's_r3', 's_t3');
-
-        // Transcripts to Candidate
-        addEdge('e_d4', 'd_t1', 'c1');
-        addEdge('e_d5', 'd_t2', 'c1');
-        addEdge('e_d6', 'd_t3', 'c1');
-
-        addEdge('e_s4', 's_t1', 'c2');
-        addEdge('e_s5', 's_t2', 'c2');
-        addEdge('e_s6', 's_t3', 'c2');
+        // Transcripts to Candidates
+        addEdge('e_c1a', 't1', 'c1');
+        addEdge('e_c1b', 't2', 'c1');
+        addEdge('e_c1c', 't3', 'c1');
+        
+        addEdge('e_c2a', 't1', 'c2');
+        addEdge('e_c2b', 't2', 'c2');
+        addEdge('e_c2c', 't3', 'c2');
         
         // Candidates to Concierge
         addEdge('e_c1', 'c1', 'o1');
@@ -280,80 +262,62 @@ export async function GET(
             jobDescription: 'Verified 22 candidates. 15 passed employment verification. 7 flagged for discrepancies.'
         });
 
-        // 3 Rounds for David Kim
-        addNode('d_r1', 'culture-fit-interviewer', 800, 100, 'Round 1: Culture Fit (David)', 250, 120, { instructions: 'Assess communication and values.' });
-        addNode('d_t1', 'entry-node', 1100, 100, 'Transcript Analyzer (R1)', 250, 120, { instructions: 'Analyze R1 transcript for red flags.', jobDescription: 'Candidate shows strong communication and empathy.' });
+        // 3 Shared Rounds
+        addNode('r1', 'culture-fit-interviewer', 800, 100, 'Round 1: Culture Fit', 250, 120, { instructions: 'Assess communication and values for all candidates.' });
+        addNode('t1', 'entry-node', 1100, 100, 'Transcript Analyzer (R1)', 250, 120, { instructions: 'Analyze R1 transcript for red flags.', jobDescription: 'David and Sarah showed strong communication and empathy.' });
         
-        addNode('d_r2', 'tech-assessor', 800, 250, 'Round 2: Technical (David)', 250, 120, { instructions: 'Live coding in Python and React.' });
-        addNode('d_t2', 'entry-node', 1100, 250, 'Transcript Analyzer (R2)', 250, 120, { instructions: 'Analyze code quality from R2.', jobDescription: 'Passed Python algorithm check. React hooks knowledge was average.' });
+        addNode('r2', 'tech-assessor', 800, 425, 'Round 2: Technical', 250, 120, { instructions: 'Live coding in Python and React for all candidates.' });
+        addNode('t2', 'entry-node', 1100, 425, 'Transcript Analyzer (R2)', 250, 120, { instructions: 'Analyze code quality from R2.', jobDescription: 'David passed Python algorithm check. Sarah had flawless execution.' });
         
-        addNode('d_r3', 'tech-assessor', 800, 400, 'Round 3: System Design (David)', 250, 120, { instructions: 'Whiteboard a scalable AI backend.' });
-        addNode('d_t3', 'entry-node', 1100, 400, 'Transcript Analyzer (R3)', 250, 120, { instructions: 'Evaluate system design viability.', jobDescription: 'Solid architecture but missed some edge cases with rate limiting.' });
+        addNode('r3', 'tech-assessor', 800, 750, 'Round 3: System Design', 250, 120, { instructions: 'Whiteboard a scalable AI backend for all candidates.' });
+        addNode('t3', 'entry-node', 1100, 750, 'Transcript Analyzer (R3)', 250, 120, { instructions: 'Evaluate system design viability.', jobDescription: 'Both candidates demonstrated great distributed systems knowledge.' });
         
-        addNode('c1', 'candidate-node', 1400, 250, 'David Kim', 250, 120, { candidateName: 'David Kim', fromLocation: 'Seattle, WA', toLocation: 'New York, NY', role: 'AI Engineer' });
-
-        // 3 Rounds for Sarah Chen
-        addNode('s_r1', 'culture-fit-interviewer', 800, 600, 'Round 1: Culture Fit (Sarah)', 250, 120, { instructions: 'Assess communication and values.' });
-        addNode('s_t1', 'entry-node', 1100, 600, 'Transcript Analyzer (R1)', 250, 120, { instructions: 'Analyze R1 transcript for red flags.', jobDescription: 'Exceptional answers regarding team conflict resolution.' });
-        
-        addNode('s_r2', 'tech-assessor', 800, 750, 'Round 2: Technical (Sarah)', 250, 120, { instructions: 'Live coding in Python and React.' });
-        addNode('s_t2', 'entry-node', 1100, 750, 'Transcript Analyzer (R2)', 250, 120, { instructions: 'Analyze code quality from R2.', jobDescription: 'Flawless execution. Wrote custom React hooks seamlessly.' });
-        
-        addNode('s_r3', 'tech-assessor', 800, 900, 'Round 3: System Design (Sarah)', 250, 120, { instructions: 'Whiteboard a scalable AI backend.' });
-        addNode('s_t3', 'entry-node', 1100, 900, 'Transcript Analyzer (R3)', 250, 120, { instructions: 'Evaluate system design viability.', jobDescription: 'Great distributed systems knowledge.' });
-
-        addNode('c2', 'candidate-node', 1400, 750, 'Sarah Chen', 250, 120, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', role: 'AI Engineer' });
+        // Finalists
+        addNode('c1', 'candidate-node', 1500, 250, 'David Kim', 250, 120, { candidateName: 'David Kim', fromLocation: 'Seattle, WA', toLocation: 'New York, NY', role: 'AI Engineer' });
+        addNode('c2', 'candidate-node', 1500, 600, 'Sarah Chen', 250, 120, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', role: 'AI Engineer' });
         
         // Ophelia Concierges
-        addNode('o1', 'candidate-concierge', 1750, 100, 'Candidate Concierge (David)', 960, 560, { candidateName: 'David Kim', fromLocation: 'Seattle, WA', toLocation: 'New York, NY', date: 'Oct 14', budget: '1200' });
-        addNode('o2', 'candidate-concierge', 1750, 700, 'Candidate Concierge (Sarah)', 960, 560, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', date: 'Oct 14', budget: '800' });
+        addNode('o1', 'candidate-concierge', 1850, 100, 'Candidate Concierge (David)', 960, 560, { candidateName: 'David Kim', fromLocation: 'Seattle, WA', toLocation: 'New York, NY', date: 'Oct 14', budget: '1200' });
+        addNode('o2', 'candidate-concierge', 1850, 700, 'Candidate Concierge (Sarah)', 960, 560, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', date: 'Oct 14', budget: '800' });
 
         // Final Interview
-        addNode('a6', 'entry-node', 2800, 425, 'Final Interview Panel', 250, 120, { instructions: 'Conduct 4-hour onsite interview loop. Record feedback from 4 interviewers.' });
+        addNode('a6', 'entry-node', 2900, 425, 'Final Interview Panel', 250, 120, { instructions: 'Conduct 4-hour onsite interview loop. Record feedback from 4 interviewers.' });
         
         // Decision
-        addNode('a7', 'offer-negotiator', 3150, 425, 'Decision Engine', 250, 120, { instructions: 'Synthesize feedback. Prepare offer for selected candidate. Negotiate up to 10% above base if pushed.' });
+        addNode('a7', 'offer-negotiator', 3250, 425, 'Decision Engine', 250, 120, { instructions: 'Synthesize feedback. Prepare offer for selected candidate. Negotiate up to 10% above base if pushed.' });
         
         // Selected Candidate
-        addNode('c3', 'candidate-node', 3500, 425, 'Sarah Chen (Selected)', 250, 120, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', role: 'AI Engineer', status: 'Offer Accepted' });
+        addNode('c3', 'candidate-node', 3600, 425, 'Sarah Chen (Selected)', 250, 120, { candidateName: 'Sarah Chen', fromLocation: 'Atlanta, GA', toLocation: 'New York, NY', role: 'AI Engineer', status: 'Offer Accepted' });
         
         // Onboarding
-        addNode('a9', 'entry-node', 3850, 425, 'Onboarding Coordinator', 250, 120, { instructions: 'Trigger all post-acceptance onboarding tasks across departments.' });
+        addNode('a9', 'entry-node', 3950, 425, 'Onboarding Coordinator', 250, 120, { instructions: 'Trigger all post-acceptance onboarding tasks across departments.' });
         
-        addNode('a10', 'word-doc', 4200, 200, 'Employee Handbook', 250, 120);
-        addNode('a11', 'sourcing-agent', 4200, 425, 'IT Equipment Provisioning', 250, 120, { instructions: 'Order 16-inch MacBook Pro M3 Max and 27-inch 4K Monitor. Ship to candidate home address.' });
-        addNode('a12', 'entry-node', 4200, 650, 'Background Check Agent', 250, 120, { instructions: 'Initiate standard background and reference check via API.' });
+        addNode('a10', 'word-doc', 4300, 200, 'Employee Handbook', 250, 120);
+        addNode('a11', 'sourcing-agent', 4300, 425, 'IT Equipment Provisioning', 250, 120, { instructions: 'Order 16-inch MacBook Pro M3 Max and 27-inch 4K Monitor. Ship to candidate home address.' });
+        addNode('a12', 'entry-node', 4300, 650, 'Background Check Agent', 250, 120, { instructions: 'Initiate standard background and reference check via API.' });
 
         // Edges
         addEdge('e1', 'a1', 'a3');
         addEdge('e2', 'a2', 'a3');
         
         // From Verifier to Rounds
-        addEdge('e3', 'a3', 'd_r1');
-        addEdge('e4', 'a3', 'd_r2');
-        addEdge('e5', 'a3', 'd_r3');
-        
-        addEdge('e6', 'a3', 's_r1');
-        addEdge('e7', 'a3', 's_r2');
-        addEdge('e8', 'a3', 's_r3');
+        addEdge('e3', 'a3', 'r1');
+        addEdge('e4', 'a3', 'r2');
+        addEdge('e5', 'a3', 'r3');
 
         // Rounds to Transcripts
-        addEdge('e_d1', 'd_r1', 'd_t1');
-        addEdge('e_d2', 'd_r2', 'd_t2');
-        addEdge('e_d3', 'd_r3', 'd_t3');
+        addEdge('e_d1', 'r1', 't1');
+        addEdge('e_d2', 'r2', 't2');
+        addEdge('e_d3', 'r3', 't3');
 
-        addEdge('e_s1', 's_r1', 's_t1');
-        addEdge('e_s2', 's_r2', 's_t2');
-        addEdge('e_s3', 's_r3', 's_t3');
-
-        // Transcripts to Candidate
-        addEdge('e_d4', 'd_t1', 'c1');
-        addEdge('e_d5', 'd_t2', 'c1');
-        addEdge('e_d6', 'd_t3', 'c1');
-
-        addEdge('e_s4', 's_t1', 'c2');
-        addEdge('e_s5', 's_t2', 'c2');
-        addEdge('e_s6', 's_t3', 'c2');
+        // Transcripts to Candidates
+        addEdge('e_c1a', 't1', 'c1');
+        addEdge('e_c1b', 't2', 'c1');
+        addEdge('e_c1c', 't3', 'c1');
+        
+        addEdge('e_c2a', 't1', 'c2');
+        addEdge('e_c2b', 't2', 'c2');
+        addEdge('e_c2c', 't3', 'c2');
         
         // Candidates to Concierge
         addEdge('e_c1', 'c1', 'o1');

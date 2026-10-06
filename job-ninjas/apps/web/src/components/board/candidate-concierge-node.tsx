@@ -83,7 +83,7 @@ function HotelCard({ hotel, recommended, selected, onSelect, onApprove, disabled
 }) {
   return (
     <div
-      onClick={onSelect}
+      onPointerDown={(e) => { e.stopPropagation(); if (onSelect) onSelect(); }}
       className={`rounded-xl border-2 overflow-hidden cursor-pointer transition-all ${
         selected ? 'border-violet-500 shadow-lg shadow-violet-500/20' :
         recommended ? 'border-violet-300' : 'border-slate-200 hover:border-slate-300'
@@ -128,7 +128,7 @@ function HotelCard({ hotel, recommended, selected, onSelect, onApprove, disabled
           {selected && (
             <button
               disabled={disabled}
-              onClick={(e) => { e.stopPropagation(); onApprove(); }}
+              onPointerDown={(e) => { e.stopPropagation(); onApprove(); }}
               className="text-[11px] bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1"
             >
               {disabled ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
@@ -472,7 +472,7 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
         {tabs.map(tab => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onPointerDown={(e) => { e.stopPropagation(); setActiveTab(tab); }}
             className={`px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide border-b-2 transition-colors ${
               activeTab === tab
                 ? 'border-violet-600 text-violet-700'
@@ -503,7 +503,7 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
               <p className="text-slate-400 text-sm">Waiting for a candidate to reach<br />Final Interview / Onsite Interview.</p>
             </div>
             <button
-              onClick={(e) => { e.stopPropagation(); updateLayer(layerId, { status: 'running' } as any); startConcierge(); }}
+              onPointerDown={(e) => { e.stopPropagation(); updateLayer(layerId, { status: 'running' } as any); startConcierge(); }}
               className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-bold px-6 py-2.5 rounded-xl transition-colors shadow-lg shadow-violet-500/25"
             >
               <Zap className="w-4 h-4" /> ✨ Arrange Onsite
@@ -553,7 +553,7 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
                     : `Analyzing Sarah's interview requirements and searching Ophelia for suitable accommodations...`}
                 </p>
                 {conciergeState === 'RESULTS_READY' && (
-                  <button onClick={() => setActiveTab('stay')} className="text-[11px] bg-violet-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
+                  <button onPointerDown={(e) => { e.stopPropagation(); setActiveTab('stay'); }} className="text-[11px] bg-violet-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
                     Review Hotels <ChevronRight className="w-3 h-3" />
                   </button>
                 )}
@@ -620,7 +620,7 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
                 <p className="text-[12px] text-slate-500">{SARAH.checkIn} → {SARAH.checkOut} • 1 guest • 1 room</p>
               </div>
               {conciergeState === 'RESULTS_READY' && (
-                <button onClick={() => startConcierge()} className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300">
+                <button onPointerDown={(e) => { e.stopPropagation(); startConcierge(); }} className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300">
                   <RefreshCw className="w-3 h-3" /> Refresh
                 </button>
               )}
@@ -689,10 +689,10 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
                           <div><p className="text-slate-500">Total</p><p className="font-bold text-violet-700">${selectedHotel.price}</p></div>
                         </div>
                         <div className="flex gap-2 mt-4">
-                          <button onClick={approveBooking} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[12px] py-2 rounded-lg flex items-center justify-center gap-1">
+                          <button onPointerDown={(e) => { e.stopPropagation(); approveBooking(); }} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[12px] py-2 rounded-lg flex items-center justify-center gap-1">
                             <Check className="w-4 h-4" /> Approve & Continue
                           </button>
-                          <button onClick={() => { setConciergeState('RESULTS_READY'); setSelectedHotelId(null); }} className="px-4 py-2 border border-amber-300 text-amber-700 font-bold text-[12px] rounded-lg hover:bg-amber-100">
+                          <button onPointerDown={(e) => { e.stopPropagation(); setConciergeState('RESULTS_READY'); setSelectedHotelId(null); }} className="px-4 py-2 border border-amber-300 text-amber-700 font-bold text-[12px] rounded-lg hover:bg-amber-100">
                             Choose Another
                           </button>
                         </div>
@@ -742,7 +742,7 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
                             <div><p className="text-slate-500">Total</p><p className="text-white font-bold">${selectedHotel.price}</p></div>
                           </div>
                         )}
-                        <button onClick={continueAfterPayment} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[12px] py-2 rounded-lg flex items-center justify-center gap-1">
+                        <button onPointerDown={(e) => { e.stopPropagation(); continueAfterPayment(); }} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[12px] py-2 rounded-lg flex items-center justify-center gap-1">
                           <DollarSign className="w-4 h-4" /> Continue to Payment
                         </button>
                       </div>
@@ -841,7 +841,7 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
           <div className="p-5">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-bold text-slate-900 text-[14px]">Activity Log</h4>
-              <button onClick={() => setShowApiDrawer(true)} className="flex items-center gap-1 text-[11px] text-violet-600 hover:text-violet-700 font-bold px-3 py-1.5 rounded-lg border border-violet-200 hover:border-violet-300">
+              <button onPointerDown={(e) => { e.stopPropagation(); setShowApiDrawer(true); }} className="flex items-center gap-1 text-[11px] text-violet-600 hover:text-violet-700 font-bold px-3 py-1.5 rounded-lg border border-violet-200 hover:border-violet-300">
                 <Code2 className="w-3 h-3" /> View API Details
               </button>
             </div>
@@ -883,7 +883,7 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
               <span className="text-white font-bold text-[13px]">OPHELIA API</span>
               <span className="bg-violet-900 text-violet-300 text-[10px] font-bold px-2 py-0.5 rounded">TEST / PRACTICE</span>
             </div>
-            <button onClick={() => setShowApiDrawer(false)} className="text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
+            <button onPointerDown={(e) => { e.stopPropagation(); setShowApiDrawer(false); }} className="text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
           </div>
           <div className="flex-1 overflow-y-auto p-5 space-y-3">
             {[
