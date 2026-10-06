@@ -516,20 +516,45 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: { layerId
               </div>
             )}
             {flightsState === 'FOUND' && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <h4 className="font-bold text-[16px]">Available Flights</h4>
                 {flights.map((f, i) => (
-                  <div key={f.id} className={`p-4 border rounded-xl flex items-center gap-4 bg-white ${i===0?'border-violet-500 shadow-sm':'border-slate-200'}`}>
-                    {f.logo && <img src={f.logo} className="w-10 h-10 rounded-full object-cover border border-slate-200" />}
-                    <div className="flex-1">
-                      <p className="font-bold">{f.airline}</p>
-                      <p className="text-sm text-slate-500">{f.time}</p>
-                      <p className="text-xs font-medium text-violet-600">{f.type} • {f.duration}</p>
+                  <div key={f.id} className={`p-4 border rounded-xl bg-white ${i===0?'border-violet-500 shadow-md ring-1 ring-violet-200':'border-slate-200'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{f.logo || '✈️'}</span>
+                        <div>
+                          <p className="font-bold text-[14px]">{f.airline}</p>
+                          <p className="text-[11px] text-slate-400">{f.flight} • {f.aircraft}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-xl text-slate-900">{f.price}</p>
+                        {i === 0 && <span className="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">BEST VALUE</span>}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-black text-lg">{f.price}</p>
-                      <button onPointerDown={(e) => { e.stopPropagation(); }} className="mt-1 bg-violet-100 text-violet-700 px-4 py-1 text-xs font-bold rounded-lg cursor-pointer pointer-events-auto hover:bg-violet-200">
-                        Select
+                    <div className="flex items-center gap-3 bg-slate-50 rounded-lg p-2 mb-2">
+                      <div className="text-center">
+                        <p className="font-black text-[13px]">{f.origin}</p>
+                        <p className="text-[10px] text-slate-400">Depart</p>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center">
+                        <p className="text-[10px] text-slate-500 font-medium">{f.duration}</p>
+                        <div className="w-full h-px bg-slate-300 relative my-1">
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                        </div>
+                        <p className="text-[10px] text-violet-600 font-bold">{f.type}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-black text-[13px]">{f.dest}</p>
+                        <p className="text-[10px] text-slate-400">Arrive</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] text-slate-500">{f.time} • {f.cabin} • Gate {f.gate}</p>
+                      <button onPointerDown={(e) => { e.stopPropagation(); }} className="bg-violet-600 text-white px-4 py-1.5 text-[11px] font-bold rounded-lg cursor-pointer pointer-events-auto hover:bg-violet-700 transition-colors">
+                        Select Flight
                       </button>
                     </div>
                   </div>
@@ -561,19 +586,29 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: { layerId
               </div>
             )}
             {diningState === 'FOUND' && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-[16px]">Dining Options</h4>
+              <div className="space-y-3">
+                <h4 className="font-bold text-[16px]">Dining Options Near Office</h4>
                 {diningOptions.map((d, i) => (
-                  <div key={d.id} className={`p-4 border rounded-xl flex items-center gap-4 bg-white ${i===0?'border-violet-500 shadow-sm':'border-slate-200'}`}>
-                    {d.image && <img src={d.image} className="w-16 h-16 rounded-lg object-cover border border-slate-200" />}
-                    <div className="flex-1">
-                      <p className="font-bold">{d.name}</p>
-                      <p className="text-sm text-slate-500">{d.type}</p>
-                      <p className="text-xs font-medium text-violet-600">★ {d.rating} • {d.dist}</p>
+                  <div key={d.id} className={`border rounded-xl overflow-hidden bg-white ${i===0?'border-violet-500 shadow-md ring-1 ring-violet-200':'border-slate-200'}`}>
+                    {d.image && <img src={d.image} className="w-full h-28 object-cover" />}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-1">
+                        <div>
+                          <p className="font-bold text-[14px]">{d.name}</p>
+                          <p className="text-[11px] text-slate-500">{d.type}</p>
+                        </div>
+                        {i === 0 && <span className="text-[9px] bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-bold shrink-0">TOP PICK</span>}
+                      </div>
+                      <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-2">
+                        <span className="font-bold text-amber-500">★ {d.rating}</span>
+                        <span>{d.reviews} reviews</span>
+                        <span>{d.dist}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">{d.address} • {d.hours}</p>
+                      <button onPointerDown={(e) => { e.stopPropagation(); }} className="mt-3 w-full bg-violet-600 text-white py-2 text-[11px] font-bold rounded-lg cursor-pointer pointer-events-auto hover:bg-violet-700 transition-colors">
+                        Reserve Table
+                      </button>
                     </div>
-                    <button onPointerDown={(e) => { e.stopPropagation(); }} className="bg-violet-100 text-violet-700 px-4 py-2 text-xs font-bold rounded-lg cursor-pointer pointer-events-auto hover:bg-violet-200">
-                      Reserve
-                    </button>
                   </div>
                 ))}
               </div>
