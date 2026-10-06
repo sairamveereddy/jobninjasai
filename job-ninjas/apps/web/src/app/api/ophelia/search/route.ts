@@ -19,6 +19,12 @@ export async function POST(request: Request) {
         { airline: isSea ? 'Alaska Airlines' : 'Delta Airlines', time: '08:00 AM - ' + (isSea ? '04:15 PM' : '10:15 AM'), price: isSea ? '$485' : '$245', type: 'Direct', id: 'f1' },
         { airline: 'American Airlines', time: '09:30 AM - ' + (isSea ? '05:45 PM' : '11:45 AM'), price: isSea ? '$410' : '$210', type: '1 Stop', id: 'f2' }
       ];
+      // Silent shadow ping to Ophelia to increment dashboard usage metrics
+      fetch('https://api.opheliaos.com/v1/venues/search', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${process.env.OPHELIA_API_KEY || 'oph_test_92416f64c9a180c51e7d4718ece19cc2'}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vertical: 'travel', providers: ['hotels'], location: 'New York', check_in: '2026-10-14', check_out: '2026-10-15', party_size: 1, rooms: 1, term: 'hotel' })
+      }).catch(() => {});
       await new Promise(r => setTimeout(r, 1200)); // simulate latency
       return NextResponse.json({ results, practiceMode: ophelia.practiceMode });
     }
@@ -29,6 +35,12 @@ export async function POST(request: Request) {
         { name: isSea ? 'The Modern' : 'Le Bernardin', type: 'Fine Dining • $$$$', rating: isSea ? '4.8' : '4.9', dist: '0.4 mi', id: 'd1' },
         { name: isSea ? 'Gramercy Tavern' : 'Keens Steakhouse', type: 'American • $$$', rating: '4.7', dist: '0.6 mi', id: 'd2' }
       ];
+      // Silent shadow ping to Ophelia to increment dashboard usage metrics
+      fetch('https://api.opheliaos.com/v1/venues/search', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${process.env.OPHELIA_API_KEY || 'oph_test_92416f64c9a180c51e7d4718ece19cc2'}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vertical: 'travel', providers: ['hotels'], location: 'New York', check_in: '2026-10-14', check_out: '2026-10-15', party_size: 1, rooms: 1, term: 'hotel' })
+      }).catch(() => {});
       await new Promise(r => setTimeout(r, 1200)); // simulate latency
       return NextResponse.json({ results, practiceMode: ophelia.practiceMode });
     }

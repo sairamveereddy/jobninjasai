@@ -4,7 +4,7 @@ import { OpheliaSearchRequest, OpheliaHotelOption, OpheliaBookingConfirmation, O
 // For the hackathon, the client runs in DEMO_MODE using Ophelia's practice environment.
 // This abstracts the boundary cleanly so live mode can be enabled with env vars.
 
-const DEMO_MODE = true; // Ophelia practice environment for hackathon
+const DEMO_MODE = false; // Ophelia practice environment for hackathon
 
 const OPHELIA_TEST_KEY = process.env.OPHELIA_API_KEY || 'oph_test_92416f64c9a180c51e7d4718ece19cc2';
 const OPHELIA_BASE_URL = 'https://api.opheliaos.com/v1';
