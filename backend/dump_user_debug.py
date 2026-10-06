@@ -10,7 +10,7 @@ load_dotenv()
 async def dump_user(email):
     mongo_url = os.getenv("MONGO_URL")
     client = AsyncIOMotorClient(mongo_url)
-    db = client[os.getenv("DB_NAME", "novaninjas")]
+    db = client[os.getenv("DB_NAME", "jobninjas")]
     
     user = await db.users.find_one({"email": email})
     if not user:

@@ -2,7 +2,7 @@ import requests
 import json
 
 def test_prod_checkout():
-    url = "https://nova-ninjas-production.up.railway.app/api/dodo-checkout"
+    url = "https://jobninjas-production.up.railway.app/api/dodo-checkout"
     payload = {"plan_id": "ai-yearly"}
     
     # Try without token first to see if it gives 401

@@ -1,7 +1,7 @@
 import requests
 import time
 
-url = "https://nova-ninjas-production.up.railway.app/api/jobs/refresh"
+url = "https://jobninjas-production.up.railway.app/api/jobs/refresh"
 
 print(f"Triggering job refresh at {url}...")
 try:

@@ -29,7 +29,7 @@ class ErrorBoundary extends React.Component {
             // You can render any custom fallback UI
             return (
                 <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-                    <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8 text-center">
+                    <div className="max-w-md w-full bg-[#faf9ff] rounded-lg shadow-xl p-8 text-center">
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertTriangle className="w-8 h-8 text-red-600" />
                         </div>
@@ -48,7 +48,7 @@ class ErrorBoundary extends React.Component {
                             <Button onClick={() => window.location.href = '/'} variant="outline">
                                 Go Home
                             </Button>
-                            <Button onClick={this.handleReload} className="bg-primary text-white">
+                            <Button onClick={this.handleReload} className="bg-primary text-[var(--text-main)]">
                                 <RefreshCw className="w-4 h-4 mr-2" />
                                 Reload Page
                             </Button>

@@ -21,9 +21,9 @@ Go to **Products** → **Add product**
 
 | Product Name | Price | Applications | Billing |
 |-------------|-------|--------------|---------|
-| Nova Ninjas - Starter | $399 | 400/month | Monthly |
-| Nova Ninjas - Pro | $499 | 500/month | Monthly |
-| Nova Ninjas - Urgent | $599 | 600/month | Monthly |
+| JobNinjas - Starter | $399 | 400/month | Monthly |
+| JobNinjas - Pro | $499 | 500/month | Monthly |
+| JobNinjas - Urgent | $599 | 600/month | Monthly |
 
 **After creating each product, copy the Price ID** (starts with `price_...`)
 

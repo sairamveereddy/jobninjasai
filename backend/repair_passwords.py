@@ -10,7 +10,7 @@ async def repair():
     # Mongo connection
     mongo_url = os.environ.get('MONGO_URL')
     mongo_client = AsyncIOMotorClient(mongo_url, tlsAllowInvalidCertificates=True)
-    db = mongo_client[os.environ.get('DB_NAME', 'novaninjas')]
+    db = mongo_client[os.environ.get('DB_NAME', 'jobninjas')]
     
     # Supabase connection
     sb_url = os.environ.get('SUPABASE_URL')

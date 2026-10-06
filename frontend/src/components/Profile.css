@@ -1,0 +1,25 @@
+/* ═══════════════════════════════════════════════════
+   Profile Dashboard — Light Theme Redesign
+   ═══════════════════════════════════════════════════ */
+
+.btn-premium-primary {
+  @apply bg-[#5B5FC7] text-white shadow-lg hover:bg-[#6B6FD4] hover:shadow-[#5B5FC7]/20 transition-all duration-200 active:scale-95;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.profile-input-dark {
+  @apply bg-[#faf9ff] border border-[#5B5FC7]/10 rounded-xl px-5 py-3 text-sm font-light text-[#1b1b3a] focus:outline-none focus:ring-1 focus:ring-[#5B5FC7]/40 focus:bg-[#eeeafc] transition-all;
+}
+
+.profile-card-dark {
+  @apply bg-[#eeeafc] border border-black/5 rounded-2xl shadow-xl;
+}
+
+/* Tab indicator highlight */
+[data-active="true"] {
+  @apply text-[#1b1b3a];
+}
+
+[data-active="false"] {
+  @apply text-[#5c5c7a] hover:text-[#1b1b3a];
+}

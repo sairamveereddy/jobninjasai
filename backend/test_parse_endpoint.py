@@ -1,11 +1,11 @@
 import requests
+import server
 
-# Test the /api/scan/parse endpoint
+token = server.create_access_token({"sub": "srkreddy452@gmail.com"})
 url = "http://127.0.0.1:8000/api/scan/parse"
-headers = {"token": "test_token"}
+headers = {"token": token}
 
-# Create a dummy file
-files = {"resume": ("test.txt", b"Test resume content", "text/plain")}
+files = {"resume": ("dummy.txt", b"Test resume content", "text/plain")}
 
 try:
     response = requests.post(url, headers=headers, files=files)

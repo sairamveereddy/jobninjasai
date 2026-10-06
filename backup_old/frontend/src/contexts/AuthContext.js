@@ -1,0 +1,211 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Amplify } from 'aws-amplify';
+import { API_URL } from '../config/api';
+
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: process.env.REACT_APP_USER_POOL_ID,
+      userPoolClientId: process.env.REACT_APP_USER_POOL_CLIENT_ID,
+    }
+  }
+});
+
+const AuthContext = createContext();
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Refresh user data (useful after email verification or plan upgrade)
+  const refreshUser = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        headers: { 'token': token }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('user_data', JSON.stringify(data.user));
+        setUser(data.user);
+        return data.user;
+      }
+    } catch (error) {
+      console.error('Refresh user error:', error);
+    }
+  };
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('auth_token');
+      const userData = localStorage.getItem('user_data');
+
+      // Set user immediately if we have cached data to prevent flicker
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (e) {
+          console.error('Failed to parse cached user data:', e);
+        }
+      }
+
+      if (token && userData) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+          const response = await fetch(`${API_URL}/api/auth/me`, {
+            headers: { 'token': token },
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            setUser(null);
+          } else if (response.ok) {
+            const data = await response.json();
+            setUser(data.user || data);
+            if (data.user) {
+              localStorage.setItem('user_data', JSON.stringify(data.user));
+            }
+          }
+          // If server is slow/down (not 401/403/ok), we keep the local state set above
+        } catch (e) {
+          console.error('Auth verification error:', e);
+          // Keep local state on network error
+        }
+      } else {
+        setLoading(false);
+      }
+
+      setLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
+  // Login function - calls backend API or Cognito
+  const login = async (email, password, turnstileToken) => {
+    // Check if Cognito is enabled
+    const useCognito = process.env.REACT_APP_USE_COGNITO === 'true';
+    
+    if (useCognito) {
+      try {
+        const { signIn } = await import('aws-amplify/auth');
+        const output = await signIn({ username: email, password });
+        // After Cognito login, we still sync with our backend for session
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, cognito_session: output, turnstile_token: turnstileToken })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'Backend sync failed');
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('user_data', JSON.stringify(data.user));
+        setUser(data.user);
+        return { success: true, user: data.user };
+      } catch (error) {
+        console.error('Cognito login error:', error);
+        throw error;
+      }
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, turnstile_token: turnstileToken })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Login failed');
+      }
+
+      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('user_data', JSON.stringify(data.user));
+      setUser(data.user);
+
+      return { success: true, user: data.user };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  };
+
+  // Signup function - calls backend API and sends welcome email
+  const signup = async (email, password, name, referralCode, turnstileToken) => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name, referral_code: referralCode, turnstile_token: turnstileToken })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Signup failed');
+      }
+
+      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('user_data', JSON.stringify(data.user));
+      setUser(data.user);
+
+      return { success: true, user: data.user };
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    }
+  };
+
+  // Logout function
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
+    setUser(null);
+  };
+
+  const value = {
+    user,
+    loading,
+    isAuthenticated: !!user,
+    login,
+    googleLogin: (userData, token) => {
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('user_data', JSON.stringify(userData));
+      setUser(userData);
+    },
+    signup,
+    logout,
+    refreshUser
+  };
+
+  // Derived state
+  const hasActiveSubscription = user?.subscription_status === 'active' || user?.plan === 'unlimited' || user?.plan === 'pro' || user?.plan === 'ai-yearly'
+    || user?.role === 'admin' || user?.role === 'employee' || user?.is_admin === true;
+  const isTrialActive = user?.subscription_status === 'trial' && new Date(user?.trial_expires_at) > new Date();
+
+  const contextValue = {
+    ...value,
+    hasActiveSubscription,
+    isTrialActive
+  };
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+};

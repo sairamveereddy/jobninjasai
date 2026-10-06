@@ -1,4 +1,4 @@
-# Nova Ninjas - Complete Project Documentation
+# JobNinjas - Complete Project Documentation
 
 **A Human-Powered Job Application Service Platform**
 
@@ -30,7 +30,7 @@ Last Updated: November 2025
 
 ## 📖 Project Overview
 
-**Nova Ninjas** is a full-stack SaaS application that provides human-powered job application services. Unlike AI bots, Nova Ninjas uses real specialists to apply to 20-40 jobs per day on behalf of job seekers in the US.
+**JobNinjas** is a full-stack SaaS application that provides human-powered job application services. Unlike AI bots, JobNinjas uses real specialists to apply to 20-40 jobs per day on behalf of job seekers in the US.
 
 ### Key Value Proposition
 - **Human specialists** (not bots) apply to jobs
@@ -130,7 +130,7 @@ Last Updated: November 2025
 ├── frontend/                      # React application
 │   ├── public/
 │   │   ├── index.html            # Main HTML with meta tags
-│   │   └── logo.png              # Nova Ninjas logo
+│   │   └── logo.png              # JobNinjas logo
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── ui/               # shadcn/ui components
@@ -785,8 +785,8 @@ sudo supervisorctl status
 
 ## 📄 License
 
-Proprietary - Nova Ninjas  
-© 2025 Nova Ninjas. All rights reserved.
+Proprietary - JobNinjas  
+© 2025 JobNinjas. All rights reserved.
 
 ---
 
@@ -807,8 +807,8 @@ Proprietary - Nova Ninjas
 ---
 
 **Last Updated**: November 27, 2025  
-**Maintained By**: Nova Ninjas Development Team  
-**Contact**: support@novaninjas.com (placeholder)
+**Maintained By**: JobNinjas Development Team  
+**Contact**: support@jobninjas.com (placeholder)
 
 ---
 

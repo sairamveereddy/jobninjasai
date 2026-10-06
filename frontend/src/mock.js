@@ -1,4 +1,4 @@
-// Mock data for Job Ninjas landing page
+// Mock data for JobNinjas landing page
 import { BRAND } from './config/branding';
 
 export const heroStats = {
@@ -11,41 +11,41 @@ export const heroStats = {
 export const whyDifferent = [
   {
     id: 1,
-    title: "Your Dedicated Ninja",
-    description: "You get assigned a personal Job Ninja — a real human specialist dedicated to your job search. They know your goals, your strengths, and apply with precision."
+    title: "AI-Powered Strategy",
+    description: "Our AI analyzes job descriptions and your profile to create the perfect application strategy, ensuring you stand out in the applicant tracking systems."
   },
   {
     id: 2,
-    title: "Ninja Speed + AI Power",
-    description: "Your Ninja uses AI to analyze jobs and tailor applications lightning-fast. But every decision and submission is made by your human Ninja — never a bot."
+    title: "Lightning Fast Tailoring",
+    description: "Automatically generate customized resumes, cover letters, and application answers in seconds. No more spending hours on a single application."
   },
   {
     id: 3,
-    title: "Accurate, Not Spammy",
-    description: "Ninjas don't spray-and-pray. We focus on strategic, targeted applications that actually get you interviews and protect your professional reputation."
+    title: "Data-Driven Insights",
+    description: "Get real-time feedback on your job search performance and interview readiness with our advanced performance analytics and reporting."
   },
   {
     id: 4,
-    title: "Full Transparency",
-    description: "Track your Ninja's progress in real-time through your dashboard. See every application, every status update, every win."
+    title: "Personalized Career Roadmaps",
+    description: "Your AI Ninja builds a custom roadmap tailored to your career goals, helping you focus on the skills and roles that matter most."
   }
 ];
 
 export const servicesOffered = [
-  "Your personal Ninja applies to jobs daily",
-  "AI-powered tailoring for speed & accuracy",
-  "Real-time Ninja activity dashboard",
-  "Weekly progress reports from your Ninja",
-  "Interview preparation resources",
-  "Direct communication with your dedicated Ninja"
+  "AI-powered resume and cover letter tailoring",
+  "Automated application filling and tracking",
+  "Real-time interview preparation and practice",
+  "Personalized career roadmaps and goal setting",
+  "Daily job search performance analytics",
+  "Direct roadmap refinement from AI coaching"
 ];
 
 export const whyChooseUs = [
-  "92% success rate within 3 months",
-  "Human specialists, not AI bots",
-  "Transparent real-time dashboard",
-  "Flexible plans for every budget",
-  "Cancel anytime, no lock-in"
+  "92% success rate in landing interviews",
+  "Advanced AI-powered application tailoring",
+  "Real-time progress tracking dashboard",
+  "Flexible plans for every career stage",
+  "Cancel anytime, no long-term contracts"
 ];
 
 export const testimonials = [
@@ -55,7 +55,7 @@ export const testimonials = [
     role: "Software Engineer",
     before: "Unemployed for 4 months",
     after: "Senior Developer at Fortune 500",
-    quote: "Job Ninjas transformed my job search. I was spending 4 hours daily applying to jobs with no results. Within 6 weeks of using their service, I had 5 interviews and 2 offers.",
+    quote: "JobNinjas transformed my job search. I was spending 4 hours daily applying to jobs with no results. Within 6 weeks of using their service, I had 5 interviews and 2 offers.",
     rating: 5
   },
   {
@@ -73,7 +73,7 @@ export const testimonials = [
     role: "Data Analyst",
     before: "H1B visa holder, 60 days to find job",
     after: "Secured role in 5 weeks",
-    quote: "With my visa timeline, I couldn't afford to waste time. Job Ninjas understood the urgency and delivered. I'm now working at a company that sponsored my visa.",
+    quote: "With my visa timeline, I couldn't afford to waste time. JobNinjas understood the urgency and delivered. I'm now working at a company that sponsored my visa.",
     rating: 5
   }
 ];
@@ -99,50 +99,50 @@ export const targetUsers = [
 export const howItWorksSteps = [
   {
     id: 1,
-    title: "Tell us your goals",
-    description: "Share your resume, LinkedIn, preferred roles, locations, and salary expectations. Your Ninja gets to know exactly what you're looking for."
+    title: "Define Your Career Goals",
+    description: "Upload your resume and share your target roles, locations, and salary expectations. Your AI Ninja analyzes your profile to build your strategy."
   },
   {
     id: 2,
-    title: "Get assigned your Ninja",
-    description: "You're matched with a dedicated Job Ninja — a real human specialist who becomes your personal application warrior. They use AI to find and analyze the best opportunities."
+    title: "Activate Your AI Ninja",
+    description: "Your AI Ninja starts analyzing thousands of job openings to find the best matches and builds a personalized career roadmap for you."
   },
   {
     id: 3,
-    title: "Your Ninja applies for you",
-    description: "Your Ninja customizes and submits each application with speed and precision. AI helps them tailor faster, but your Ninja personally reviews and submits every one."
+    title: "Automate Your Applications",
+    description: "Use our AI tools to lightning-fast tailor every resume and cover letter. Track your progress and get immediate feedback on every application."
   },
   {
     id: 4,
-    title: "Track & crush interviews",
-    description: "Watch your Ninja's progress in real-time on your dashboard. You focus on skill-building, networking, and crushing those interviews."
+    title: "Crush Your Interviews",
+    description: "Practice with our AI interview prep tools, track your session performance, and walk into every interview with confidence."
   }
 ];
 
 export const comparisonData = [
   {
-    feature: "Humans read & understand job descriptions",
-    jobNinjas: true,
+    feature: "Advanced AI job description analysis",
+    jobninjas: true,
     aiBots: false
   },
   {
-    feature: "No spammy mass-apply bots",
-    jobNinjas: true,
+    feature: "Strategic, non-spammy application tailoring",
+    jobninjas: true,
     aiBots: false
   },
   {
-    feature: "AI-enhanced tailoring, human decisions",
-    jobNinjas: true,
+    feature: "Personalized career roadmap & goal tracking",
+    jobninjas: true,
     aiBots: false
   },
   {
-    feature: "Real human accountability & support",
-    jobNinjas: true,
+    feature: "AI-powered interview prep & performance feedback",
+    jobninjas: true,
     aiBots: false
   },
   {
-    feature: "Human judgment on every submission",
-    jobNinjas: true,
+    feature: "Full control over every application submission",
+    jobninjas: true,
     aiBots: false
   }
 ];
@@ -178,43 +178,43 @@ export const faqData = [
   {
     id: 1,
     question: "Do you guarantee a job?",
-    answer: "No, we don't guarantee job offers. What we do guarantee is high-volume, high-quality applications that dramatically increase your chances. We handle the repetitive grind so you can focus on interview preparation and skill-building, which are the real keys to landing offers."
+    answer: "While we don't guarantee job offers, we guarantee a dramatically more efficient and strategic job search. We automate the repetitive grind so you can focus on interview performance and networking, which are the real keys to landing offers."
   },
   {
     id: 2,
-    question: "Who is actually applying to jobs?",
-    answer: "Real people on our team - not bots. Our application specialists are trained professionals who understand the nuances of job searching. They read full job descriptions, tailor applications, and ensure every submission reflects your unique value proposition."
+    question: "How does the AI tailoring work?",
+    answer: "Our AI analyzes job descriptions in real-time and identifies key requirements. It then maps your experience to those requirements, helping you generate perfectly tailored resumes and cover letters for every single application."
   },
   {
     id: 3,
-    question: "Will you use my existing resume and LinkedIn?",
-    answer: "Yes! We work with your current resume and LinkedIn profile. If you'd like suggestions for improvements, our team can provide feedback, but we always use the materials you're comfortable with. Your personal brand stays authentic."
+    question: "Will you apply to jobs automatically for me?",
+    answer: "Our tools are designed to automate the heavy lifting of tailoring and form-filling. You maintain control over which roles to apply for, while our AI Ninja handles the time-consuming process of preparation and tracking."
   },
   {
     id: 4,
     question: "Which countries do you support?",
-    answer: "Currently, we focus on US-based job seekers applying to roles in the United States. This allows us to deeply understand the job market, application platforms, and employer expectations in this region."
+    answer: "Currently, our platform is optimized for the US job market, helping job seekers navigate US-based application platforms and employer expectations."
   },
   {
     id: 5,
-    question: "How do you handle my login details and data privacy?",
-    answer: "We take privacy seriously. We use secure, encrypted systems to store any credentials. You can also use single sign-on options where available. We never share your data with third parties, and you maintain full control over your accounts at all times."
+    question: "Is my data secure?",
+    answer: "Yes, we prioritize your data security. Your resumes and profile information are encrypted and stored securely. We never share your personal information with third parties without your explicit consent."
   },
   {
     id: 6,
     question: "How quickly will I see results?",
-    answer: "Most clients start seeing interview requests within 2-4 weeks. The timeline depends on factors like your industry, experience level, and market conditions. What we eliminate immediately is the time-consuming application process, freeing you to focus on interview prep from day one."
+    answer: "Most users start landing more interview requests within 2-4 weeks of using our AI-powered tailoring. By ensuring every application is high-quality, you significantly increase your conversion rate from application to interview."
   },
   {
     id: 7,
-    question: "Can I pause or cancel my subscription?",
-    answer: "Absolutely. You can pause your service anytime if you need a break or have interviews scheduled. If you land a job or need to cancel, just let us know. No long-term contracts or hidden fees."
+    question: "Can I cancel my subscription anytime?",
+    answer: "Absolutely. Our monthly subscriptions are flexible. You can cancel anytime from your dashboard with a single click. No hidden fees or long-term commitments."
   }
 ];
 
 export const aboutContent = {
   title: `Why we started ${BRAND.name}`,
-  story: `We started ${BRAND.name} because we saw too many talented people stuck in the exhausting cycle of job applications. That's why we created Job Ninjas — dedicated human specialists who become your personal application warriors. Each Ninja uses AI to work faster and smarter, analyzing job descriptions and tailoring your applications with precision. But unlike bots, your Ninja makes every decision and submits every application personally. We never mass-apply or spam recruiters. Your Ninja protects your reputation while maximizing your opportunities. By handling the high-volume application grind, your Ninja frees you to do what actually gets you hired: building relationships and crushing interviews.`
+  story: `We started ${BRAND.name} because we saw too many talented people stuck in the exhausting cycle of manual job applications. That's why we created AI Ninja — your personal career automation partner. Our platform uses advanced AI to analyze job descriptions and tailor your applications with precision, helping you stand out in competitive markets. We never mass-apply or spam recruiters. Instead, we empower you with the tools and insights needed to land your dream job faster, while you focus on what actually gets you hired: building relationships and crushing interviews.`
 };
 
 // ============================================
@@ -375,7 +375,7 @@ export const aiNinjaFAQ = [
   {
     id: 1,
     question: "Do you log into company portals and apply for me?",
-    answer: "No. AI Ninja generates tailored resumes, cover letters, and suggested answers for each job. You stay in control of your accounts and final submission. If you want fully done-for-you applying, that's what Human Ninja is for."
+    answer: "Our AI generates high-quality resumes, cover letters, and suggested answers for each job based on the job description. You review the generated materials and stay in full control of the final submission process."
   },
   {
     id: 2,

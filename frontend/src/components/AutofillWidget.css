@@ -167,7 +167,7 @@
 .header-title {
     font-weight: 700;
     font-size: 18px;
-    color: #1a1a2e;
+    color: #1b1b3a;
 }
 
 .header-actions {
@@ -336,7 +336,7 @@
 .credits-display span {
     font-size: 13px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: #1b1b3a;
     text-decoration: underline;
 }
 
@@ -350,7 +350,7 @@
     display: block;
     font-size: 14px;
     font-weight: 700;
-    color: #1a1a2e;
+    color: #1b1b3a;
     margin-bottom: 12px;
 }
 
@@ -399,7 +399,7 @@
 
 .completion-labels span:first-child {
     font-weight: 700;
-    color: #1a1a2e;
+    color: #1b1b3a;
 }
 
 .completion-pct {

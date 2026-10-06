@@ -15,7 +15,7 @@ async def test_rss():
     load_dotenv('backend/.env')
     
     mongo_url = os.environ.get('MONGO_URL')
-    db_name = os.environ.get('DB_NAME', 'novaninjas')
+    db_name = os.environ.get('DB_NAME', 'jobninjas')
     
     if not mongo_url:
         print("Error: MONGO_URL not found in .env")

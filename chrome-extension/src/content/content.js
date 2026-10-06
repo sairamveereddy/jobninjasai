@@ -307,7 +307,7 @@ let currentSidebarUser = null;
 let currentSidebarToken = null;
 let sidebarAuthInterval = null;
 
-const API_BASE_URL = 'https://nova-ninjas-production.up.railway.app';
+const API_BASE_URL = 'https://jobninjas-production.up.railway.app';
 
 function injectNinjaSidebar() {
     if (window.top !== window.self) return; // Prevent multiple sidebars in iframes

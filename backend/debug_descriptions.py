@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MONGO_URL = os.getenv("MONGO_URL", "mongodb+srv://novaninjas:auF8nRrqAorEwN5v@cluster0.lb7o5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+MONGO_URL = os.getenv("MONGO_URL", "mongodb+srv://jobninjas:auF8nRrqAorEwN5v@cluster0.lb7o5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 client = MongoClient(MONGO_URL)
-db = client["nova-ninjas"]
+db = client["jobninjas"]
 
 print("--- ASHBY JOB ---")
 ashby_job = db.jobs.find_one({"source": "ashby"})

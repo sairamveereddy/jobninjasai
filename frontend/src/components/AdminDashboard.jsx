@@ -25,8 +25,7 @@ import {
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import CallBookingsTable from './CallBookingsTable';
-import ContactMessagesTable from './ContactMessagesTable';
+// Legacy tables removed to resolve build errors
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -130,7 +129,7 @@ const AdminDashboardContent = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border">
+            <div className="flex justify-between items-center bg-[#faf9ff] p-6 rounded-xl shadow-sm border">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-gray-900">Admin Overview</h2>
                     <p className="text-muted-foreground mt-1">Manage users, track growth, and monitor platform usage.</p>
@@ -336,10 +335,10 @@ const AdminDashboardContent = () => {
                             <CardTitle className="text-indigo-900">Admin Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            <Button variant="outline" className="w-full justify-start bg-white hover:bg-indigo-50 border-indigo-200 text-indigo-700">
+                            <Button variant="outline" className="w-full justify-start bg-[#faf9ff] hover:bg-indigo-50 border-indigo-200 text-indigo-700">
                                 <FileText className="mr-2 h-4 w-4" /> Export All Users CSV
                             </Button>
-                            <Button variant="outline" className="w-full justify-start bg-white hover:bg-indigo-50 border-indigo-200 text-indigo-700">
+                            <Button variant="outline" className="w-full justify-start bg-[#faf9ff] hover:bg-indigo-50 border-indigo-200 text-indigo-700">
                                 <Send className="mr-2 h-4 w-4" /> Send Bulk Email
                             </Button>
                         </CardContent>

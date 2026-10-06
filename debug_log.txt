@@ -1,0 +1,24 @@
+
+--- PARSE RESUME 2026-04-16 09:15:39.505110 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 13373
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction for srkreddy452@gmail.com...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-04-16 11:14:42.921863 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 13373
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction for srkreddy452@gmail.com...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']

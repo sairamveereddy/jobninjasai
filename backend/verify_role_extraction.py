@@ -17,7 +17,7 @@ load_dotenv()
 async def verify_extraction():
     mongo_url = os.getenv("MONGO_URL")
     client = AsyncIOMotorClient(mongo_url)
-    db = client[os.getenv("DB_NAME", "novaninjas")]
+    db = client[os.getenv("DB_NAME", "jobninjas")]
     
     email = "srkreddy452@gmail.com"
     print(f"--- VERIFYING EXTRACTION FOR {email} ---")

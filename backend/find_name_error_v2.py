@@ -73,7 +73,7 @@ def find_job_title_name_error(filepath):
     return visitor.errors
 
 if __name__ == "__main__":
-    backend_dir = r"c:\Users\vsair\Downloads\novasquar-main\novasquad-main\nova-ninjas\backend"
+    backend_dir = r"c:\Users\vsair\Downloads\novasquar-main\novasquad-main\jobninjas\backend"
     for root, dirs, files in os.walk(backend_dir):
         for file in files:
             if file.endswith('.py'):

@@ -12,7 +12,7 @@ const UpgradeModal = ({ tier, limit, resetDate, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] px-4">
-            <Card className="max-w-md w-full p-6 relative shadow-2xl">
+            <Card className="max-w-md w-full p-6 relative shadow-xl">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -80,7 +80,7 @@ const UpgradeModal = ({ tier, limit, resetDate, onClose }) => {
                 </div>
 
                 <Button
-                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-200 transition-all border-none"
+                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-[var(--text-main)] font-bold text-lg rounded-xl shadow-lg shadow-blue-200 transition-all border-none"
                     onClick={() => {
                         onClose();
                         navigate('/pricing');

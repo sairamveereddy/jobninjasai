@@ -6,18 +6,15 @@ import {
 import { BRAND } from '../config/branding';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import Header from './Header';
-import SideMenu from './SideMenu';
+// SideMenu and Header removed
 
 const RefundPolicy = () => {
     const navigate = useNavigate();
-    const [sideMenuOpen, setSideMenuOpen] = useState(false);
     const EFFECTIVE_DATE = 'February 24, 2026';
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <SideMenu isOpen={sideMenuOpen} onClose={() => setSideMenuOpen(false)} />
-            <Header onMenuClick={() => setSideMenuOpen(true)} />
+        <div className="min-h-screen bg-transparent flex flex-col">
+            {/* Navigation handled by Back button */}
 
             <main className="flex-grow container mx-auto px-4 py-12 max-w-4xl">
                 <button
@@ -45,23 +42,23 @@ const RefundPolicy = () => {
                     <div className="grid md:grid-cols-3 gap-4">
                         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center">
                             <CheckCircle className="w-7 h-7 text-blue-600 mx-auto mb-2" />
-                            <p className="font-bold text-blue-800 text-sm">Free for 1 Week</p>
-                            <p className="text-blue-700 text-xs mt-1">Try the full platform free — 20 jobs/day, no card required.</p>
+                            <p className="font-bold text-blue-800 text-sm">Free Trial</p>
+                            <p className="text-blue-700 text-xs mt-1">Try the platform free to evaluate our AI tools before subscribing.</p>
                         </div>
                         <div className="bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
                             <DollarSign className="w-7 h-7 text-green-600 mx-auto mb-2" />
-                            <p className="font-bold text-green-800 text-sm">$50 / Year — One-Time</p>
-                            <p className="text-green-700 text-xs mt-1">Not a subscription. Pay once, use for 12 months. No auto-renewal.</p>
+                            <p className="font-bold text-green-800 text-sm">Monthly Plans</p>
+                            <p className="text-green-700 text-xs mt-1">Starting at $15/month. Cancel anytime from your dashboard.</p>
                         </div>
                         <div className="bg-red-50 border border-red-200 rounded-2xl p-5 text-center">
                             <XCircle className="w-7 h-7 text-red-500 mx-auto mb-2" />
                             <p className="font-bold text-red-800 text-sm">No Refunds</p>
-                            <p className="text-red-700 text-xs mt-1">All purchases are final. You had 2 free weeks to evaluate the platform.</p>
+                            <p className="text-red-700 text-xs mt-1">All subscription payments are final. No refunds for partial months.</p>
                         </div>
                     </div>
 
                     {/* Main Policy Card */}
-                    <Card className="p-8 border-none shadow-xl bg-white/80 backdrop-blur-sm">
+                    <Card className="p-8 border-none shadow-xl bg-[#faf9ff]/80 backdrop-blur-sm">
 
                         <section className="mb-8">
                             <div className="flex items-center gap-3 mb-4">
@@ -69,14 +66,14 @@ const RefundPolicy = () => {
                                 <h2 className="text-2xl font-semibold text-gray-800">How Our Pricing Works</h2>
                             </div>
                             <p className="text-gray-600 leading-relaxed mb-4">
-                                {BRAND.name} offers a <strong>14-day free trial</strong> when you sign up — no credit card required. During your trial, you get up to <strong>20 job applications per day</strong> using our AI tools.
+                                {BRAND.name} provides AI-powered job search automation through monthly subscription tiers. We offer a free evaluation period to allow users to test our AI tools before committing to a paid plan.
                             </p>
                             <p className="text-gray-600 leading-relaxed">
-                                If you want unlimited access — including unlimited applications, AI Interview Prep, Auto Fill Chrome Extension, and all advanced tools — you can upgrade to <strong>Pro for $50/year</strong>.
+                                Our plans include <strong>Starter ($15/mo)</strong>, <strong>Pro ($59/mo)</strong>, and <strong>Elite ($99/mo)</strong>. Each tier offers different levels of AI Ninja calls and guidance to fit your career goals.
                             </p>
                             <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-4">
                                 <p className="text-blue-800 text-sm">
-                                    <strong>Important:</strong> This is a <strong>one-time annual payment</strong>, not a subscription. There are no automatic renewals or recurring charges. When your 12 months expire, you simply choose to renew or not.
+                                    <strong>Important:</strong> These are <strong>recurring monthly subscriptions</strong>. You can cancel your subscription at any time through your account dashboard. Upon cancellation, you will retain access until the end of your current billing period.
                                 </p>
                             </div>
                         </section>
@@ -87,27 +84,27 @@ const RefundPolicy = () => {
                                 <h2 className="text-2xl font-semibold text-gray-800">No Refund Policy</h2>
                             </div>
                             <div className="bg-red-50 border border-red-200 rounded-xl p-5 mb-4">
-                                <p className="text-red-800 font-semibold mb-2">All Pro purchases are final and non-refundable.</p>
+                                <p className="text-red-800 font-semibold mb-2">All subscription purchases and renewals are final and non-refundable.</p>
                                 <p className="text-red-700 text-sm leading-relaxed">
-                                    Because we provide a <strong>free 2-week trial</strong> before any payment is required, users have full opportunity to evaluate the platform before committing. Once a Pro purchase is made, it immediately grants access to the full platform — making it non-refundable as a digital service delivered upon payment.
+                                    As we offer a free trial/evaluation period, users have the opportunity to test the platform's value before subscribing. Once a payment is processed, it grants immediate access to premium features and resources, making it non-refundable.
                                 </p>
                             </div>
                             <ul className="space-y-3 text-gray-600 text-sm">
                                 <li className="flex gap-2">
                                     <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                                    <span>We do not offer refunds for unused months or partial use of the annual access period.</span>
+                                    <span>We do not offer pro-rated refunds for cancelled subscriptions or unused days in a billing cycle.</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                                    <span>We do not offer refunds if you did not use the platform after purchase.</span>
+                                    <span>If you forget to cancel before your next billing date, we cannot issue a refund for the ensuing month.</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                                    <span>We do not offer refunds if you found a job (congratulations 🎉) and no longer need the service.</span>
+                                    <span>We do not offer refunds if you find a job (congratulations 🎉) mid-cycle; you may simply cancel future renewals.</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                                    <span>Chargeback disputes filed after a valid purchase may result in account suspension.</span>
+                                    <span>Chargeback disputes filed after a valid purchase may result in immediate account termination.</span>
                                 </li>
                             </ul>
                         </section>
@@ -162,7 +159,7 @@ const RefundPolicy = () => {
                 </div>
             </main>
 
-            <footer className="bg-white border-t py-8 mt-auto">
+            <footer className="bg-[#faf9ff] border-t py-8 mt-auto">
                 <div className="container mx-auto px-4 text-center">
                     <p className="text-gray-500 text-sm">{BRAND.copyright}</p>
                     <div className="flex justify-center gap-6 mt-2 text-sm">

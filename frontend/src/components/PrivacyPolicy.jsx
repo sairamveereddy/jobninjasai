@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, Eye, Lock, Database, Mail, Globe, UserCheck, AlertTriangle } from 'lucide-react';
 import { BRAND } from '../config/branding';
 import { Card } from './ui/card';
-import Header from './Header';
-import SideMenu from './SideMenu';
+// SideMenu and Header removed
 
 const Section = ({ icon: Icon, title, children, color = 'text-blue-600' }) => (
     <section className="mb-10">
@@ -18,13 +17,11 @@ const Section = ({ icon: Icon, title, children, color = 'text-blue-600' }) => (
 
 const PrivacyPolicy = () => {
     const navigate = useNavigate();
-    const [sideMenuOpen, setSideMenuOpen] = useState(false);
     const EFFECTIVE_DATE = 'February 24, 2026';
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <SideMenu isOpen={sideMenuOpen} onClose={() => setSideMenuOpen(false)} />
-            <Header onMenuClick={() => setSideMenuOpen(true)} />
+        <div className="min-h-screen bg-transparent flex flex-col">
+            {/* Navigation handled by Back button */}
 
             <main className="flex-grow container mx-auto px-4 py-12 max-w-4xl">
                 <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-blue-600 mb-8 transition-colors group">
@@ -43,7 +40,7 @@ const PrivacyPolicy = () => {
                     </p>
                 </div>
 
-                <Card className="p-8 border-none shadow-xl bg-white/80 backdrop-blur-sm space-y-8">
+                <Card className="p-8 border-none shadow-xl bg-[#faf9ff]/80 backdrop-blur-sm space-y-8">
 
                     <Section icon={Eye} title="1. Information We Collect">
                         <p>We collect the following types of information when you use {BRAND.name}:</p>
@@ -75,8 +72,8 @@ const PrivacyPolicy = () => {
                         <ul className="list-disc pl-5 space-y-2">
                             <li><strong>OpenAI / Groq / Anthropic / Google:</strong> To power AI resume and application generation. Your resume text is sent to these services solely to generate your requested output.</li>
                             <li><strong>Razorpay / Stripe:</strong> For secure payment processing. We do not store payment card details.</li>
-                            <li><strong>Supabase / MongoDB:</strong> For database storage of your account and job data.</li>
-                            <li><strong>Vercel / Railway:</strong> For hosting the platform.</li>
+                            <li><strong>AWS RDS / AWS Aurora:</strong> For database storage of your account and job data.</li>
+                            <li><strong>AWS App Runner / AWS Amplify:</strong> For hosting the platform.</li>
                             <li><strong>Cloudflare Turnstile:</strong> For bot protection on sign-up.</li>
                         </ul>
                         <p>Each service operates under its own privacy policy and security standards.</p>
@@ -119,12 +116,12 @@ const PrivacyPolicy = () => {
                     </Section>
 
                     <p className="text-sm text-gray-400 text-center pt-4 border-t border-gray-100">
-                        We may update this Privacy Policy from time to time. The latest version will always be available at <a href="https://jobninjas.io/privacy-policy" className="text-blue-600 underline">jobninjas.io/privacy-policy</a>. Continued use of the platform constitutes acceptance of any updates.
+                        We may update this Privacy Policy from time to time. The latest version will always be available at <a href={`${BRAND.website}/privacy-policy`} className="text-blue-600 underline">{BRAND.website.replace('https://', '')}/privacy-policy</a>. Continued use of the platform constitutes acceptance of any updates.
                     </p>
                 </Card>
             </main>
 
-            <footer className="bg-white border-t py-8 mt-auto">
+            <footer className="bg-[#faf9ff] border-t py-8 mt-auto">
                 <div className="container mx-auto px-4 text-center">
                     <p className="text-gray-500 text-sm">{BRAND.copyright}</p>
                     <div className="flex justify-center gap-6 mt-2 text-sm">

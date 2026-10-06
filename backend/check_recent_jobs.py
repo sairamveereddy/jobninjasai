@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
 load_dotenv()
-MONGO_URL = os.getenv("MONGO_URL", "mongodb+srv://novaninjas:auF8nRrqAorEwN5v@cluster0.lb7o5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+MONGO_URL = os.getenv("MONGO_URL", "mongodb+srv://jobninjas:auF8nRrqAorEwN5v@cluster0.lb7o5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 client = MongoClient(MONGO_URL)
-db = client["nova-ninjas"]
+db = client["jobninjas"]
 
 # Check jobs created in last 1 hour
 one_hour_ago = datetime.utcnow() - timedelta(hours=1)

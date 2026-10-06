@@ -2,8 +2,8 @@
 import requests
 import time
 
-URL_SYNC = "https://nova-ninjas-production.up.railway.app/api/debug/force-sync"
-URL_DEBUG = "https://nova-ninjas-production.up.railway.app/api/debug/jobs"
+URL_SYNC = "https://jobninjas-production.up.railway.app/api/debug/force-sync"
+URL_DEBUG = "https://jobninjas-production.up.railway.app/api/debug/jobs"
 
 def trigger_sync():
     print(f"Triggering sync at {URL_SYNC}...")

@@ -1159,3 +1159,394 @@ Traceback (most recent call last):
                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: extract_resume_data() got an unexpected keyword argument 'byok_config'
 
+
+--- PARSE RESUME 2026-04-27 12:26:20.968315 ---
+User: v@g.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction for v@g.com...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-04-27 14:16:41.084723 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_AI_Engineer_Agentic_SDLC.docx
+Content Length: 20030
+Parsed Text Length: 7842
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  ·  Agentic SDLC Automation  ·  LLM & Multi-Agent Systems
+vsairamkumarre
+Starting extraction for srkreddy452@gmail.com...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-04-27 15:34:40.744177 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_AI_Engineer_Agentic_SDLC.docx
+Content Length: 20030
+Parsed Text Length: 7842
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  ·  Agentic SDLC Automation  ·  LLM & Multi-Agent Systems
+vsairamkumarre
+Starting extraction for srkreddy452@gmail.com...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-04-27 15:51:22.401974 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction for srkreddy452@gmail.com...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-04-28 00:09:46.158301 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_AI_Engineer_Agentic_SDLC.docx
+Content Length: 20030
+Parsed Text Length: 7842
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  ·  Agentic SDLC Automation  ·  LLM & Multi-Agent Systems
+vsairamkumarre
+Starting extraction...
+Extraction complete. Keys: ['error']
+
+--- PARSE RESUME 2026-04-28 11:33:57.951222 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['error']
+
+--- PARSE RESUME 2026-04-30 11:49:40.075998 ---
+User: srkreddy452@gmail.com
+Filename: resume.txt
+Content Length: 404
+Parsed Text Length: 404
+Parsed Text Preview: 
+Sairam Reddy
+Email: srkreddy452@gmail.com
+Phone: +91 9876543210
+Experience:
+- Senior Software Engin
+Starting extraction...
+Extraction complete. Keys: ['error']
+
+--- PARSE RESUME 2026-04-30 11:51:50.866089 ---
+User: srkreddy452@gmail.com
+Filename: resume.txt
+Content Length: 404
+Parsed Text Length: 404
+Parsed Text Preview: 
+Sairam Reddy
+Email: srkreddy452@gmail.com
+Phone: +91 9876543210
+Experience:
+- Senior Software Engin
+Starting extraction...
+Extraction complete. Keys: ['error']
+
+--- PARSE RESUME 2026-04-30 23:07:52.317392 ---
+User: srkreddy452@gmail.com
+Filename: resume.txt
+Content Length: 404
+Parsed Text Length: 404
+Parsed Text Preview: 
+Sairam Reddy
+Email: srkreddy452@gmail.com
+Phone: +91 9876543210
+Experience:
+- Senior Software Engin
+Starting extraction...
+Extraction complete. Keys: ['error']
+
+--- PARSE RESUME 2026-04-30 23:10:12.108524 ---
+User: srkreddy452@gmail.com
+Filename: resume.txt
+Content Length: 404
+Parsed Text Length: 404
+Parsed Text Preview: 
+Sairam Reddy
+Email: srkreddy452@gmail.com
+Phone: +91 9876543210
+Experience:
+- Senior Software Engin
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-04-30 23:26:52.725560 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_AI_Engineer_Agentic_SDLC.docx
+Content Length: 20030
+Parsed Text Length: 7842
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  ·  Agentic SDLC Automation  ·  LLM & Multi-Agent Systems
+vsairamkumarre
+Starting extraction...
+Extraction complete. Keys: ['error']
+
+--- PARSE RESUME 2026-05-01 00:00:34.391400 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_AI_Engineer_Agentic_SDLC.docx
+Content Length: 20030
+Parsed Text Length: 7842
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  ·  Agentic SDLC Automation  ·  LLM & Multi-Agent Systems
+vsairamkumarre
+Starting extraction...
+Extraction complete. Keys: ['error']
+
+--- PARSE RESUME 2026-05-01 12:28:44.012318 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_AI_Engineer_Agentic_SDLC.docx
+Content Length: 20030
+Parsed Text Length: 7842
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  ·  Agentic SDLC Automation  ·  LLM & Multi-Agent Systems
+vsairamkumarre
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-06 09:32:32.366171 ---
+User: tester@example.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-07 13:10:24.599417 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy AI Engineer Anthropic.docx
+Content Length: 13249
+Parsed Text Length: 9181
+Parsed Text Preview: SAIRAM VEEREDDY
+Machine Learning Engineer  ·  Generative AI & LLM Systems  ·  RAG & Agentic Pipeline
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills']
+
+--- PARSE RESUME 2026-05-07 14:50:19.739018 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy AI Engineer Anthropic.docx
+Content Length: 13249
+Parsed Text Length: 9181
+Parsed Text Preview: SAIRAM VEEREDDY
+Machine Learning Engineer  ·  Generative AI & LLM Systems  ·  RAG & Agentic Pipeline
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization']
+
+--- PARSE RESUME 2026-05-08 08:07:14.476021 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy AI Engineer Anthropic.docx
+Content Length: 13249
+Parsed Text Length: 9181
+Parsed Text Preview: SAIRAM VEEREDDY
+Machine Learning Engineer  ·  Generative AI & LLM Systems  ·  RAG & Agentic Pipeline
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills']
+
+--- PARSE RESUME 2026-05-08 12:22:29.955838 ---
+User: tester@example.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-15 15:08:19.891388 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_ECPI_Faculty_Resume.docx
+Content Length: 13781
+Parsed Text Length: 8683
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  |  AI-Augmented Software Development Faculty Candidate
+vsairamkumarredd
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-15 15:31:58.313745 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-15 15:50:04.666677 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-15 16:29:34.456136 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_ECPI_Faculty_Resume.docx
+Content Length: 13781
+Parsed Text Length: 8683
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  |  AI-Augmented Software Development Faculty Candidate
+vsairamkumarredd
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-15 16:39:25.569975 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-15 18:06:16.100482 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-15 20:26:10.331249 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-15 20:29:21.662021 ---
+User: srkreddy452@gmail.com
+Filename: Sairam Veereddy Resume v4.docx
+Content Length: 21179
+Parsed Text Length: 11766
+Parsed Text Preview: SAIRAM VEEREDDY
+AI ENGINEER
+vsairamkumarreddy@gmail.com  |  (217) 862-4693  |  Alpharetta, Georgia
+P
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-18 09:33:11.933209 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_ECPI_Faculty_Resume.docx
+Content Length: 13781
+Parsed Text Length: 8683
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  |  AI-Augmented Software Development Faculty Candidate
+vsairamkumarredd
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-18 10:39:48.938647 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_ECPI_Faculty_Resume.docx
+Content Length: 20582
+Parsed Text Length: 8730
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  |  AI-Augmented Software Development Faculty Candidate
+vsairamkumarredd
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-05-19 10:45:02.828844 ---
+User: tester_ninja3@example.com
+Filename: Sairam_Veereddy_ECPI_Faculty_Resume.docx
+Content Length: 20582
+Parsed Text Length: 8730
+Parsed Text Preview: SAIRAM VEEREDDY
+AI Engineer  |  AI-Augmented Software Development Faculty Candidate
+vsairamkumarredd
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-06-03 14:52:24.262319 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_ATS_Resume.docx
+Content Length: 12531
+Parsed Text Length: 7724
+Parsed Text Preview: SAIRAM VEEREDDY
+AI/ML Engineer  |  GenAI & LLM Applications  |  MLOps & Data Engineering
+Alpharetta,
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-06-04 10:06:34.917379 ---
+User: test@test.com
+Filename: dummy.txt
+Content Length: 59
+Parsed Text Length: 59
+Parsed Text Preview: Sairam Veereddy
+AI Engineer
+Skills: Python, React, FastAPI
+
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-06-04 10:10:01.445406 ---
+User: srkreddy452@gmail.com
+Filename: dummy.txt
+Content Length: 19
+Parsed Text Length: 19
+Parsed Text Preview: Test resume content
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-06-04 10:14:08.757415 ---
+User: srkreddy452@gmail.com
+Filename: dummy.txt
+Content Length: 19
+Parsed Text Length: 19
+Parsed Text Preview: Test resume content
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']
+
+--- PARSE RESUME 2026-06-08 09:46:30.502758 ---
+User: srkreddy452@gmail.com
+Filename: Sairam_Veereddy_A-Resume.docx
+Content Length: 12531
+Parsed Text Length: 7724
+Parsed Text Preview: SAIRAM VEEREDDY
+AI/ML Engineer  |  GenAI & LLM Applications  |  MLOps & Data Engineering
+Alpharetta,
+Starting extraction...
+Extraction complete. Keys: ['person', 'address', 'education', 'employment_history', 'skills', 'work_authorization', 'preferences']

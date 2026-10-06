@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-load_dotenv("c:/Users/vsair/Downloads/novasquar-main/novasquad-main/nova-ninjas/backend/.env")
+load_dotenv("c:/Users/vsair/Downloads/novasquar-main/novasquad-main/jobninjas/backend/.env")
 
 async def cleanup_jobs():
     url = os.environ.get("SUPABASE_URL")

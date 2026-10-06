@@ -12,7 +12,7 @@ export const Contact2 = ({
     description = "We are available for questions, feedback, or collaboration opportunities. Let us know how we can help!",
     phone = "+1 (770) 744-0189",
     email = "support@jobninjas.ai",
-    web = { label: "jobNinjas.ai", url: "https://jobNinjas.ai" },
+    web = { label: "jobninjas.ai", url: "https://jobninjas.ai" },
 }) => {
     const [formData, setFormData] = useState({
         firstName: '',
@@ -110,7 +110,7 @@ export const Contact2 = ({
                             </ul>
                         </div>
                     </div>
-                    <form onSubmit={handleSubmit} className="mx-auto flex max-w-screen-md flex-col gap-6 rounded-lg border p-10 bg-white shadow-sm">
+                    <form onSubmit={handleSubmit} className="mx-auto flex max-w-screen-md flex-col gap-6 rounded-lg border p-10 bg-[#faf9ff] shadow-sm">
                         {success && (
                             <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
                                 <CheckCircle className="h-5 w-5 text-green-600" />
@@ -183,7 +183,7 @@ export const Contact2 = ({
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-[var(--text-main)] font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>

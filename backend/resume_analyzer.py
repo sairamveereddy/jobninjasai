@@ -11,6 +11,7 @@ import asyncio
 import aiohttp
 from dotenv import load_dotenv
 from typing import Dict, Any, Optional
+from resume_parser_deterministic import parse_resume_deterministic, validate_parse
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ def get_all_groq_keys():
 GROQ_API_KEYS = get_all_groq_keys()
 GROQ_KEY_INDEX = 0  # Global index for round-robin
 
-GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY')
 DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY')
 
 # DeepSeek API settings
@@ -309,7 +310,7 @@ async def call_google_api(prompt: str, api_key: str, max_tokens: int = 4000) -> 
         # We run this in a thread because genai is synchronous mostly or uses its own event loop
         def sync_google_call():
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel("gemini-2.0-flash")
             response = model.generate_content(prompt)
             return response.text
         
@@ -322,14 +323,31 @@ async def unified_api_call(prompt: str, max_tokens: int = 4000, model: Optional[
                            temperature: float = 0.1, system_prompt: Optional[str] = None,
                            json_mode: bool = False) -> Optional[str]:
     """
-    Unified AI call point. Uses Groq as the primary (and only) provider.
+    Unified AI call point. Uses Groq as the primary provider with Gemini fallback.
     """
     processed_prompt = prompt
     if json_mode and "json" not in (prompt or "").lower():
         processed_prompt = f"{prompt}\n\nRespond with a valid JSON object ONLY."
 
-    # Use Groq directly — it is the primary provider
-    return await call_groq_api(processed_prompt, max_tokens=max_tokens, model=model, json_mode=json_mode)
+    # 1. Try Groq (Primary)
+    if GROQ_API_KEYS:
+        try:
+            result = await call_groq_api(processed_prompt, max_tokens=max_tokens, model=model, json_mode=json_mode)
+            if result:
+                return result
+        except Exception as e:
+            logger.warning(f"[unified_api_call] Groq call failed: {e}")
+
+    # 2. Try Gemini (Fallback)
+    if GOOGLE_API_KEY:
+        logger.info("[unified_api_call] Groq failed or not configured. Falling back to Gemini.")
+        try:
+            return await call_google_api(processed_prompt, GOOGLE_API_KEY, max_tokens=max_tokens)
+        except Exception as e:
+            logger.error(f"[unified_api_call] Gemini fallback failed: {e}")
+
+    logger.error("[unified_api_call] No AI provider available (Groq/Gemini missing or failed)")
+    return None
 
 
 def clean_json_response(text: str) -> str:
@@ -481,7 +499,7 @@ Important:
 
     try:
         # Use unified call with fallback support (Hardened for JSON)
-        response_text = await unified_api_call(resume_prompt, model="llama-3.1-8b-instant", json_mode=True)
+        response_text = await unified_api_call(resume_prompt, model=GROQ_MODEL, json_mode=True)
         
         if not response_text:
             logger.warning("Resume analysis failed (rate limit). Using basic fallback.")
@@ -513,6 +531,63 @@ Important:
         }
 
 
+def map_deterministic_to_universal(det_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Map deterministic parser output to Universal Profile Format"""
+    # Extract first/last name
+    full_name = det_data.get('name', '')
+    name_parts = full_name.split(' ')
+    first_name = name_parts[0] if name_parts else ''
+    last_name = name_parts[-1] if len(name_parts) > 1 else ''
+    
+    return {
+        "person": {
+            "fullName": full_name,
+            "firstName": first_name,
+            "lastName": last_name,
+            "email": det_data.get('email'),
+            "phone": det_data.get('phone'),
+            "linkedinUrl": det_data.get('links', {}).get('linkedin'),
+            "githubUrl": det_data.get('links', {}).get('github'),
+            "portfolioUrl": det_data.get('links', {}).get('portfolio'),
+            "location": det_data.get('location'),
+            "gender": None,
+            "pronouns": None
+        },
+        "address": {
+            "city": det_data.get('location', '').split(',')[0].strip() if ',' in det_data.get('location', '') else det_data.get('location'),
+            "state": det_data.get('location', '').split(',')[1].strip() if ',' in det_data.get('location', '') else None,
+            "country": None
+        },
+        "education": [
+            {
+                "school": edu.get('university'),
+                "degree": edu.get('degree'),
+                "major": edu.get('major'),
+                "graduationDate": edu.get('year')
+            } for edu in det_data.get('education', [])
+        ],
+        "employment_history": [
+            {
+                "title": emp.get('title'),
+                "company": emp.get('company'),
+                "location": emp.get('location'),
+                "startDate": emp.get('start'),
+                "endDate": emp.get('end'),
+                "description": " ".join(emp.get('bullets', []))
+            } for emp in det_data.get('employers', [])
+        ],
+        "skills": {
+            "technical": det_data.get('skills_raw', []),
+            "soft": [],
+            "certifications": det_data.get('certifications', [])
+        },
+        "preferences": {
+            "target_role": det_data.get('employers', [{}])[0].get('title') if det_data.get('employers') else None
+        },
+        "is_fallback": True
+    }
+
+
 async def extract_resume_data(resume_text: str) -> Dict[str, Any]:
     """
     Extract structured data from resume text using Groq AI
@@ -523,8 +598,9 @@ async def extract_resume_data(resume_text: str) -> Dict[str, Any]:
     Returns:
         Structured resume data
     """
-    if not GROQ_API_KEYS:
-        return {"error": "GROQ_API_KEY not configured"}
+    # Check if ANY AI provider is configured
+    if not GROQ_API_KEYS and not GOOGLE_API_KEY:
+        return {"error": "AI Provider (Groq/Gemini) not configured"}
     
     prompt = f"""
 Extract structured data from this resume text for a professional profile. Return ONLY valid JSON.
@@ -600,15 +676,30 @@ Return ONLY the JSON, no other text.
 
     try:
         # Use high-speed model for extraction (Hardened for JSON)
-        response_text = await unified_api_call(prompt, max_tokens=1000, model="llama-3.1-8b-instant", json_mode=True)
-        if not response_text:
-            return {"error": "Failed to get response from AI"}
-        json_text = clean_json_response(response_text)
-        result = json.loads(json_text, strict=False)
-        return result
+        response_text = await unified_api_call(prompt, max_tokens=1000, model=GROQ_MODEL, json_mode=True)
+        
+        if response_text:
+            json_text = clean_json_response(response_text)
+            result = json.loads(json_text, strict=False)
+            if result and not result.get("error"):
+                logger.info("Resume extraction successful using AI.")
+                return result
+
+        # FALLBACK: Use deterministic parser
+        logger.warning("AI Resume extraction failed or returned error. Falling back to deterministic parser.")
+        det_data = parse_resume_deterministic(resume_text)
+        validated_det = validate_parse(det_data, resume_text)
+        return map_deterministic_to_universal(validated_det)
+
     except Exception as e:
-        logger.error(f"Failed to extract resume data: {e}")
-        return {"error": str(e)}
+        logger.error(f"AI Extraction error: {e}. Attempting deterministic fallback.")
+        try:
+            det_data = parse_resume_deterministic(resume_text)
+            validated_det = validate_parse(det_data, resume_text)
+            return map_deterministic_to_universal(validated_det)
+        except Exception as fallback_err:
+            logger.error(f"Critical failure: both AI and deterministic fallback failed: {fallback_err}")
+            return {"error": f"Extraction failed: {str(e)}"}
 
 
 async def generate_optimized_resume(resume_text: str, job_description: str) -> Dict[str, Any]:

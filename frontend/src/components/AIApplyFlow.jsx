@@ -843,7 +843,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                       <X className="w-4 h-4" />
                     </button>
                     {isParsingResume && (
-                      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-indigo-600">
+                      <div className="absolute inset-0 bg-[#faf9ff]/80 backdrop-blur-sm rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-indigo-600">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Parsing...
                       </div>
@@ -853,14 +853,14 @@ const AIApplyFlow = ({ isScanner = false }) => {
                   <div className="relative">
                     <Button
                       onClick={() => document.getElementById('resume-upload-input').click()}
-                      className="bg-white border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 font-bold px-6 h-12 rounded-xl transition-all flex items-center gap-2"
+                      className="bg-[#faf9ff] border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 font-bold px-6 h-12 rounded-xl transition-all flex items-center gap-2"
                       variant="outline"
                     >
                       <Upload className="w-4 h-4" />
                       Upload Resume (PDF, DOCX)
                     </Button>
                     {isParsingResume && (
-                      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-indigo-600">
+                      <div className="absolute inset-0 bg-[#faf9ff]/80 backdrop-blur-sm rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-indigo-600">
                         <Loader2 className="w-4 h-4 animate-spin" />
                       </div>
                     )}
@@ -990,7 +990,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {analysisResult.hardSkills?.missing?.slice(0, 8).map((skill, i) => (
-                        <Badge key={i} variant="outline" className="bg-white border-slate-200 text-slate-600 px-3 py-1">
+                        <Badge key={i} variant="outline" className="bg-[#faf9ff] border-slate-200 text-slate-600 px-3 py-1">
                           {typeof skill === 'string' ? skill : skill.skill}
                         </Badge>
                       ))}
@@ -1031,9 +1031,9 @@ const AIApplyFlow = ({ isScanner = false }) => {
         {/* Step 3: Tailoring Options */}
         {currentStep === 3 && (
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-bottom-5 duration-500">
-            <Card className="p-8 rounded-3xl border-0 shadow-xl bg-white/80 backdrop-blur">
+            <Card className="p-8 rounded-3xl border-0 shadow-xl bg-[#faf9ff]/80 backdrop-blur">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-indigo-100">1</div>
+                <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-[var(--text-main)] flex items-center justify-center font-bold shadow-lg shadow-indigo-100">1</div>
                 <h3 className="text-2xl font-black text-slate-900">Sections to enhance</h3>
               </div>
 
@@ -1043,7 +1043,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                     key={sectionKey}
                     className={`group p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedSections.includes(sectionKey)
                       ? 'border-indigo-600 bg-indigo-50/30'
-                      : 'border-slate-100 hover:border-indigo-200 bg-white'
+                      : 'border-slate-100 hover:border-indigo-200 bg-[#faf9ff]'
                       }`}
                     onClick={() => {
                       setSelectedSections(prev =>
@@ -1067,10 +1067,10 @@ const AIApplyFlow = ({ isScanner = false }) => {
               </div>
             </Card>
 
-            <Card className="p-8 rounded-3xl border-0 shadow-xl bg-white/80 backdrop-blur">
+            <Card className="p-8 rounded-3xl border-0 shadow-xl bg-[#faf9ff]/80 backdrop-blur">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-green-500 text-white flex items-center justify-center font-bold shadow-lg shadow-green-100">2</div>
+                  <div className="w-10 h-10 rounded-2xl bg-green-500 text-[var(--text-main)] flex items-center justify-center font-bold shadow-lg shadow-green-100">2</div>
                   <h3 className="text-2xl font-black text-slate-900">Missing Skills</h3>
                 </div>
                 <button className="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors underline-offset-4 hover:underline" onClick={() => {
@@ -1089,7 +1089,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                       onClick={() => setSelectedKeywords(prev => active ? prev.filter(k => k !== skill) : [...prev, skill])}
                       className={`px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-300 cursor-pointer select-none ${active
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg scale-105'
-                        : 'bg-white text-slate-600 border-slate-100 hover:border-indigo-200'
+                        : 'bg-[#faf9ff] text-slate-600 border-slate-100 hover:border-indigo-200'
                         }`}
                     >
                       {skill}
@@ -1102,7 +1102,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
             <div className="md:col-span-2 flex flex-col items-center gap-4 mt-8">
               <Button
                 onClick={handleStartGeneration}
-                className="h-16 px-16 bg-slate-900 hover:bg-black text-white text-xl font-black rounded-full shadow-2xl transition-all transform hover:-translate-y-1 hover:scale-105"
+                className="h-16 px-16 bg-slate-900 hover:bg-black text-white text-xl font-black rounded-full shadow-xl transition-all transform hover:-translate-y-1 hover:scale-105"
               >
                 <Zap className="w-6 h-6 mr-3 text-yellow-400 fill-yellow-400" /> Generate Tailored Resume
               </Button>
@@ -1113,7 +1113,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
 
         {/* Step 4: Generating */}
         {currentStep === 4 && (
-          <Card className="max-w-3xl mx-auto p-12 rounded-[40px] shadow-2xl border-0 bg-white relative overflow-hidden text-center">
+          <Card className="max-w-3xl mx-auto p-12 rounded-[40px] shadow-xl border-0 bg-[#faf9ff] relative overflow-hidden text-center">
             <div className="absolute top-0 left-0 w-full h-2 bg-slate-100">
               <div className="h-full bg-indigo-600 animate-shimmer" style={{ width: '100%' }}></div>
             </div>
@@ -1157,7 +1157,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
               style={{ flex: '1 1 0%', minWidth: '400px' }}
             >
               <div className="absolute top-4 left-4 flex gap-2 z-20">
-                <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur shadow-sm hover:shadow-md border-slate-200" onClick={() => window.location.href = '/scanner'}>
+                <Button variant="outline" size="sm" className="bg-[#faf9ff]/90 backdrop-blur shadow-sm hover:shadow-md border-slate-200" onClick={() => window.location.href = '/scanner'}>
                   <ArrowLeft className="w-4 h-4 mr-2" /> Start New Application
                 </Button>
               </div>
@@ -1184,7 +1184,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                         }}
                       />
                     ) : (
-                      <div className="bg-white shadow-2xl w-[816px] min-h-[1056px] flex flex-col items-center justify-center py-20 text-slate-400 rounded-lg">
+                      <div className="bg-[#faf9ff] shadow-xl w-[816px] min-h-[1056px] flex flex-col items-center justify-center py-20 text-slate-400 rounded-lg">
                         <FileText className="w-16 h-16 mb-4 opacity-10" />
                         <p className="text-xl font-medium">Preparing your tailored resume...</p>
                       </div>
@@ -1197,7 +1197,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
 
             {/* Right Pane: Sidebar Tools (The Control Center) */}
             <div
-              className="jobright-sidebar bg-white rounded-3xl shadow-xl flex flex-col overflow-hidden border border-slate-200"
+              className="jobright-sidebar bg-[#faf9ff] rounded-3xl shadow-xl flex flex-col overflow-hidden border border-slate-200"
               style={{ width: '350px', flexShrink: 0 }}
             >
               {/* Tabs */}
@@ -1207,7 +1207,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                     key={tab}
                     onClick={() => setActiveTab(tab.toLowerCase())}
                     className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${activeTab === tab.toLowerCase()
-                      ? 'bg-white text-slate-900 shadow-sm'
+                      ? 'bg-[#faf9ff] text-slate-900 shadow-sm'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'
                       }`}
                   >
@@ -1238,7 +1238,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                       <h4 className="font-bold text-slate-900 mb-4">AI Ninja Optimization Report</h4>
                       <div className="space-y-3">
                         {['Summary Enhanced', 'Skills Realigned', 'Keywords Optimized', 'Impact Quantified'].map((item, i) => (
-                          <div key={i} className="group border border-slate-100 rounded-xl p-4 flex justify-between items-center bg-white shadow-sm hover:border-green-100 transition-colors">
+                          <div key={i} className="group border border-slate-100 rounded-xl p-4 flex justify-between items-center bg-[#faf9ff] shadow-sm hover:border-green-100 transition-colors">
                             <span className="font-bold text-slate-700 text-sm">{item}</span>
                             <CheckCircle className="w-4 h-4 text-green-500" />
                           </div>
@@ -1314,7 +1314,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                       <CheckCircle className="w-5 h-5 text-green-600" />
                       <p className="text-xs text-green-800 leading-snug">Your tailored cover letter is ready! You can download it as a Word document below.</p>
                     </div>
-                    <div className="p-4 border border-slate-100 rounded-xl bg-white shadow-sm">
+                    <div className="p-4 border border-slate-100 rounded-xl bg-[#faf9ff] shadow-sm">
                       <div className="text-[11px] text-slate-600 font-sans whitespace-pre-wrap leading-relaxed max-h-[450px] overflow-y-auto custom-scrollbar p-2">
                         {tailoredCoverLetter || "Generating your cover letter..."}
                       </div>
@@ -1323,7 +1323,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
                 )}
               </div>
 
-              <div className="p-4 border-t border-slate-100 bg-white space-y-3">
+              <div className="p-4 border-t border-slate-100 bg-[#faf9ff] space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     variant="outline"
@@ -1362,7 +1362,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
       {
         showSaveResumePrompt && !showReplaceModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-            <Card className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden p-8 animate-in zoom-in-95 duration-300">
+            <Card className="w-full max-w-md bg-[#faf9ff] rounded-[32px] shadow-xl overflow-hidden p-8 animate-in zoom-in-95 duration-300">
               <div className="flex justify-center mb-6">
                 <div className="p-4 bg-indigo-50 rounded-2xl">
                   <Save className="w-10 h-10 text-indigo-600" />
@@ -1382,7 +1382,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
 
               <div className="grid grid-cols-2 gap-4">
                 <Button variant="ghost" className="h-12 rounded-xl font-bold text-slate-500" onClick={() => setShowSaveResumePrompt(false)}>Later</Button>
-                <Button className="h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg" onClick={handleSaveResume} disabled={isSavingResume}>
+                <Button className="h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-[var(--text-main)] font-bold shadow-lg" onClick={handleSaveResume} disabled={isSavingResume}>
                   {isSavingResume ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Now'}
                 </Button>
               </div>
@@ -1395,7 +1395,7 @@ const AIApplyFlow = ({ isScanner = false }) => {
       {
         showReplaceModal && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-            <Card className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden p-8 animate-in zoom-in-95 duration-300">
+            <Card className="w-full max-w-md bg-[#faf9ff] rounded-[32px] shadow-xl overflow-hidden p-8 animate-in zoom-in-95 duration-300">
               <div className="flex justify-center mb-6">
                 <div className="p-4 bg-orange-50 rounded-2xl">
                   <RotateCcw className="w-10 h-10 text-orange-600" />

@@ -62,7 +62,7 @@ const NovaChatPanel = ({ isOpen, onClose, jobContext }) => {
         setIsLoading(true);
 
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('auth_token');
             const headers = {
                 'Content-Type': 'application/json',
                 ...(token && { 'token': token })
@@ -104,25 +104,25 @@ const NovaChatPanel = ({ isOpen, onClose, jobContext }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-y-0 right-0 w-[400px] bg-white shadow-2xl z-[9999] flex flex-col transform transition-transform duration-300 ease-in-out border-l border-gray-200">
+        <div className="fixed inset-y-0 right-0 w-[400px] bg-[#faf9ff] shadow-xl z-[9999] flex flex-col transform transition-transform duration-300 ease-in-out border-l border-gray-200">
             {/* Header - Green Style from Orion */}
             <div className="p-4 flex items-center justify-between" style={{ backgroundColor: '#10b981' }}>
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                    <div className="w-10 h-10 rounded-full bg-[#faf9ff]/20 flex items-center justify-center backdrop-blur-sm">
                         <img src="/ninjasface.png" alt="Nova" className="w-8 h-8 object-contain" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-lg">Ninja Copilot</h3>
+                        <h3 className="font-bold text-[var(--text-main)] text-lg">Ninja Copilot</h3>
                         <p className="text-xs text-emerald-50 opacity-90 font-medium">Your AI Job Assistant</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 pr-2">
-                    <Button variant="secondary" size="sm" className="bg-white text-emerald-700 hover:bg-emerald-50 border-none text-xs font-bold rounded-full px-3 h-7">
+                    <Button variant="secondary" size="sm" className="bg-[#faf9ff] text-emerald-700 hover:bg-emerald-50 border-none text-xs font-bold rounded-full px-3 h-7">
                         Quick Guide
                     </Button>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-full hover:bg-white/20 text-white transition-colors focus:outline-none flex items-center justify-center"
+                        className="p-2 rounded-full hover:bg-[#faf9ff]/20 text-[var(--text-main)] transition-colors focus:outline-none flex items-center justify-center"
                         aria-label="Close"
                     >
                         <X className="w-5 h-5" />
@@ -157,7 +157,7 @@ const NovaChatPanel = ({ isOpen, onClose, jobContext }) => {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white" ref={scrollRef}>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#faf9ff]" ref={scrollRef}>
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {msg.role === 'assistant' && (
@@ -196,20 +196,20 @@ const NovaChatPanel = ({ isOpen, onClose, jobContext }) => {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t">
+            <div className="p-4 bg-[#faf9ff] border-t">
                 <div className="relative flex items-center">
                     <Input
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Ask me anything..."
-                        className="pr-12 py-6 rounded-2xl border-gray-200 focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-sm"
+                        className="pr-12 py-6 rounded-2xl border-gray-200 focus:ring-emerald-500 focus:border-emerald-500 bg-[#faf9ff] shadow-sm"
                     />
                     <Button
                         size="icon"
                         onClick={() => handleSendMessage(inputValue)}
                         className={`absolute right-1.5 h-9 w-9 rounded-xl transition-all ${inputValue.trim()
-                            ? 'bg-black hover:bg-gray-800 text-white'
+                            ? 'bg-[var(--jobninjas-accent)] hover:bg-[#4F52B5] text-white'
                             : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                         disabled={!inputValue.trim() || isLoading}

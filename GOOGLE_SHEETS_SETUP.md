@@ -1,6 +1,6 @@
 # Google Sheets Integration Setup Guide 📊
 
-This guide explains how to connect your Nova Ninjas dashboard to Google Sheets so employees can update job applications.
+This guide explains how to connect your JobNinjas dashboard to Google Sheets so employees can update job applications.
 
 ## 🎯 How It Works
 
@@ -14,7 +14,7 @@ This guide explains how to connect your Nova Ninjas dashboard to Google Sheets s
 
 1. Go to [Google Sheets](https://sheets.google.com)
 2. Create a new spreadsheet
-3. Name it: **Nova Ninjas Applications**
+3. Name it: **JobNinjas Applications**
 4. In **Row 1**, add these column headers:
 
 | A | B | C | D | E | F | G |

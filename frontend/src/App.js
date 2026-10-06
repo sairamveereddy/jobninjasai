@@ -5,72 +5,46 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import posthog from "posthog-js";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AINinjaProvider } from "./contexts/AINinjaContext";
+import { Amplify } from "aws-amplify";
+import awsconfig from "./aws-exports";
+
+Amplify.configure(awsconfig);
+
 import ErrorBoundary from "./components/ErrorBoundary";
+import QueryProvider from "./components/QueryProvider";
+
 import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import Dashboard from "./components/Dashboard";
 import Pricing from "./components/Pricing";
-import Employee from "./components/Employee";
 import Admin from "./components/Admin";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminPortal from "./components/AdminPortal";
-import AllUsersExport from "./components/AllUsersExport";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PaymentSuccess from "./components/PaymentSuccess";
 import PaymentCanceled from "./components/PaymentCanceled";
-import LiveDashboard from "./components/LiveDashboard";
-// AI Ninja and Human Ninja components
+
+// Core Pillars
 import AINinja from "./components/AINinja";
-import JobDetail from "./components/JobDetail";
-import JobDetailsOrion from "./components/JobDetailsOrion";
-import AIApply from "./components/AIApply";
-import HumanNinja from "./components/HumanNinja";
-// New components
-import Jobs from "./components/Jobs";
-import MyResumes from "./components/MyResumes";
-import InterviewPrep from "./components/InterviewPrep";
-import InterviewRoom from "./components/InterviewRoom";
-import InterviewReport from "./components/InterviewReport";
-import AdminAnalytics from "./components/AdminAnalytics";
+import OneProfile from "./components/OneProfile";
+import Profile from "./components/Profile";
+
+import DashboardLayout from "./components/DashboardLayout";
 import Checkout from "./components/Checkout";
-import ResumeEditorPage from "./components/ResumeEditorPage";
-import AIApplyFlow from "./components/AIApplyFlow";
+import AdminAnalytics from "./components/AdminAnalytics";
 import RefundPolicy from "./components/RefundPolicy";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsAndConditions from "./components/TermsAndConditions";
 import VerifyEmail from "./components/VerifyEmail";
 import ScrollToTop from "./components/ScrollToTop";
-// Phase 1 Tools
-import OneClickOptimize from "./components/OneClickOptimize";
-import BulletPointsGenerator from "./components/BulletPointsGenerator";
-import SummaryGenerator from "./components/SummaryGenerator";
-import LinkedInOptimizer from "./components/LinkedInOptimizer";
-import CareerChangeTool from "./components/CareerChangeTool";
-// Phase 2 Tools
-import ChatGPTResume from "./components/ChatGPTResume";
-import ChatGPTCoverLetter from "./components/ChatGPTCoverLetter";
-import LinkedInExamples from "./components/LinkedInExamples";
-// Phase 3 Tools
-import ResumeTemplates from "./components/ResumeTemplates";
-import CoverLetterTemplates from "./components/CoverLetterTemplates";
-import ATSGuides from "./components/ATSGuides";
-// Removed FreeTools import
-// Free Tools Components
-import NetworkingTemplates from "./components/NetworkingTemplates";
-import InterviewFramework from "./components/InterviewFramework";
-import ReferenceCheckPrep from "./components/ReferenceCheckPrep";
-import SalaryNegotiator from "./components/SalaryNegotiator";
-import LinkedInHeadlineOptimizer from "./components/LinkedInHeadlineOptimizer";
-import CareerGapExplainer from "./components/CareerGapExplainer";
-import JobDescriptionDecoder from "./components/JobDescriptionDecoder";
-import OfferComparator from "./components/OfferComparator";
 import ContactPage from "./components/ContactPage";
-import "./components/Jobs.css";
-import "./components/InterviewPrep.css";
-import "./components/AIApplyFlow.css";
-import LinkedInMockup from "./components/LinkedInMockup";
-import DashboardLayout from "./components/DashboardLayout";
+import RecruiterDashboard from "./components/RecruiterDashboard";
+
+// Voice Call / Interview Prep Features
+import InterviewPrep from "./components/InterviewPrep";
+import InterviewRoom from "./components/InterviewRoom";
+import InterviewReport from "./components/InterviewReport";
 
 // Initialize PostHog
 if (process.env.REACT_APP_POSTHOG_KEY) {
@@ -102,6 +76,10 @@ function App() {
       });
     };
 
+    const handleFormChange = (e) => {
+       // Optional: capture input changes if needed
+    };
+
     const handleScroll = () => {
       const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
       if (scrollPercent > 90) posthog.capture('scroll_depth', { depth: '90%' });
@@ -122,6 +100,7 @@ function App() {
   return (
     <div className="App">
       <ErrorBoundary>
+        <QueryProvider>
         <AuthProvider>
           <AINinjaProvider>
             <BrowserRouter>
@@ -143,51 +122,33 @@ function App() {
 
                 {/* Internal App Routes (Wrapped in DashboardLayout) */}
                 <Route element={<ProtectedRoute allowedRoles={['customer', 'admin']} requireVerification={false}><DashboardLayout /></ProtectedRoute>}>
+                  {/* The 'Summary/Leaderboard' view */}
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/pricing" element={<Pricing />} />
-                  <Route path="/ai-ninja" element={<AINinja />} />
-                  <Route path="/ai-ninja/jobs/:id" element={<JobDetailsOrion />} />
-                  <Route path="/ai-ninja/apply/:id" element={<AIApply />} />
-                  <Route path="/ai-apply" element={<AIApplyFlow />} />
-                  <Route path="/human-ninja" element={<HumanNinja />} />
-                  <Route path="/jobs" element={<Jobs />} />
-                  <Route path="/resumes" element={<MyResumes />} />
-                  <Route path="/interview-prep" element={<InterviewPrep />} />
-                  <Route path="/interview-prep/:sessionId" element={<InterviewRoom />} />
-                  <Route path="/interview-prep/:sessionId/report" element={<InterviewReport />} />
-                  <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                  <Route path="/one-click-optimize" element={<OneClickOptimize />} />
-                  <Route path="/bullet-points" element={<BulletPointsGenerator />} />
-                  <Route path="/summary-generator" element={<SummaryGenerator />} />
-                  <Route path="/linkedin-optimizer" element={<LinkedInOptimizer />} />
-                  <Route path="/career-change" element={<CareerChangeTool />} />
-                  <Route path="/chatgpt-resume" element={<ChatGPTResume />} />
-                  <Route path="/chatgpt-cover-letter" element={<ChatGPTCoverLetter />} />
-                  <Route path="/scanner" element={<ResumeEditorPage />} />
-                  <Route path="/editor" element={<ResumeEditorPage />} />
                   
-                  {/* Tools and Guides */}
-                  <Route path="/networking-templates" element={<NetworkingTemplates />} />
-                  <Route path="/interview-framework" element={<InterviewFramework />} />
-                  <Route path="/reference-prep" element={<ReferenceCheckPrep />} />
-                  <Route path="/salary-negotiator" element={<SalaryNegotiator />} />
-                  <Route path="/linkedin-headline" element={<LinkedInHeadlineOptimizer />} />
-                  <Route path="/career-gap" element={<CareerGapExplainer />} />
-                  <Route path="/job-decoder" element={<JobDescriptionDecoder />} />
-                  <Route path="/offer-comparator" element={<OfferComparator />} />
-                  <Route path="/linkedin-examples" element={<LinkedInExamples />} />
-                  <Route path="/resume-examples" element={<LinkedInExamples />} />
-                  <Route path="/linkedin-mockup" element={<LinkedInMockup />} />
-                  <Route path="/resume-templates" element={<ResumeTemplates />} />
-                  <Route path="/cover-letter-templates" element={<CoverLetterTemplates />} />
-                  <Route path="/ats-guides" element={<ATSGuides />} />
+                  {/* AI Ninja Ecosystem - Unified Handling */}
+                  <Route path="/ai-ninja" element={<AINinja />} />
+                  <Route path="/ai-ninja/onboard" element={<AINinja />} />
+                  <Route path="/ai-ninja/dashboard" element={<AINinja />} />
+                  <Route path="/ai-ninja/leaderboard" element={<AINinja />} />
+                  <Route path="/ai-ninja/reports" element={<AINinja />} />
+                  
+                  {/* Core Content Pillars */}
+                  <Route path="/one-profile" element={<OneProfile />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 </Route>
 
+                <Route path="/recruiters" element={<RecruiterDashboard />} />
+
                 {/* Admin/Employee Portal (Standalone) */}
-                <Route path="/employee" element={<ProtectedRoute allowedRoles={['employee']}><Employee /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><Admin /></ProtectedRoute> } />
                 <Route path="/job-ninjas-admin-portal" element={<AdminPortal />} />
-                <Route path="/live-dashboard" element={<ProtectedRoute allowedRoles={['admin']}><LiveDashboard /></ProtectedRoute>} />
+
+                {/* Voice Call / Mock Interview Routes */}
+                <Route path="/interview-prep" element={<ProtectedRoute><InterviewPrep /></ProtectedRoute>} />
+                <Route path="/interview-prep/:sessionId" element={<ProtectedRoute><InterviewRoom /></ProtectedRoute>} />
+                <Route path="/interview-prep/:sessionId/report" element={<ProtectedRoute><InterviewReport /></ProtectedRoute>} />
 
                 {/* Catch all */}
                 <Route path="*" element={<Navigate to="/" replace />} />
@@ -195,6 +156,7 @@ function App() {
             </BrowserRouter>
           </AINinjaProvider>
         </AuthProvider>
+        </QueryProvider>
       </ErrorBoundary>
     </div>
   );

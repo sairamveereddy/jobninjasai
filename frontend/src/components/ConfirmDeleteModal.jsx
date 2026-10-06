@@ -17,7 +17,7 @@ const ConfirmDeleteModal = ({
             onClick={onClose}
         >
             <div
-                className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden p-8 animate-in zoom-in-95 duration-300"
+                className="w-full max-w-md bg-[#faf9ff] rounded-[32px] shadow-xl overflow-hidden p-8 animate-in zoom-in-95 duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex justify-center mb-6">
@@ -37,7 +37,7 @@ const ConfirmDeleteModal = ({
                         Cancel
                     </button>
                     <button
-                        className="h-12 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold shadow-lg flex items-center justify-center transition-colors"
+                        className="h-12 rounded-xl bg-red-500 hover:bg-red-600 text-[var(--text-main)] font-bold shadow-lg flex items-center justify-center transition-colors"
                         onClick={onConfirm}
                         disabled={isDeleting}
                     >

@@ -17,8 +17,7 @@ import {
 import NinjaIcon from './NinjaIcon';
 import { BRAND, PRICING } from '../config/branding';
 import { API_URL } from '../config/api';
-import SideMenu from './SideMenu';
-import './SideMenu.css';
+// SideMenu removed
 
 // Razorpay Key (loaded from environment or hardcoded for test)
 const RAZORPAY_KEY_ID = process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_S0Eqy9YzsfDlZh';
@@ -29,10 +28,9 @@ const Checkout = () => {
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null); // 'success' | 'failed' | null
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
 
   // Get plan from URL params
-  const planId = searchParams.get('plan') || 'ai-monthly';
+  const planId = searchParams.get('plan') || 'ninja-starter';
 
   // Get auto-checkout flag
   const shouldAutoCheckout = searchParams.get('auto') === 'true';
@@ -50,44 +48,29 @@ const Checkout = () => {
 
   // Plan details mapping
   const planDetails = {
-    'ai-free': {
-      ...PRICING.AI_FREE,
+    'ninja-starter': {
+      ...PRICING.NINJA_STARTER,
       icon: Bot,
-      color: 'blue'
+      color: 'green'
     },
-    'ai-weekly': {
-      ...PRICING.AI_WEEKLY,
+    'ninja-pro': {
+      ...PRICING.NINJA_PRO,
       icon: Bot,
-      color: 'blue'
+      color: 'green'
     },
-    'ai-monthly': {
-      ...PRICING.AI_MONTHLY,
+    'ninja-elite': {
+      ...PRICING.NINJA_ELITE,
       icon: Bot,
-      color: 'blue'
+      color: 'green'
     },
-    'ai-quarterly': {
-      ...PRICING.AI_QUARTERLY,
+    'ninja-credit': {
+      ...PRICING.NINJA_CREDIT,
       icon: Bot,
-      color: 'blue'
-    },
-    'human-starter': {
-      ...PRICING.HUMAN_STARTER,
-      icon: UserCheck,
-      color: 'blue'
-    },
-    'human-growth': {
-      ...PRICING.HUMAN_GROWTH,
-      icon: UserCheck,
-      color: 'blue'
-    },
-    'human-scale': {
-      ...PRICING.HUMAN_SCALE,
-      icon: UserCheck,
-      color: 'blue'
+      color: 'green'
     }
   };
 
-  const selectedPlan = planDetails[planId] || planDetails['ai-monthly'];
+  const selectedPlan = planDetails[planId] || planDetails['ninja-starter'];
   const PlanIcon = selectedPlan.icon;
 
   // Load Razorpay script
@@ -194,7 +177,7 @@ const Checkout = () => {
           email: user?.email || '',
         },
         theme: {
-          color: '#22c55e' // Job Ninjas green
+          color: '#22c55e' // JobNinjas green
         },
         modal: {
           ondismiss: function () {
@@ -277,19 +260,12 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Side Menu */}
-      <SideMenu isOpen={sideMenuOpen} onClose={() => setSideMenuOpen(false)} />
+      {/* SideMenu removed */}
 
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
+      <header className="bg-[#faf9ff] border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSideMenuOpen(true)}
-              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50"
-            >
-              <Menu className="w-5 h-5 text-gray-600" />
-            </button>
             <button onClick={() => navigate('/')} className="flex items-center gap-2">
               <img src={BRAND.logoPath} alt={BRAND.logoAlt} className="h-8" />
               <span className="text-xl font-bold text-green-600">{BRAND.name}</span>

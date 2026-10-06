@@ -26,12 +26,12 @@ const MatchRing = ({ percentage, label, color, size = 64 }) => {
     return (
         <div className="flex flex-col items-center">
             <svg width={size} height={size} className="-rotate-90">
-                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth="5" />
+                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth="5" />
                 <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="5"
                     strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
             </svg>
-            <span className="text-sm font-bold mt-1" style={{ color }}>{percentage}%</span>
-            <span className="text-[11px] text-gray-500">{label}</span>
+            <span className="text-sm font-bold mt-1 text-foreground">{percentage}%</span>
+            <span className="text-[11px] text-muted-foreground">{label}</span>
         </div>
     );
 };
@@ -43,8 +43,8 @@ const SkillTag = ({ skill, matched, onClick }) => (
     <button onClick={onClick}
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer border
             ${matched
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                ? 'bg-foreground text-background border-foreground hover:opacity-90'
+                : 'bg-background text-muted-foreground border-border hover:bg-muted'
             }`}>
         {matched && <CheckCircle2 className="w-3.5 h-3.5" />}
         {skill}
@@ -396,8 +396,8 @@ const JobDetailsOrion = () => {
             <ul className="space-y-3">
                 {list.map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
-                        <div className="mt-1.5 min-w-[6px] h-[6px] rounded-full bg-gray-800" />
-                        <span className="text-gray-700 text-sm leading-relaxed">{(typeof item === 'string' ? item : String(item)).replace(/^[•\-\*]\s*/, '')}</span>
+                        <div className="mt-1.5 min-w-[6px] h-[6px] rounded-full bg-foreground" />
+                        <span className="text-muted-foreground text-sm leading-relaxed">{(typeof item === 'string' ? item : String(item)).replace(/^[•\-\*]\s*/, '')}</span>
                     </li>
                 ))}
             </ul>
@@ -406,20 +406,20 @@ const JobDetailsOrion = () => {
 
     /* ── Loading / Error ──────────────────────── */
     if (isLoading) return (
-        <div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="w-12 h-12 animate-spin text-emerald-500" />
+        <div className="flex items-center justify-center min-h-screen bg-background">
+            <Loader2 className="w-12 h-12 animate-spin text-foreground" />
         </div>
     );
     if (error || !job) return (
-        <div className="container py-12 text-center">
+        <div className="container py-12 text-center text-foreground">
             <h1>Job Not Found</h1>
-            <Button onClick={() => navigate('/jobs')} className="mt-4">Back to Jobs</Button>
+            <Button onClick={() => navigate('/jobs')} className="mt-4 vercel-button-outline">Back to Jobs</Button>
         </div>
     );
 
     const cd = companyData || {};
     const matchLabel = (job.matchScore || 0) >= 70 ? 'GOOD MATCH' : (job.matchScore || 0) >= 50 ? 'FAIR MATCH' : 'LOW MATCH';
-    const matchColor = (job.matchScore || 0) >= 70 ? '#10b981' : (job.matchScore || 0) >= 50 ? '#f59e0b' : '#ef4444';
+    const matchColor = (job.matchScore || 0) >= 70 ? 'hsl(var(--foreground))' : (job.matchScore || 0) >= 50 ? 'hsl(var(--muted-foreground))' : '#ef4444';
     const skills = Object.entries(skillStates);
 
     /* ═══════════════════════════════════════════
@@ -427,32 +427,32 @@ const JobDetailsOrion = () => {
        ═══════════════════════════════════════════ */
     return (
         <>
-            <div className="bg-white min-h-screen font-sans">
+            <div className="bg-background min-h-screen font-sans">
 
                 {/* ─── TOP BAR ─────────────────────────────── */}
-                <div className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3">
+                <div className="sticky top-0 z-30 bg-background border-b border-border px-4 py-3">
                     <div className="max-w-6xl mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <button onClick={() => navigate('/jobs')} className="p-1 hover:bg-gray-100 rounded-lg">
-                                <X className="w-5 h-5 text-gray-500" />
+                            <button onClick={() => navigate('/jobs')} className="p-1 hover:bg-muted rounded-lg">
+                                <X className="w-5 h-5 text-muted-foreground" />
                             </button>
-                            <Badge variant="secondary" className="bg-gray-900 text-white text-xs">{job.applicants} applicants</Badge>
+                            <Badge variant="secondary" className="bg-foreground text-background text-xs">{job.applicants} applicants</Badge>
                         </div>
-                        <div className="hidden md:block text-sm font-medium text-gray-700 truncate max-w-md">{job.title}</div>
+                        <div className="hidden md:block text-sm font-medium text-foreground truncate max-w-md">{job.title}</div>
                         <div className="flex items-center gap-2">
-                            <button className="p-2 hover:bg-gray-100 rounded-lg" title="Not interested">
-                                <Shield className="w-5 h-5 text-gray-400" />
+                            <button className="p-2 hover:bg-muted rounded-lg" title="Not interested">
+                                <Shield className="w-5 h-5 text-muted-foreground" />
                             </button>
-                            <button className="p-2 hover:bg-gray-100 rounded-lg" title="Save">
-                                <Heart className="w-5 h-5 text-gray-400" />
+                            <button className="p-2 hover:bg-muted rounded-lg" title="Save">
+                                <Heart className="w-5 h-5 text-muted-foreground" />
                             </button>
                             <Button
                                 variant="outline"
-                                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 font-bold px-5 rounded-lg flex"
+                                className="vercel-button-outline font-bold px-5 rounded-lg flex"
                                 onClick={handleTailorResume}>
                                 <Zap className="w-4 h-4 mr-2" /> TAILOR RESUME
                             </Button>
-                            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 rounded-lg"
+                            <Button className="vercel-button font-bold px-5 rounded-lg"
                                 onClick={() => job.sourceUrl ? window.open(job.sourceUrl, '_blank') : alert("Source URL not available for this job.")}>
                                 APPLY NOW <ExternalLink className="w-4 h-4 ml-1" />
                             </Button>
@@ -461,22 +461,22 @@ const JobDetailsOrion = () => {
                 </div>
 
                 {/* ─── TABS ────────────────────────────────── */}
-                <div className="border-b border-gray-200 bg-white">
+                <div className="border-b border-border bg-background">
                     <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
                         <div className="flex gap-6">
                             {['overview', 'company'].map(tab => (
                                 <button key={tab} onClick={() => setActiveTab(tab)}
                                     className={`py-3 text-sm font-semibold border-b-2 transition-colors capitalize
-                                        ${activeTab === tab ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+                                        ${activeTab === tab ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
                                     {tab === 'overview' ? 'Overview' : 'Company'}
                                 </button>
                             ))}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <button className="flex items-center gap-1 hover:text-gray-700"><Share2 className="w-4 h-4" /> Share</button>
-                            <button className="flex items-center gap-1 hover:text-gray-700"><Flag className="w-4 h-4" /> Report Issue</button>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <button className="flex items-center gap-1 hover:text-foreground"><Share2 className="w-4 h-4" /> Share</button>
+                            <button className="flex items-center gap-1 hover:text-foreground"><Flag className="w-4 h-4" /> Report Issue</button>
                             {job.sourceUrl && (
-                                <a href={job.sourceUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-gray-700">
+                                <a href={job.sourceUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-foreground">
                                     <FileText className="w-4 h-4" /> Original Job Post
                                 </a>
                             )}
@@ -491,52 +491,52 @@ const JobDetailsOrion = () => {
                     {activeTab === 'overview' && (
                         <div className="space-y-6">
                             {/* ─── HEADER CARD ─────────────────── */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <div className="vercel-card p-6">
                                 <div className="flex flex-col lg:flex-row gap-6">
                                     {/* Left: Job info */}
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
                                             {(job.logo || cd.logo) && (
-                                                <div className="w-12 h-12 rounded-lg border border-gray-100 p-1.5 bg-white">
+                                                <div className="w-12 h-12 rounded-lg border border-border p-1.5 bg-background">
                                                     <img src={job.logo || cd.logo} alt="" className="w-full h-full object-contain" onError={e => e.target.style.display = 'none'} />
                                                 </div>
                                             )}
                                             <div>
-                                                <span className="text-sm text-gray-500">{job.company}</span>
-                                                <span className="text-gray-300 mx-2">·</span>
-                                                <span className="text-sm text-gray-400">{job.postedDate}</span>
+                                                <span className="text-sm text-muted-foreground">{job.company}</span>
+                                                <span className="text-border mx-2">·</span>
+                                                <span className="text-sm text-muted-foreground">{job.postedDate}</span>
                                             </div>
                                         </div>
-                                        <h1 className="text-xl font-bold text-gray-900 mb-4">{job.title}</h1>
+                                        <h1 className="text-xl font-bold text-foreground mb-4">{job.title}</h1>
 
                                         {/* Metadata Grid */}
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-6 text-sm">
                                             {job.location && (
-                                                <div className="flex items-center gap-2 text-gray-600">
-                                                    <MapPin className="w-4 h-4 text-gray-400" />
+                                                <div className="flex items-center gap-2 text-muted-foreground">
+                                                    <MapPin className="w-4 h-4 text-muted-foreground" />
                                                     <span>{job.location}</span>
                                                 </div>
                                             )}
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <Clock className="w-4 h-4 text-gray-400" />
+                                            <div className="flex items-center gap-2 text-muted-foreground">
+                                                <Clock className="w-4 h-4 text-muted-foreground" />
                                                 <span>{job.jobType}</span>
                                             </div>
                                             {job.remoteType && (
-                                                <div className="flex items-center gap-2 text-gray-600">
-                                                    <Globe className="w-4 h-4 text-gray-400" />
+                                                <div className="flex items-center gap-2 text-muted-foreground">
+                                                    <Globe className="w-4 h-4 text-muted-foreground" />
                                                     <span>{job.remoteType}</span>
                                                 </div>
                                             )}
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <Briefcase className="w-4 h-4 text-gray-400" />
+                                            <div className="flex items-center gap-2 text-muted-foreground">
+                                                <Briefcase className="w-4 h-4 text-muted-foreground" />
                                                 <span>{job.seniority}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <TrendingUp className="w-4 h-4 text-gray-400" />
+                                            <div className="flex items-center gap-2 text-muted-foreground">
+                                                <TrendingUp className="w-4 h-4 text-muted-foreground" />
                                                 <span>{job.salaryRange}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <Calendar className="w-4 h-4 text-gray-400" />
+                                            <div className="flex items-center gap-2 text-muted-foreground">
+                                                <Calendar className="w-4 h-4 text-muted-foreground" />
                                                 <span>{job.experienceLevel}</span>
                                             </div>
                                         </div>
@@ -546,13 +546,13 @@ const JobDetailsOrion = () => {
                                     <div className="flex flex-col items-center justify-center lg:min-w-[200px]">
                                         <div className="relative w-24 h-24 mb-2">
                                             <svg className="-rotate-90 w-24 h-24" viewBox="0 0 96 96">
-                                                <circle cx="48" cy="48" r="42" fill="none" stroke="#e5e7eb" strokeWidth="6" />
+                                                <circle cx="48" cy="48" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
                                                 <circle cx="48" cy="48" r="42" fill="none" stroke={matchColor} strokeWidth="6"
                                                     strokeDasharray={2 * Math.PI * 42} strokeDashoffset={2 * Math.PI * 42 - ((job.matchScore || 0) / 100) * 2 * Math.PI * 42}
                                                     strokeLinecap="round" />
                                             </svg>
                                             <div className="absolute inset-0 flex items-center justify-center">
-                                                <span className="text-2xl font-bold">{job.matchScore || 0}%</span>
+                                                <span className="text-2xl font-bold text-foreground">{job.matchScore || 0}%</span>
                                             </div>
                                         </div>
                                         <div className="text-sm font-bold uppercase tracking-wide" style={{ color: matchColor }}>{matchLabel}</div>
@@ -561,65 +561,65 @@ const JobDetailsOrion = () => {
                             </div>
 
                             {/* ─── COMPANY SUMMARY + TAGS ───────── */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                                    <strong className="text-gray-900">{job.company}</strong>{' '}
+                            <div className="vercel-card p-6">
+                                <p className="text-foreground text-sm leading-relaxed mb-4">
+                                    <strong className="text-foreground">{job.company}</strong>{' '}
                                     {cd.description || `is a leading technology company seeking a ${job.title}.`}
                                 </p>
                                 {/* Industry Tags */}
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     {(cd.industries || []).map((tag, i) => (
-                                        <Badge key={i} variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 text-xs">{tag}</Badge>
+                                        <Badge key={i} variant="outline" className="bg-muted text-muted-foreground border-border text-xs">{tag}</Badge>
                                     ))}
                                 </div>
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-3">
                                     {cd.h1b?.isLikely && (
-                                        <div className="flex items-center gap-1.5 text-sm text-emerald-700">
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" /> H1B Sponsor Likely
+                                        <div className="flex items-center gap-1.5 text-sm text-foreground">
+                                            <CheckCircle2 className="w-4 h-4 text-foreground" /> H1B Sponsor Likely
                                         </div>
                                     )}
-                                    <div className="flex items-center gap-1.5 text-sm text-emerald-700">
-                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Work & Life Balance
+                                    <div className="flex items-center gap-1.5 text-sm text-foreground">
+                                        <CheckCircle2 className="w-4 h-4 text-foreground" /> Work & Life Balance
                                     </div>
                                 </div>
                             </div>
 
                             {/* ─── HR CONTACTS ──────────────────── */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <div className="vercel-card p-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                        <Users className="w-5 h-5 text-emerald-600" /> HR Contacts @ {job.company}
+                                    <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                                        <Users className="w-5 h-5 text-foreground" /> HR Contacts @ {job.company}
                                     </h3>
-                                    <Badge className="bg-emerald-100 text-emerald-700 text-xs">Direct Outreach</Badge>
+                                    <Badge className="bg-muted text-muted-foreground text-xs">Direct Outreach</Badge>
                                 </div>
-                                <p className="text-sm text-gray-500 mb-4">Reaching out directly to HR professionals can significantly increase your response rate. Use these contacts to send a personalized cold email.</p>
+                                <p className="text-sm text-muted-foreground mb-4">Reaching out directly to HR professionals can significantly increase your response rate. Use these contacts to send a personalized cold email.</p>
 
                                 {isFetchingHR ? (
                                     <div className="flex flex-col items-center justify-center py-6">
-                                        <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mb-2" />
-                                        <p className="text-xs text-gray-500">Discovering real HR contacts for this company...</p>
+                                        <Loader2 className="w-6 h-6 animate-spin text-foreground mb-2" />
+                                        <p className="text-xs text-muted-foreground">Discovering real HR contacts for this company...</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
                                         {(hrContacts || []).map((hr, i) => (
-                                            <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                            <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                                                    <div className="w-10 h-10 rounded-full bg-foreground text-background flex items-center justify-center font-bold">
                                                         {hr.name ? hr.name[0] : 'HR'}
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-bold text-gray-900">{hr.name || 'HR Professional'}</div>
-                                                        <div className="text-xs text-gray-500">{hr.role || 'Human Resources'}</div>
+                                                        <div className="text-sm font-bold text-foreground">{hr.name || 'HR Professional'}</div>
+                                                        <div className="text-xs text-muted-foreground">{hr.role || 'Human Resources'}</div>
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2 items-center">
                                                     {copiedEmail === hr.email && (
-                                                        <span className="text-xs text-emerald-600 font-medium flex items-center gap-1 animate-in fade-in">
+                                                        <span className="text-xs text-foreground font-medium flex items-center gap-1 animate-in fade-in">
                                                             <Check className="w-3.5 h-3.5" /> Copied!
                                                         </span>
                                                     )}
-                                                    <Button variant="outline" size="sm" className="h-8 px-3 text-xs flex items-center gap-1.5"
+                                                    <Button variant="outline" size="sm" className="h-8 px-3 text-xs flex items-center gap-1.5 border-border hover:bg-muted"
                                                         onClick={() => {
                                                             navigator.clipboard.writeText(hr.email);
                                                             setCopiedEmail(hr.email);
@@ -633,15 +633,15 @@ const JobDetailsOrion = () => {
                                     </div>
                                 )}
 
-                                <div className="mt-6 pt-4 border-t border-gray-100">
+                                <div className="mt-6 pt-4 border-t border-border">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <h4 className="text-sm font-bold text-gray-900 mb-1">Looking for someone else?</h4>
-                                            <p className="text-xs text-gray-500">Find more recruiters or team members on LinkedIn.</p>
+                                            <h4 className="text-sm font-bold text-foreground mb-1">Looking for someone else?</h4>
+                                            <p className="text-xs text-muted-foreground">Find more recruiters or team members on LinkedIn.</p>
                                         </div>
                                         <a href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(job.company + ' recruiter')}`}
                                             target="_blank" rel="noreferrer"
-                                            className="inline-flex items-center gap-1.5 text-sm text-emerald-600 font-semibold hover:underline"
+                                            className="inline-flex items-center gap-1.5 text-sm text-foreground font-semibold hover:underline"
                                         >
                                             Visit LinkedIn <ExternalLink className="w-3.5 h-3.5" />
                                         </a>
@@ -662,24 +662,24 @@ const JobDetailsOrion = () => {
                                     return (
                                         <>
                                             {job.responsibilities && (
-                                                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <div className="vercel-card p-6">
+                                                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                                                         <span className="text-xl">📋</span> Responsibilities
                                                     </h3>
                                                     {renderBulletList(job.responsibilities)}
                                                 </div>
                                             )}
                                             {/* Qualification with skill tags */}
-                                            <div className="bg-white rounded-xl border border-gray-200 p-6">
+                                            <div className="vercel-card p-6">
                                                 <div className="flex items-center justify-between mb-4">
-                                                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                                    <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                                                         <span className="text-xl">🎯</span> Qualification
                                                     </h3>
-                                                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Represents the skills you have
+                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-foreground" /> Represents the skills you have
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-gray-500 mb-4">
+                                                <p className="text-sm text-muted-foreground mb-4">
                                                     Find out how your skills align with this job's requirements. If anything seems off, you can easily <strong>click on the tags</strong> to select or unselect skills to reflect your actual expertise.
                                                 </p>
                                                 {skills.length > 0 && (
@@ -691,7 +691,7 @@ const JobDetailsOrion = () => {
                                                 )}
                                                 {job.qualifications && (
                                                     <>
-                                                        <h4 className="font-bold text-gray-900 text-sm mb-3">Required</h4>
+                                                        <h4 className="font-bold text-foreground text-sm mb-3">Required</h4>
                                                         {renderBulletList(job.qualifications)}
                                                     </>
                                                 )}
@@ -706,36 +706,36 @@ const JobDetailsOrion = () => {
                                         <>
                                             {/* Intro / About */}
                                             {parsed.intro && (
-                                                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <div className="vercel-card p-6">
+                                                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                                                         <span className="text-xl">🏢</span> About the Company
                                                     </h3>
-                                                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{parsed.intro}</p>
+                                                    <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{parsed.intro}</p>
                                                 </div>
                                             )}
 
                                             {/* Job Description / Responsibilities */}
                                             {parsed.sections.filter(s => ['description', 'responsibilities'].includes(s.type)).map((sec, i) => (
-                                                <div key={'resp-' + i} className="bg-white rounded-xl border border-gray-200 p-6">
-                                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <div key={'resp-' + i} className="vercel-card p-6">
+                                                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                                                         <span className="text-xl">{sec.type === 'responsibilities' ? '📋' : '💼'}</span> {sec.header}
                                                     </h3>
-                                                    <div className="text-gray-700 text-sm leading-relaxed prose-sm max-w-none"
+                                                    <div className="text-muted-foreground text-sm leading-relaxed prose-sm max-w-none"
                                                         dangerouslySetInnerHTML={{ __html: formatJobDescription(sec.content) }} />
                                                 </div>
                                             ))}
 
                                             {/* Qualification section with skill tags */}
-                                            <div className="bg-white rounded-xl border border-gray-200 p-6">
+                                            <div className="vercel-card p-6">
                                                 <div className="flex items-center justify-between mb-4">
-                                                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                                    <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                                                         <span className="text-xl">🎯</span> Qualification
                                                     </h3>
-                                                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Represents the skills you have
+                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-foreground" /> Represents the skills you have
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-gray-500 mb-4">
+                                                <p className="text-sm text-muted-foreground mb-4">
                                                     Find out how your skills align with this job's requirements. If anything seems off, you can easily <strong>click on the tags</strong> to select or unselect skills to reflect your actual expertise.
                                                 </p>
                                                 {skills.length > 0 && (
@@ -749,8 +749,8 @@ const JobDetailsOrion = () => {
                                                 {/* Required qualifications from parsed sections */}
                                                 {parsed.sections.filter(s => s.type === 'required').map((sec, i) => (
                                                     <div key={'req-' + i} className="mb-5">
-                                                        <h4 className="font-bold text-gray-900 text-sm mb-3">Required — {sec.header}</h4>
-                                                        <div className="text-gray-700 text-sm leading-relaxed prose-sm max-w-none"
+                                                        <h4 className="font-bold text-foreground text-sm mb-3">Required — {sec.header}</h4>
+                                                        <div className="text-muted-foreground text-sm leading-relaxed prose-sm max-w-none"
                                                             dangerouslySetInnerHTML={{ __html: formatJobDescription(sec.content) }} />
                                                     </div>
                                                 ))}
@@ -758,8 +758,8 @@ const JobDetailsOrion = () => {
                                                 {/* Preferred / Nice to Have */}
                                                 {parsed.sections.filter(s => s.type === 'preferred').map((sec, i) => (
                                                     <div key={'pref-' + i} className="mb-4">
-                                                        <h4 className="font-bold text-gray-700 text-sm mb-3">Preferred — {sec.header}</h4>
-                                                        <div className="text-gray-600 text-sm leading-relaxed prose-sm max-w-none"
+                                                        <h4 className="font-bold text-foreground text-sm mb-3">Preferred — {sec.header}</h4>
+                                                        <div className="text-muted-foreground text-sm leading-relaxed prose-sm max-w-none"
                                                             dangerouslySetInnerHTML={{ __html: formatJobDescription(sec.content) }} />
                                                     </div>
                                                 ))}
@@ -767,8 +767,8 @@ const JobDetailsOrion = () => {
                                                 {/* Skills / Technology Stack */}
                                                 {parsed.sections.filter(s => s.type === 'skills').map((sec, i) => (
                                                     <div key={'skills-' + i} className="mb-4">
-                                                        <h4 className="font-bold text-gray-700 text-sm mb-3">{sec.header}</h4>
-                                                        <div className="text-gray-600 text-sm leading-relaxed prose-sm max-w-none"
+                                                        <h4 className="font-bold text-foreground text-sm mb-3">{sec.header}</h4>
+                                                        <div className="text-muted-foreground text-sm leading-relaxed prose-sm max-w-none"
                                                             dangerouslySetInnerHTML={{ __html: formatJobDescription(sec.content) }} />
                                                     </div>
                                                 ))}
@@ -776,29 +776,29 @@ const JobDetailsOrion = () => {
 
                                             {/* Benefits / Compensation */}
                                             {parsed.sections.filter(s => s.type === 'benefits').map((sec, i) => (
-                                                <div key={'ben-' + i} className="bg-white rounded-xl border border-gray-200 p-6">
-                                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <div key={'ben-' + i} className="vercel-card p-6">
+                                                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                                                         <span className="text-xl">💰</span> {sec.header}
                                                     </h3>
-                                                    <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{sec.content}</div>
+                                                    <div className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{sec.content}</div>
                                                 </div>
                                             ))}
 
                                             {/* About company sections */}
                                             {parsed.sections.filter(s => s.type === 'about').map((sec, i) => (
-                                                <div key={'about-' + i} className="bg-white rounded-xl border border-gray-200 p-6">
-                                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <div key={'about-' + i} className="vercel-card p-6">
+                                                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                                                         <span className="text-xl">🏢</span> {sec.header}
                                                     </h3>
-                                                    <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{sec.content}</div>
+                                                    <div className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{sec.content}</div>
                                                 </div>
                                             ))}
 
                                             {/* Any other sections */}
                                             {parsed.sections.filter(s => s.type === 'other').map((sec, i) => (
-                                                <div key={'other-' + i} className="bg-white rounded-xl border border-gray-200 p-6">
-                                                    <h3 className="text-lg font-bold text-gray-900 mb-4">{sec.header}</h3>
-                                                    <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{sec.content}</div>
+                                                <div key={'other-' + i} className="vercel-card p-6">
+                                                    <h3 className="text-lg font-bold text-foreground mb-4">{sec.header}</h3>
+                                                    <div className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{sec.content}</div>
                                                 </div>
                                             ))}
                                         </>
@@ -810,16 +810,16 @@ const JobDetailsOrion = () => {
                                 return (
                                     <>
                                         {/* Flat Qualification with skill tags */}
-                                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                                        <div className="vercel-card p-6">
                                             <div className="flex items-center justify-between mb-4">
-                                                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                                <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                                                     <span className="text-xl">🎯</span> Qualification
                                                 </h3>
-                                                <div className="flex items-center gap-1 text-xs text-gray-500">
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Represents the skills you have
+                                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-foreground" /> Represents the skills you have
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-gray-500 mb-4">
+                                            <p className="text-sm text-muted-foreground mb-4">
                                                 Find out how your skills align with this job's requirements. If anything seems off, you can easily <strong>click on the tags</strong> to select or unselect skills to reflect your actual expertise.
                                             </p>
                                             {skills.length > 0 && (
@@ -831,25 +831,25 @@ const JobDetailsOrion = () => {
                                             )}
                                         </div>
                                         {/* Full Description */}
-                                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                                        <div className="vercel-card p-6">
                                             <div className="flex items-center justify-between mb-4">
-                                                <h3 className="text-lg font-bold text-gray-900">About the Role</h3>
+                                                <h3 className="text-lg font-bold text-foreground">About the Role</h3>
                                                 {isEnriching && (
-                                                    <div className="flex items-center gap-2 text-emerald-600 text-xs font-medium animate-pulse">
+                                                    <div className="flex items-center gap-2 text-foreground text-xs font-medium animate-pulse">
                                                         <Loader2 className="w-3 h-3 animate-spin" />
                                                         Enhancing job details...
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
+                                            <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed"
                                                 style={{ overflow: 'visible', textOverflow: 'unset', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
                                                 dangerouslySetInnerHTML={{ __html: formatJobDescription(fullText) }}
                                             />
                                             {isShortDescription && !isEnriching && job.sourceUrl && (
-                                                <div className="mt-6 pt-4 border-t border-gray-100">
-                                                    <p className="text-sm text-gray-500 mb-3">This is a summary. View the full job description on the original posting for complete details.</p>
+                                                <div className="mt-6 pt-4 border-t border-border">
+                                                    <p className="text-sm text-muted-foreground mb-3">This is a summary. View the full job description on the original posting for complete details.</p>
                                                     <a href={job.sourceUrl} target="_blank" rel="noreferrer"
-                                                        className="inline-flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-5 py-2.5 rounded-lg text-sm border border-emerald-200 transition-colors">
+                                                        className="inline-flex items-center gap-2 bg-background hover:bg-muted text-foreground font-semibold px-5 py-2.5 rounded-lg text-sm border border-border transition-colors">
                                                         <FileText className="w-4 h-4" /> View Full Original Posting <ExternalLink className="w-3.5 h-3.5" />
                                                     </a>
                                                 </div>
@@ -861,12 +861,12 @@ const JobDetailsOrion = () => {
 
                             {/* ─── BENEFITS ───────────────────── */}
                             {job.benefits && typeof job.benefits === 'string' && (
-                                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4">Benefits</h3>
+                                <div className="vercel-card p-6">
+                                    <h3 className="text-lg font-bold text-foreground mb-4">Benefits</h3>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                         {(typeof job.benefits === 'string' ? job.benefits : String(job.benefits)).split(/\n+/).slice(0, 9).map((b, i) => (
-                                            <div key={i} className="flex items-center gap-2 text-sm text-gray-600 p-2 bg-gray-50 rounded-lg">
-                                                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                            <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground p-2 bg-muted rounded-lg border border-border">
+                                                <CheckCircle2 className="w-4 h-4 text-foreground flex-shrink-0" />
                                                 <span className="truncate">{(typeof b === 'string' ? b : String(b)).replace(/^[•\-\*]\s*/, '')}</span>
                                             </div>
                                         ))}
@@ -883,38 +883,38 @@ const JobDetailsOrion = () => {
                         <div className="space-y-6">
 
                             {/* Company Header */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <div className="vercel-card p-6">
                                 <div className="flex flex-col md:flex-row gap-6">
                                     <div className="flex-1">
-                                        <h2 className="text-xl font-bold text-gray-900 mb-3">{job.company}</h2>
+                                        <h2 className="text-xl font-bold text-foreground mb-3">{job.company}</h2>
                                         {/* Social Links */}
                                         <div className="flex items-center gap-3 mb-4">
                                             {cd.socialLinks?.twitter && (
                                                 <a href={cd.socialLinks.twitter} target="_blank" rel="noreferrer"
-                                                    className="w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-bold hover:bg-gray-700">X</a>
+                                                    className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-xs font-bold hover:bg-foreground/80">X</a>
                                             )}
                                             {cd.socialLinks?.linkedin && (
                                                 <a href={cd.socialLinks.linkedin} target="_blank" rel="noreferrer"
-                                                    className="w-8 h-8 rounded-full bg-[#0077b5] text-white flex items-center justify-center hover:bg-[#005885]">
+                                                    className="w-8 h-8 rounded-full bg-[#0077b5] text-[var(--text-main)] flex items-center justify-center hover:bg-[#005885]">
                                                     <Linkedin className="w-4 h-4" />
                                                 </a>
                                             )}
-                                            <a href="#" className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold hover:bg-gray-300">cb</a>
+                                            <a href="#" className="w-8 h-8 rounded-full bg-muted border border-border text-muted-foreground flex items-center justify-center text-xs font-bold hover:bg-background">cb</a>
                                             {cd.glassdoor && (
                                                 <a href={cd.glassdoor.url} target="_blank" rel="noreferrer"
-                                                    className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-full px-3 py-1 text-sm">
-                                                    <span className="font-bold text-green-700">Glassdoor</span>
-                                                    <span className="flex text-yellow-500">{'★'.repeat(Math.floor(cd.glassdoor.rating || 4))}</span>
-                                                    <span className="font-bold text-green-700">{cd.glassdoor.rating || 4.0}</span>
+                                                    className="flex items-center gap-1 bg-muted border border-border rounded-full px-3 py-1 text-sm">
+                                                    <span className="font-bold text-foreground">Glassdoor</span>
+                                                    <span className="flex text-foreground">{'★'.repeat(Math.floor(cd.glassdoor.rating || 4))}</span>
+                                                    <span className="font-bold text-foreground">{cd.glassdoor.rating || 4.0}</span>
                                                 </a>
                                             )}
                                         </div>
                                         {(job.logo || cd.logo) && (
-                                            <div className="w-16 h-16 rounded-lg border border-gray-100 p-2 bg-white mb-4">
+                                            <div className="w-16 h-16 rounded-lg border border-border p-2 bg-background mb-4">
                                                 <img src={job.logo || cd.logo} alt="" className="w-full h-full object-contain" onError={e => e.target.style.display = 'none'} />
                                             </div>
                                         )}
-                                        <p className="text-sm text-gray-600 leading-relaxed">
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
                                             {cd.description || `${job.company} is a leading technology company.`}
                                         </p>
                                     </div>
@@ -922,26 +922,26 @@ const JobDetailsOrion = () => {
                                     <div className="md:min-w-[260px] space-y-3" >
                                         {cd.founded && (
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> Founded in</span>
-                                                <span className="font-medium text-gray-900">{cd.founded}</span>
+                                                <span className="text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4" /> Founded in</span>
+                                                <span className="font-medium text-foreground">{cd.founded}</span>
                                             </div>
                                         )}
                                         {cd.hq && (
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500 flex items-center gap-2"><MapPin className="w-4 h-4" /> HQ</span>
-                                                <span className="font-medium text-gray-900">{cd.hq}</span>
+                                                <span className="text-muted-foreground flex items-center gap-2"><MapPin className="w-4 h-4" /> HQ</span>
+                                                <span className="font-medium text-foreground">{cd.hq}</span>
                                             </div>
                                         )}
                                         {cd.employees && (
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500 flex items-center gap-2"><Users className="w-4 h-4" /> Employees</span>
-                                                <span className="font-medium text-gray-900">{cd.employees}</span>
+                                                <span className="text-muted-foreground flex items-center gap-2"><Users className="w-4 h-4" /> Employees</span>
+                                                <span className="font-medium text-foreground">{cd.employees}</span>
                                             </div>
                                         )}
                                         {cd.website && (
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500 flex items-center gap-2"><Globe className="w-4 h-4" /> Website</span>
-                                                <a href={cd.website} target="_blank" rel="noreferrer" className="font-medium text-blue-600 hover:underline truncate max-w-[160px]">{(typeof cd.website === 'string' ? cd.website : String(cd.website)).replace('https://', '')}</a>
+                                                <span className="text-muted-foreground flex items-center gap-2"><Globe className="w-4 h-4" /> Website</span>
+                                                <a href={cd.website} target="_blank" rel="noreferrer" className="font-medium text-foreground hover:underline truncate max-w-[160px]">{(typeof cd.website === 'string' ? cd.website : String(cd.website)).replace('https://', '')}</a>
                                             </div>
                                         )}
                                     </div>
@@ -950,44 +950,44 @@ const JobDetailsOrion = () => {
 
                             {/* H1B Sponsorship */}
                             {cd.h1b?.isLikely && (
-                                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">H1B Sponsorship</h3>
-                                    <p className="text-sm text-gray-600 mb-4">
-                                        {job.company} has a track record of offering H1B sponsorships. Please note that this does not guarantee sponsorship for this specific role. (<em className="text-blue-600">Data Powered by US Department of Labor</em>)
+                                <div className="vercel-card p-6">
+                                    <h3 className="text-lg font-bold text-foreground mb-2">H1B Sponsorship</h3>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        {job.company} has a track record of offering H1B sponsorships. Please note that this does not guarantee sponsorship for this specific role. (<em className="text-foreground">Data Powered by US Department of Labor</em>)
                                     </p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {/* Pie Chart Placeholder */}
                                         <div>
-                                            <h4 className="font-bold text-sm text-gray-900 mb-3">Distribution of Job Fields Receiving Sponsorship</h4>
+                                            <h4 className="font-bold text-sm text-foreground mb-3">Distribution of Job Fields Receiving Sponsorship</h4>
                                             <div className="flex items-center gap-4">
                                                 <div className="relative w-28 h-28">
                                                     <svg viewBox="0 0 120 120" className="w-28 h-28">
-                                                        <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" strokeWidth="20" />
-                                                        <circle cx="60" cy="60" r="50" fill="none" stroke="#10b981" strokeWidth="20"
+                                                        <circle cx="60" cy="60" r="50" fill="none" stroke="hsl(var(--muted))" strokeWidth="20" />
+                                                        <circle cx="60" cy="60" r="50" fill="none" stroke="hsl(var(--foreground))" strokeWidth="20"
                                                             strokeDasharray={2 * Math.PI * 50} strokeDashoffset={2 * Math.PI * 50 * 0.22}
                                                             className="-rotate-90 origin-center" />
                                                     </svg>
                                                     <div className="absolute inset-0 flex items-center justify-center">
-                                                        <span className="text-lg font-bold text-emerald-600">78%</span>
+                                                        <span className="text-lg font-bold text-foreground">78%</span>
                                                     </div>
                                                 </div>
-                                                <div className="space-y-1 text-xs text-gray-600">
-                                                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Engineering & Development</div>
-                                                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-400" /> Customer Service</div>
-                                                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-300" /> Management</div>
-                                                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-200" /> Sales</div>
+                                                <div className="space-y-1 text-xs text-muted-foreground">
+                                                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-foreground" /> Engineering & Development</div>
+                                                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-muted-foreground" /> Customer Service</div>
+                                                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full border border-border" /> Management</div>
+                                                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full border border-border" /> Sales</div>
                                                 </div>
                                             </div>
                                         </div>
                                         {/* Trends */}
                                         <div>
-                                            <h4 className="font-bold text-sm text-gray-900 mb-3">Trends of Total Sponsorships</h4>
+                                            <h4 className="font-bold text-sm text-foreground mb-3">Trends of Total Sponsorships</h4>
                                             <div className="space-y-2">
                                                 {[{ y: '2025', v: 29 }, { y: '2024', v: 22 }, { y: '2023', v: 25 }, { y: '2022', v: 26 }, { y: '2021', v: 23 }, { y: '2020', v: 30 }].map(d => (
                                                     <div key={d.y} className="flex items-center gap-3">
-                                                        <span className="text-xs font-medium text-gray-700 w-16">{d.y} ({d.v})</span>
-                                                        <div className="flex-1 bg-gray-100 rounded-full h-2.5">
-                                                            <div className="bg-emerald-400 h-2.5 rounded-full" style={{ width: `${(d.v / 30) * 100}%` }} />
+                                                        <span className="text-xs font-medium text-muted-foreground w-16">{d.y} ({d.v})</span>
+                                                        <div className="flex-1 bg-muted border border-border rounded-full h-2.5">
+                                                            <div className="bg-foreground h-2.5 rounded-full" style={{ width: `${(d.v / 30) * 100}%` }} />
                                                         </div>
                                                     </div>
                                                 ))}
@@ -998,23 +998,23 @@ const JobDetailsOrion = () => {
                             )}
 
                             {/* ─── Leadership ──────────────────── */}
-                            <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                <h3 className="text-lg font-bold text-gray-900 mb-4">Leadership Team</h3>
+                            <div className="vercel-card p-6">
+                                <h3 className="text-lg font-bold text-foreground mb-4">Leadership Team</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {[
                                         { name: 'CEO', role: 'Chief Executive Officer' },
                                         { name: 'CTO', role: 'Chief Technology Officer' }
                                     ].map((leader, i) => (
-                                        <div key={i} className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg">
-                                            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                                                <Users className="w-6 h-6 text-gray-400" />
+                                        <div key={i} className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background">
+                                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                                                <Users className="w-6 h-6 text-muted-foreground" />
                                             </div>
                                             <div className="flex-1">
-                                                <div className="text-sm font-medium text-gray-900">{leader.name}</div>
-                                                <div className="text-xs text-gray-500">{leader.role}</div>
+                                                <div className="text-sm font-medium text-foreground">{leader.name}</div>
+                                                <div className="text-xs text-muted-foreground">{leader.role}</div>
                                             </div>
                                             <a href={cd.socialLinks?.linkedin || '#'} target="_blank" rel="noreferrer">
-                                                <Linkedin className="w-4 h-4 text-[#0077b5]" />
+                                                <Linkedin className="w-4 h-4 text-[#0077b5] opacity-80 hover:opacity-100" />
                                             </a>
                                         </div>
                                     ))}
@@ -1023,16 +1023,16 @@ const JobDetailsOrion = () => {
 
                             {/* ─── Recent News ─────────────────── */}
                             {cd.news && cd.news.length > 0 && (
-                                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Newspaper className="w-5 h-5 text-gray-500" /> Recent News
+                                <div className="vercel-card p-6">
+                                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                                        <Newspaper className="w-5 h-5 text-muted-foreground" /> Recent News
                                     </h3>
                                     <div className="space-y-4">
                                         {cd.news.slice(0, 3).map((n, i) => (
-                                            <div key={i} className="border-b border-gray-100 pb-3 last:border-0">
+                                            <div key={i} className="border-b border-border pb-3 last:border-0">
                                                 <a href={n.url} target="_blank" rel="noreferrer"
-                                                    className="text-sm font-medium text-gray-900 hover:text-emerald-600 hover:underline">{n.title}</a>
-                                                <div className="text-xs text-gray-400 mt-1">{n.source} · {n.date}</div>
+                                                    className="text-sm font-medium text-foreground hover:text-muted-foreground hover:underline">{n.title}</a>
+                                                <div className="text-xs text-muted-foreground mt-1">{n.source} · {n.date}</div>
                                             </div>
                                         ))}
                                     </div>

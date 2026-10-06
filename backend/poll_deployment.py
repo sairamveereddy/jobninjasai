@@ -6,7 +6,7 @@ import sys
 URL = "https://jobninjas.ai/api/debug/sync-jobs"
 # URL = "https://jobninjas.ai/api/debug/config-check"
 # Also try the railway URL directly in case of DNS lag
-URL_RAILWAY = "https://nova-ninjas-production.up.railway.app/api/debug/sync-jobs"
+URL_RAILWAY = "https://jobninjas-production.up.railway.app/api/debug/sync-jobs"
 
 print(f"Polling {URL}...")
 

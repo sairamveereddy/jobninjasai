@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.79.0"
+    "@anthropic-ai/sdk": "^0.79.0",
+    "@modelcontextprotocol/sdk": "^1.32.1"
   }
 }

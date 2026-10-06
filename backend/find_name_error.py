@@ -45,7 +45,7 @@ def find_job_title_name_error(filepath):
     return visitor.errors
 
 if __name__ == "__main__":
-    target = r"c:\Users\vsair\Downloads\novasquar-main\novasquad-main\nova-ninjas\backend\document_generator.py"
+    target = r"c:\Users\vsair\Downloads\novasquar-main\novasquad-main\jobninjas\backend\document_generator.py"
     errors = find_job_title_name_error(target)
     for line, func in errors:
         print(f"Potential NameError: 'job_title' at line {line} in function {func}")

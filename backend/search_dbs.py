@@ -6,7 +6,7 @@ load_dotenv('.env')
 
 async def search_dbs():
     m = AsyncIOMotorClient(os.environ.get('MONGO_URL'))
-    dbs = ['nova-ninjas', 'nova_ninjas', 'novaninjas']
+    dbs = ['jobninjas', 'nova_ninjas', 'jobninjas']
     
     for db_name in dbs:
         print(f"\n--- Searching in DB: {db_name} ---")

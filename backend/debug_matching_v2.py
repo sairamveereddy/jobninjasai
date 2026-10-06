@@ -81,7 +81,7 @@ def _calculate_match_score_DEBUG(job, user):
 async def debug_user_matching(email):
     mongo_url = os.getenv("MONGO_URL")
     client = AsyncIOMotorClient(mongo_url)
-    db = client[os.getenv("DB_NAME", "novaninjas")]
+    db = client[os.getenv("DB_NAME", "jobninjas")]
     
     user = await get_enriched_user(email, db)
     if not user:

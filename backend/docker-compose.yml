@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - monolith
+      - job-service
+    networks:
+      - nova-net
+
+  monolith:
+    build:
+      context: .
+      dockerfile: Dockerfile.monolith
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - VAPI_API_KEY=${VAPI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    networks:
+      - nova-net
+
+  job-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.job_service
+    environment:
+      - ADZUNA_APP_ID=${ADZUNA_APP_ID}
+      - ADZUNA_APP_KEY=${ADZUNA_APP_KEY}
+      - RAPIDAPI_KEY=${RAPIDAPI_KEY}
+    networks:
+      - nova-net
+
+networks:
+  nova-net:
+    driver: bridge

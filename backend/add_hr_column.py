@@ -2,7 +2,7 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 
-load_dotenv("c:/Users/vsair/Downloads/novasquar-main/novasquad-main/nova-ninjas/backend/.env")
+load_dotenv("c:/Users/vsair/Downloads/novasquar-main/novasquad-main/jobninjas/backend/.env")
 DB_URL = os.environ.get("DATABASE_URL")
 
 if not DB_URL:

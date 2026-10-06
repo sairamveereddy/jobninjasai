@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's/bg-\\\\[#f0f4f9\\\\]/bg-\\\\[#e8f0e9\\\\]/g' \"c:/Users/vsair/Downloads/novasquar-main/novasquad-main/nova-ninjas/frontend/src/components/ProfileOptimization.jsx\")",
+      "Bash(sed -i 's/bg-\\\\[#010813\\\\]/bg-\\\\[#e8f0e9\\\\]/g' \"c:/Users/vsair/Downloads/novasquar-main/novasquad-main/nova-ninjas/frontend/src/components/ProfileOptimization.jsx\")",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}

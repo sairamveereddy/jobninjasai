@@ -7,11 +7,11 @@ const SocialTooltip = React.forwardRef(
         const baseIconStyles =
             "relative flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 overflow-hidden transition-all duration-300 ease-in-out group-hover:shadow-lg hover:scale-110 border border-slate-200";
         const baseSvgStyles =
-            "relative z-10 w-5 h-5 text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-white";
+            "relative z-10 w-5 h-5 text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-[var(--text-main)]";
         const baseFilledStyles =
             "absolute bottom-0 left-0 w-full h-0 transition-all duration-300 ease-in-out group-hover:h-full";
         const baseTooltipStyles =
-            "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 text-xs text-white whitespace-nowrap rounded-md opacity-0 invisible transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:visible";
+            "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 text-xs text-[var(--text-main)] whitespace-nowrap rounded-md opacity-0 invisible transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:visible";
 
         return (
             <ul

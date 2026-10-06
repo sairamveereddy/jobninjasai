@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Bot, UserCheck, Menu } from 'lucide-react';
 import { BRAND } from '../config/branding';
 import { useAuth } from '../contexts/AuthContext';
+import BrandLogo from './BrandLogo';
 
 const Navbar = ({ onOpenSideMenu, rightContent }) => {
   const navigate = useNavigate();
@@ -14,61 +15,60 @@ const Navbar = ({ onOpenSideMenu, rightContent }) => {
   const isActive = (path) => currentPath === path;
 
   return (
-    <header className="nav-header nav-modern">
-      <div className="nav-left">
-        <button className="hamburger-btn" onClick={onOpenSideMenu}>
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md h-16 flex items-center justify-between px-6 shadow-[0_1px_0_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.1)]">
+      <div className="flex items-center gap-4">
+        <button className="md:hidden p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-secondary transition-colors" onClick={onOpenSideMenu}>
           <Menu className="w-5 h-5" />
         </button>
-        <button onClick={() => navigate('/')} className="nav-logo">
-          <img src={BRAND.logoPath} alt={BRAND.logoAlt} className="logo-image" />
-          <span className="logo-text">{BRAND.name}</span>
+        <button onClick={() => navigate('/')} className="flex items-center">
+          <BrandLogo className="!text-lg font-bold tracking-tight" />
         </button>
       </div>
-      <nav className="nav-links-modern">
+      <nav className="hidden md:flex items-center gap-6">
         <button 
           onClick={() => navigate('/ai-ninja')} 
-          className={`nav-link-modern nav-ninja-btn ai ${isActive('/ai-ninja') ? 'active' : ''}`}
+          className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive('/ai-ninja') ? 'text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
         >
-          <Bot className="w-5 h-5" />
+          <Bot className="w-4 h-4" />
           <span>AI Ninja</span>
         </button>
         <button 
           onClick={() => navigate('/human-ninja')} 
-          className={`nav-link-modern nav-ninja-btn human ${isActive('/human-ninja') ? 'active' : ''}`}
+          className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive('/human-ninja') ? 'text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
         >
-          <UserCheck className="w-5 h-5" />
+          <UserCheck className="w-4 h-4" />
           <span>Human Ninja</span>
         </button>
         <button 
           onClick={() => navigate('/jobs')} 
-          className={`nav-link-modern ${isActive('/jobs') ? 'text-primary font-semibold' : ''}`}
+          className={`text-sm font-medium transition-colors ${isActive('/jobs') ? 'text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
         >
           Job Board
         </button>
         <button 
           onClick={() => navigate('/pricing')} 
-          className={`nav-link-modern ${isActive('/pricing') ? 'text-primary font-semibold' : ''}`}
+          className={`text-sm font-medium transition-colors ${isActive('/pricing') ? 'text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
         >
           Pricing
         </button>
       </nav>
-      <div className="nav-actions">
+      <div className="flex items-center gap-4">
         {rightContent ? (
           rightContent
         ) : (
           !isAuthenticated && (
             <>
-              <Button variant="ghost" className="btn-ghost" onClick={() => navigate('/login')}>
+              <Button variant="ghost" className="vercel-button-outline text-sm h-9" onClick={() => navigate('/login')}>
                 Log in
               </Button>
-              <Button className="btn-primary-modern" onClick={() => navigate('/signup')}>
+              <Button className="vercel-button text-sm h-9" onClick={() => navigate('/signup')}>
                 Start now for free
               </Button>
             </>
           )
         )}
         {isAuthenticated && !rightContent && (
-             <Button variant="secondary" className="btn-secondary" onClick={() => navigate('/dashboard')}>
+             <Button variant="secondary" className="vercel-button-outline text-sm h-9" onClick={() => navigate('/dashboard')}>
                 Dashboard
              </Button>
         )}

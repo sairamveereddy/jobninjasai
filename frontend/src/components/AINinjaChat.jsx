@@ -145,7 +145,7 @@ const AINinjaChat = ({ isOpen: propIsOpen, onClose }) => {
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                         {msg.role === 'assistant' && (
-                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-100 bg-white">
+                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-100 bg-[#faf9ff]">
                                 <img src="/ninjasface.png" alt="AI" className="w-full h-full object-cover" />
                             </div>
                         )}
@@ -153,7 +153,7 @@ const AINinjaChat = ({ isOpen: propIsOpen, onClose }) => {
                             <div className={`p-3 text-sm leading-relaxed rounded-2xl shadow-sm
                                 ${msg.role === 'user'
                                     ? 'bg-emerald-600 text-white rounded-tr-sm'
-                                    : 'bg-white border border-slate-100 text-slate-700 rounded-tl-sm'
+                                    : 'bg-[#faf9ff] border border-slate-100 text-slate-700 rounded-tl-sm'
                                 }`}>
                                 {(() => {
                                     const content = typeof msg.content === 'string' ? msg.content : String(msg.content || '');
@@ -168,7 +168,7 @@ const AINinjaChat = ({ isOpen: propIsOpen, onClose }) => {
                                         <button
                                             key={i}
                                             onClick={() => handleSend(q)}
-                                            className="text-left text-xs bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 py-2 px-3 rounded-xl transition-colors flex items-center justify-between group"
+                                            className="text-left text-xs bg-[#faf9ff] hover:bg-gray-50 border border-gray-200 text-gray-600 py-2 px-3 rounded-xl transition-colors flex items-center justify-between group"
                                         >
                                             {q}
                                             <ChevronRight className="w-3 h-3 text-gray-300 group-hover:text-blue-500" />
@@ -181,10 +181,10 @@ const AINinjaChat = ({ isOpen: propIsOpen, onClose }) => {
                 ))}
                 {isLoading && (
                     <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-100 bg-white">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-100 bg-[#faf9ff]">
                             <img src="/ninjasface.png" alt="AI" className="w-full h-full object-cover" />
                         </div>
-                        <div className="bg-white border border-gray-100 p-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1">
+                        <div className="bg-[#faf9ff] border border-gray-100 p-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1">
                             <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                             <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
                             <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -193,14 +193,14 @@ const AINinjaChat = ({ isOpen: propIsOpen, onClose }) => {
                 )}
             </div>
 
-            <div className="p-4 border-t border-slate-100 bg-white">
+            <div className="p-4 border-t border-slate-100 bg-[#faf9ff]">
                 <div className="relative">
                     <Input
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyPress}
                         placeholder="Ask anything..."
-                        className="pr-10 h-11 rounded-xl border-slate-200 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 focus:bg-white transition-all"
+                        className="pr-10 h-11 rounded-xl border-slate-200 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 focus:bg-[#faf9ff] transition-all"
                     />
                     <Button
                         size="icon"

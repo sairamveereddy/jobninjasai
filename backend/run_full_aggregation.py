@@ -19,7 +19,7 @@ async def run_aggregation():
     load_dotenv()
     
     mongo_url = os.environ.get('MONGO_URL')
-    db_name = os.environ.get('DB_NAME', 'novaninjas')
+    db_name = os.environ.get('DB_NAME', 'jobninjas')
     
     if not mongo_url:
         print("Error: MONGO_URL not found in .env")

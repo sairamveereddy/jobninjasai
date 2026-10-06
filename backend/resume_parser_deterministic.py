@@ -15,10 +15,10 @@ DATE_RANGE = re.compile(
     re.I
 )
 
-# "Title  /  Company\tDate"
-JOB_SLASH_DATE = re.compile(r'^(.+?)\s{1,4}/\s{1,4}(.+?)\t(.+)$')
-# "Title  /  Company" (no inline date, 2+ spaces around slash)
-JOB_SLASH_ONLY = re.compile(r'^(.+?)\s{2,}/\s{2,}(.+)$')
+# "Title  /  Company\tDate" or "Title | Company  Date"
+JOB_SLASH_DATE = re.compile(r'^(.+?)\s*[\|/]\s*(.+?)(?:\t|\s{2,})(.+)$')
+# "Title  /  Company" (no inline date)
+JOB_SLASH_ONLY = re.compile(r'^(.+?)\s*[\|/]\s*(.+)$')
 
 EMAIL_RE  = re.compile(r'[\w\.\+\-]+@[\w\.\-]+\.\w{2,}')
 PHONE_RE  = re.compile(r'\(?\d{3}\)?[\s\.\-]?\d{3}[\s\.\-]?\d{4}')
@@ -29,17 +29,17 @@ DEGREE_RE = re.compile(
 )
 
 SECTION_MAP = [
-    (re.compile(r'^(PROFESSIONAL\s+)?SUMMARY$', re.I),               'summary'),
-    (re.compile(r'^(PROFESSIONAL\s+)?EXPERIENCE$', re.I),            'experience'),
-    (re.compile(r'^WORK\s+EXPERIENCE$', re.I),                       'experience'),
-    (re.compile(r'^EMPLOYMENT(\s+HISTORY)?$', re.I),                 'experience'),
-    (re.compile(r'^KEY\s+PROJECTS?$', re.I),                         'projects'),
-    (re.compile(r'^PROJECTS?$', re.I),                                'projects'),
-    (re.compile(r'^EDUCATION$', re.I),                                'education'),
-    (re.compile(r'^CERTIFICATIONS?(\s+[&]\s+LICENSES?)?$', re.I),   'certifications'),
-    (re.compile(r'^LICENSES?(\s+(AND|[&])\s+CERTIFICATIONS?)?$', re.I), 'certifications'),
-    (re.compile(r'^(CORE\s+)?SKILLS?$', re.I),                       'skills'),
-    (re.compile(r'^TECHNICAL\s+SKILLS?$', re.I),                     'skills'),
+    (re.compile(r'^(PROFESSIONAL\s+)?SUMMARY:?$', re.I),               'summary'),
+    (re.compile(r'^(PROFESSIONAL\s+)?EXPERIENCE:?$', re.I),            'experience'),
+    (re.compile(r'^WORK\s+EXPERIENCE:?$', re.I),                       'experience'),
+    (re.compile(r'^EMPLOYMENT(\s+HISTORY)?:?$', re.I),                 'experience'),
+    (re.compile(r'^KEY\s+PROJECTS?:?$', re.I),                         'projects'),
+    (re.compile(r'^PROJECTS?:?$', re.I),                                'projects'),
+    (re.compile(r'^EDUCATION:?$', re.I),                                'education'),
+    (re.compile(r'^CERTIFICATIONS?(\s+[&]\s+LICENSES?)?:?$', re.I),   'certifications'),
+    (re.compile(r'^LICENSES?(\s+(AND|[&])\s+CERTIFICATIONS?)?:?$', re.I), 'certifications'),
+    (re.compile(r'^(CORE\s+)?SKILLS?:?.*$', re.I),                       'skills'),
+    (re.compile(r'^TECHNICAL\s+SKILLS?:?.*$', re.I),                     'skills'),
 ]
 
 
@@ -286,8 +286,8 @@ def _parse_edu(s: str, education: list):
 
     if DEGREE_RE.search(clean):
         degree, major, university = '', '', ''
-        # "Master of Science: MIS — University" or "Master of Science, MIS"
-        for sep in (':', ','):
+        # Try separators: |, :, ,
+        for sep in ('|', ':', ','):
             if sep in clean:
                 parts  = clean.split(sep, 1)
                 degree = parts[0].strip()
@@ -299,7 +299,11 @@ def _parse_edu(s: str, education: list):
                         university = sub[1].strip()
                         break
                 else:
-                    major = rest.strip()
+                    # If it was a |, the rest is probably the university
+                    if sep == '|':
+                        university = rest.strip()
+                    else:
+                        major = rest.strip()
                 break
         else:
             degree = clean

@@ -21,7 +21,7 @@ async def main():
     
     MONGO_URL = os.getenv("MONGO_URL")
     client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
-    db = client["nova-ninjas"]
+    db = client["jobninjas"]
     
     aggregator = JobAggregator(db)
     

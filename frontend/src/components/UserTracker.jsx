@@ -7,7 +7,8 @@ const UserTracker = () => {
     const [filter, setFilter] = useState('');
 
     // Hardcoded production URL to ensure it works regardless of environment config
-    const TRACKER_ENDPOINT = "https://nova-ninjas-production.up.railway.app/api/admin/all-users-export?admin_key=jobninjas2025admin";
+    const ADMIN_KEY = process.env.REACT_APP_ADMIN_KEY || "jobninjas2025admin";
+    const TRACKER_ENDPOINT = `https://job-ninjas-production.up.railway.app/api/admin/all-users-export?admin_key=${ADMIN_KEY}`;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -37,7 +38,7 @@ const UserTracker = () => {
     );
 
     const StatCard = ({ title, value, color }) => (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+        <div className="bg-[#faf9ff] p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
             <span className="text-gray-500 text-sm font-medium uppercase tracking-wider">{title}</span>
             <span className={`text-3xl font-bold mt-2 ${color}`}>{value}</span>
         </div>
@@ -54,7 +55,7 @@ const UserTracker = () => {
 
     if (error) return (
         <div className="min-h-screen p-8 bg-slate-50 flex justify-center">
-            <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center">
+            <div className="max-w-md w-full bg-[#faf9ff] p-8 rounded-xl shadow-lg text-center">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-2xl">⚠️</span>
                 </div>
@@ -97,12 +98,12 @@ const UserTracker = () => {
                 </div>
 
                 {/* Search & List */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-[#faf9ff] rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 bg-gray-50/50">
                         <input
                             type="text"
                             placeholder="Search by name or email..."
-                            className="w-full max-w-md px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+                            className="w-full max-w-md px-4 py-2 bg-[#faf9ff] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                         />
@@ -123,7 +124,7 @@ const UserTracker = () => {
                                     <tr key={idx} className="hover:bg-gray-50 transition">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
-                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[var(--text-main)] font-bold text-sm">
                                                     {user.name ? user.name.charAt(0).toUpperCase() : '?'}
                                                 </div>
                                                 <div className="ml-4">

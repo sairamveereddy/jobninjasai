@@ -129,26 +129,26 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}
-      <nav className="bg-gradient-to-r from-primary to-primary/80 text-white sticky top-0 z-50">
+      <nav className="bg-gradient-to-r from-primary to-primary/80 text-[var(--text-main)] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
               <button onClick={() => navigate('/')} className="flex items-center gap-2">
-                <img src="/logo.png" alt="jobNinjas.org" className="h-8" />
-                <span className="text-xl font-bold">jobNinjas.org</span>
+                <img src="/logo.png" alt="jobninjas.org" className="h-8" />
+                <span className="text-xl font-bold">jobninjas.org</span>
               </button>
-              <Badge variant="secondary" className="bg-white/20 text-white border-0">
+              <Badge variant="secondary" className="bg-[#faf9ff]/20 text-[var(--text-main)] border-0">
                 <Shield className="w-3 h-3 mr-1" />
                 Admin Console
               </Badge>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={fetchAllData} className="text-white hover:bg-white/20">
+              <Button variant="ghost" size="sm" onClick={fetchAllData} className="text-[var(--text-main)] hover:bg-[#faf9ff]/20">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh
               </Button>
               <span className="text-sm opacity-80">Admin: {user?.name}</span>
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-white hover:bg-white/20">
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-[var(--text-main)] hover:bg-[#faf9ff]/20">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>
@@ -158,7 +158,7 @@ const Admin = () => {
       </nav>
 
       {/* Tab Navigation */}
-      <div className="bg-white border-b">
+      <div className="bg-[#faf9ff] border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1">
             {[
@@ -251,7 +251,7 @@ const Admin = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
-                          <Phone className="w-6 h-6 text-white" />
+                          <Phone className="w-6 h-6 text-[var(--text-main)]" />
                         </div>
                         <div>
                           <p className="text-sm text-orange-800">Pending Bookings</p>
@@ -265,7 +265,7 @@ const Admin = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                          <UserPlus className="w-6 h-6 text-white" />
+                          <UserPlus className="w-6 h-6 text-[var(--text-main)]" />
                         </div>
                         <div>
                           <p className="text-sm text-blue-800">Waitlist Entries</p>
@@ -279,7 +279,7 @@ const Admin = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                          <Clock className="w-6 h-6 text-white" />
+                          <Clock className="w-6 h-6 text-[var(--text-main)]" />
                         </div>
                         <div>
                           <p className="text-sm text-green-800">Hours Saved</p>

@@ -28,6 +28,8 @@ import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 
+import { BRAND } from '../config/branding';
+
 const LinkedInMockup = () => {
     return (
         <div className="linkedin-mockup-page">
@@ -101,7 +103,7 @@ const LinkedInMockup = () => {
                         </div>
 
                         {/* ============================================ */}
-                        {/* jobNinjas MATCH SCORE WIDGET (Image 3 Mock) */}
+                        {/* jobninjas MATCH SCORE WIDGET (Image 3 Mock) */}
                         {/* ============================================ */}
                         <div className="jobninjas-match-widget">
                             <div className="match-widget-content">
@@ -130,7 +132,7 @@ const LinkedInMockup = () => {
                             <div className="match-footer">
                                 <div className="footer-brand">
                                     <img src="/ninjasface.png" alt="Ninja" className="ninja-logo-small" />
-                                    <span className="brand-name">jobNinjas</span>
+                                    <span className="brand-name">jobninjas</span>
                                 </div>
                                 <div className="footer-action">
                                     <Zap className="w-4 h-4 text-blue-500 fill-blue-500" />

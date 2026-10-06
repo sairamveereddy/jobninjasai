@@ -1,7 +1,7 @@
 import sys
 import os
 
-path = r'c:\Users\vsair\Downloads\novasquar-main\novasquad-main\nova-ninjas\backend\document_generator.py'
+path = r'c:\Users\vsair\Downloads\novasquar-main\novasquad-main\jobninjas\backend\document_generator.py'
 if not os.path.exists(path):
     print(f"ERROR: File not found at {path}")
     sys.exit(1)

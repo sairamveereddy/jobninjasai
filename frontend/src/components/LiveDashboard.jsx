@@ -25,7 +25,7 @@ const LiveDashboard = () => {
     const [updating, setUpdating] = useState(false);
 
     // Hardcoded production URL
-    const API_BASE = "https://nova-ninjas-production.up.railway.app";
+    const API_BASE = "https://job-ninjas-production.up.railway.app";
     const API_ENDPOINT = `${API_BASE}/api/admin/all-users-export?admin_key=jobninjas2025admin`;
     const UPDATE_ENDPOINT = `${API_BASE}/api/admin/update-user-plan`;
 
@@ -104,7 +104,7 @@ const LiveDashboard = () => {
     });
 
     const StatCard = ({ title, value, color, icon: Icon }) => (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+        <div className="bg-[#faf9ff] p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
             <div className="flex justify-between items-start">
                 <div>
                     <span className="text-gray-500 text-sm font-medium uppercase tracking-wider">{title}</span>
@@ -132,7 +132,7 @@ const LiveDashboard = () => {
 
     if (error) return (
         <div className="min-h-screen p-8 bg-slate-50 flex justify-center">
-            <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center">
+            <div className="max-w-md w-full bg-[#faf9ff] p-8 rounded-xl shadow-lg text-center">
                 <h2 className="text-xl font-bold text-gray-800 mb-2">Connection Issue</h2>
                 <p className="text-gray-600 mb-6">{error}</p>
                 <button onClick={fetchData} className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Retry Connection</button>
@@ -172,9 +172,9 @@ const LiveDashboard = () => {
                 </div>
 
                 {/* Main Content Card */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-[#faf9ff] rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {/* Tabs & Search Header */}
-                    <div className="p-4 border-b border-gray-100 bg-white flex flex-col md:flex-row justify-between gap-4 items-center">
+                    <div className="p-4 border-b border-gray-100 bg-[#faf9ff] flex flex-col md:flex-row justify-between gap-4 items-center">
                         <div className="flex bg-gray-100 p-1 rounded-lg">
                             {[
                                 { id: 'all', label: 'All Users' },
@@ -186,7 +186,7 @@ const LiveDashboard = () => {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === tab.id
-                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        ? 'bg-[#faf9ff] text-slate-900 shadow-sm'
                                         : 'text-gray-500 hover:text-gray-700'
                                         }`}
                                 >
@@ -289,7 +289,7 @@ const LiveDashboard = () => {
                         </table>
 
                         {filteredUsers.length === 0 && (
-                            <div className="p-12 text-center text-gray-500 bg-white">
+                            <div className="p-12 text-center text-gray-500 bg-[#f5f3ff]">
                                 <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                                 <p>No users found matching this filter.</p>
                             </div>
@@ -300,7 +300,7 @@ const LiveDashboard = () => {
                 {/* Edit Modal */}
                 {editingUser && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="bg-[#faf9ff] rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
                             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                                 <h3 className="text-lg font-bold text-gray-900">Manage User Access</h3>
                                 <button onClick={() => setEditingUser(null)} className="text-gray-400 hover:text-gray-600">
@@ -355,7 +355,7 @@ const LiveDashboard = () => {
                                     disabled={updating}
                                     className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
                                 >
-                                    {updating ? <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <Check className="w-4 h-4" />}
+                                    {updating ? <div className="w-4 h-4 border-2 border-black/50 border-t-white rounded-full animate-spin" /> : <Check className="w-4 h-4" />}
                                     Save Changes
                                 </button>
                             </div>

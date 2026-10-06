@@ -8,26 +8,26 @@ const SearchPreview = () => {
             <div className="search-preview-card">
                 <div className="search-preview-header">
                     <div className="search-preview-icon">
-                        <img src={BRAND.logoPath} alt="jobNinjas Icon" />
+                        <img src={BRAND.logoPath} alt="JobNinjas Icon" />
                     </div>
                     <div className="search-preview-meta">
-                        <span className="search-preview-title">jobNinjas</span>
-                        <span className="search-preview-url">jobninjas.io</span>
+                        <span className="search-preview-title">JobNinjas</span>
+                        <span className="search-preview-url">jobninjas.ai</span>
                     </div>
                 </div>
 
                 <h3 className="search-preview-main-link">
-                    jobNinjas.ai - AI-Powered Job Search & Application Tools
+                    JobNinjas.ai - AI-Powered Job Search & Application Tools
                 </h3>
 
                 <p className="search-preview-description">
-                    jobNinjas.ai - AI-Powered Job Search & Application Tools. Smart resume optimization, automated applications, and career advancement for serious job seekers.
+                    JobNinjas.ai - AI-Powered Job Search & Application Tools. Smart resume optimization, automated applications, and career advancement for serious job seekers.
                 </p>
 
                 <div className="search-preview-sitelinks">
                     <div className="sitelink-item">
                         <h4 className="sitelink-title">Login</h4>
-                        <p className="sitelink-desc">Access your jobNinjas account and manage your applications.</p>
+                        <p className="sitelink-desc">Access your JobNinjas account and manage your applications.</p>
                     </div>
                     <div className="sitelink-item">
                         <h4 className="sitelink-title">Register</h4>

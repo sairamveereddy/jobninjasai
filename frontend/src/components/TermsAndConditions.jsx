@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, DollarSign, ShieldAlert, UserX, Gavel, Mail, CheckCircle, XCircle } from 'lucide-react';
 import { BRAND } from '../config/branding';
 import { Card } from './ui/card';
-import Header from './Header';
-import SideMenu from './SideMenu';
+// import Header from './Header';
+// import SideMenu from './SideMenu';
 
 const Section = ({ icon: Icon, title, children, color = 'text-blue-600' }) => (
     <section className="mb-10">
@@ -18,13 +18,12 @@ const Section = ({ icon: Icon, title, children, color = 'text-blue-600' }) => (
 
 const TermsAndConditions = () => {
     const navigate = useNavigate();
-    const [sideMenuOpen, setSideMenuOpen] = useState(false);
+    // const [sideMenuOpen, setSideMenuOpen] = useState(false);
     const EFFECTIVE_DATE = 'February 24, 2026';
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            <SideMenu isOpen={sideMenuOpen} onClose={() => setSideMenuOpen(false)} />
-            <Header onMenuClick={() => setSideMenuOpen(true)} />
+            {/* Header and SideMenu provided by standard layout or simple navigation */}
 
             <main className="flex-grow container mx-auto px-4 py-12 max-w-4xl">
                 <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-blue-600 mb-8 transition-colors group">
@@ -48,22 +47,22 @@ const TermsAndConditions = () => {
                     <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex gap-3">
                         <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                         <div>
-                            <p className="font-semibold text-green-800 text-sm">Free Trial</p>
-                            <p className="text-green-700 text-sm">1 week free with up to 20 job applications per day. No credit card required to start.</p>
+                            <p className="font-semibold text-green-800 text-sm">Free Evaluation</p>
+                            <p className="text-green-700 text-sm">Test our AI tools for free before committing to a paid plan.</p>
                         </div>
                     </div>
                     <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex gap-3">
                         <DollarSign className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                         <div>
-                            <p className="font-semibold text-blue-800 text-sm">Pro Access – $50/year</p>
-                            <p className="text-blue-700 text-sm">One-time annual payment. Unlimited applications, all AI tools, full platform access.</p>
+                            <p className="font-semibold text-blue-800 text-sm">Monthly Subscriptions</p>
+                            <p className="text-blue-700 text-sm">Plans starting at $15/month. Cancel anytime from your dashboard.</p>
                         </div>
                     </div>
                     <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 flex gap-3">
                         <XCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                         <div>
                             <p className="font-semibold text-orange-800 text-sm">No Refunds</p>
-                            <p className="text-orange-700 text-sm">All Pro purchases are final. This is a one-time payment, not a subscription — see Refund Policy for details.</p>
+                            <p className="text-orange-700 text-sm">All subscription payments are final. No partial refunds upon cancellation.</p>
                         </div>
                     </div>
                     <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5 flex gap-3">
@@ -75,41 +74,39 @@ const TermsAndConditions = () => {
                     </div>
                 </div>
 
-                <Card className="p-8 border-none shadow-xl bg-white/80 backdrop-blur-sm space-y-8">
+                <Card className="p-8 border-none shadow-xl bg-[#faf9ff]/80 backdrop-blur-sm space-y-8">
 
                     <Section icon={FileText} title="1. Acceptance of Terms">
                         <p>By accessing or using {BRAND.name} ("the Platform"), you agree to be bound by these Terms and Conditions ("Terms") and our Privacy Policy. If you do not agree, please do not use our services.</p>
-                        <p>These Terms apply to all users, including free-tier users and Pro subscribers.</p>
+                        <p>These Terms apply to all users, including free-tier users and active subscribers.</p>
                     </Section>
 
-                    <Section icon={CheckCircle} title="2. Free Plan & Trial" color="text-green-600">
-                        <p>The free plan of {BRAND.name} includes:</p>
+                    <Section icon={CheckCircle} title="2. Free Evaluation Period" color="text-green-600">
+                        <p>The free evaluation of {BRAND.name} includes:</p>
                         <ul className="list-disc pl-5 space-y-2">
-                            <li>Access to the platform for free for the first <strong>14 days</strong> from account creation.</li>
-                            <li>Up to <strong>20 job applications per day</strong> using our AI tools.</li>
-                            <li>Access to core free tools (Resume Scanner, Bullet Point Generator, etc.).</li>
+                            <li>Access to core AI tools to evaluate their effectiveness.</li>
+                            <li>Limited usage quotas for resume scanning and application assistance.</li>
                         </ul>
-                        <p>Once the daily limit of 20 applications is reached, you will be required to upgrade to Pro to continue applying for that day. Once the 14-day free trial period expires, Pro access is required for unlimited features.</p>
+                        <p>Once evaluation limits are reached, a paid subscription is required to continue using premium features.</p>
                     </Section>
 
-                    <Section icon={DollarSign} title="3. Pro Access & Pricing" color="text-blue-600">
-                        <p>Pro access is offered at <strong>$50 per year</strong> as a one-time annual payment. This is <strong>not a subscription</strong>. Key terms:</p>
+                    <Section icon={DollarSign} title="3. Subscription & Pricing" color="text-blue-600">
+                        <p>We offer monthly subscription tiers: <strong>Starter ($15/mo)</strong>, <strong>Pro ($59/mo)</strong>, and <strong>Elite ($99/mo)</strong>. Key terms:</p>
                         <ul className="list-disc pl-5 space-y-2">
-                            <li>Pro access grants unlimited job applications, all AI tools, Interview Prep, Auto Fill, and full platform access for 12 months from the date of purchase.</li>
-                            <li>After 12 months, you may renew at the then-current rate to continue Pro access.</li>
-                            <li>No automatic renewals or recurring charges occur without your explicit action.</li>
-                            <li>Pricing is subject to change. Price changes will not affect your current active Pro period.</li>
+                            <li>Subscriptions are billed in advance on a recurring monthly basis.</li>
+                            <li>You may cancel your subscription at any time through your dashboard. Cancellation will stop future renewals.</li>
+                            <li>Pricing is subject to change with notice. Price changes will apply to the next billing cycle.</li>
+                            <li>Usage quotas (e.g., AI Ninja calls) are allocated per billing period and do not roll over.</li>
                         </ul>
                     </Section>
 
                     <Section icon={XCircle} title="4. Refund Policy" color="text-red-500">
-                        <p>Because Pro access is a <strong>one-time payment</strong> (not a subscription), <strong>all purchases are final and non-refundable</strong>. By completing your purchase:</p>
+                        <p>All subscription payments are <strong>final and non-refundable</strong>. By subscribing:</p>
                         <ul className="list-disc pl-5 space-y-2">
-                            <li>You acknowledge that you have reviewed the platform during the free trial period.</li>
-                            <li>You understand that digital services are delivered immediately upon purchase.</li>
-                            <li>You agree that no refunds, chargebacks, or credits will be issued after payment is processed.</li>
+                            <li>You acknowledge that you have evaluated the platform's features.</li>
+                            <li>You understand that no refunds or pro-rated credits will be issued for partial months or unused features.</li>
+                        <li>You agree that no chargebacks will be filed for valid processed subscription fees.</li>
                         </ul>
-                        <p>In exceptional cases involving platform-wide outages or billing errors, please contact <a href={`mailto:${BRAND.supportEmail}`} className="text-blue-600 underline">{BRAND.supportEmail}</a> within 48 hours of purchase, and we will review on a case-by-case basis.</p>
                         <p>See our full <button onClick={() => { }} className="text-blue-600 underline">Refund Policy</button> for details.</p>
                     </Section>
 
@@ -164,7 +161,7 @@ const TermsAndConditions = () => {
                 </Card>
             </main>
 
-            <footer className="bg-white border-t py-8 mt-auto">
+            <footer className="bg-[#faf9ff] border-t py-8 mt-auto">
                 <div className="container mx-auto px-4 text-center">
                     <p className="text-gray-500 text-sm">{BRAND.copyright}</p>
                     <div className="flex justify-center gap-6 mt-2 text-sm">

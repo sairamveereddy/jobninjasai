@@ -16,7 +16,7 @@ async def migrate_applications():
 
     # 1. Connect to Mongo
     mongo_client = AsyncIOMotorClient(MONGO_URL)
-    db = mongo_client.get_database("novaninjas")
+    db = mongo_client.get_database("jobninjas")
 
     # 2. Get Supabase client
     supa_client = SupabaseService.get_client()

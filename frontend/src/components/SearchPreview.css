@@ -1,6 +1,6 @@
 .search-preview-container {
     padding: 40px 20px;
-    background: #0f1115;
+    background: #eeeafc;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,7 +11,7 @@
     max-width: 650px;
     width: 100%;
     text-align: left;
-    color: #d1d5db;
+    color: #5c5c7a;
 }
 
 .search-preview-header {
@@ -46,7 +46,7 @@
 .search-preview-title {
     font-size: 14px;
     font-weight: 500;
-    color: #e5e7eb;
+    color: #1b1b3a;
 }
 
 .search-preview-url {
@@ -65,7 +65,7 @@
 
 .search-preview-description {
     font-size: 14px;
-    color: #9ca3af;
+    color: #5c5c7a;
     line-height: 1.5;
     margin-bottom: 20px;
 }

@@ -18,7 +18,7 @@ async def make_admin():
     # Update MongoDB
     try:
         mongo_url = os.environ.get("MONGO_URL")
-        db_name = os.environ.get("DB_NAME", "novaninjas")
+        db_name = os.environ.get("DB_NAME", "jobninjas")
         m_client = AsyncIOMotorClient(mongo_url, tlsAllowInvalidCertificates=True)
         db = m_client[db_name]
         

@@ -1,4 +1,4 @@
-# Stripe Payment Setup Guide for Nova Ninjas
+# Stripe Payment Setup Guide for JobNinjas
 
 ## ✅ What's Already Built
 
@@ -44,7 +44,7 @@ You need to create 3 subscription products matching your pricing page:
 #### Product 1: Starter Plan
 1. Go to **Products → Add product**
 2. Fill in:
-   - **Name**: Nova Ninjas - Starter
+   - **Name**: JobNinjas - Starter
    - **Description**: 400 applications per month
    - **Pricing model**: Recurring
    - **Price**: $399 USD
@@ -55,7 +55,7 @@ You need to create 3 subscription products matching your pricing page:
 #### Product 2: Pro Plan
 1. Click **Add product** again
 2. Fill in:
-   - **Name**: Nova Ninjas - Pro
+   - **Name**: JobNinjas - Pro
    - **Description**: 500 applications per month
    - **Pricing model**: Recurring
    - **Price**: $499 USD
@@ -66,7 +66,7 @@ You need to create 3 subscription products matching your pricing page:
 #### Product 3: Urgent Plan
 1. Click **Add product** again
 2. Fill in:
-   - **Name**: Nova Ninjas - Urgent
+   - **Name**: JobNinjas - Urgent
    - **Description**: 600 applications per month
    - **Pricing model**: Recurring
    - **Price**: $599 USD

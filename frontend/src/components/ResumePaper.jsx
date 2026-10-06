@@ -281,7 +281,7 @@ const ResumePaper = ({
     return (
         <div
             ref={containerRef}
-            className="bg-white shadow-2xl origin-top transition-transform duration-300 relative"
+            className="bg-[#faf9ff] shadow-xl origin-top transition-transform duration-300 relative"
             style={{
                 width: '816px',
                 minHeight: '1056px',
@@ -294,11 +294,11 @@ const ResumePaper = ({
             }}
         >
             <div className="absolute top-4 right-4 flex gap-2 z-10 no-print" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'top right' }}>
-                <Button size="sm" className="bg-[#10b981] hover:bg-[#059669] text-white font-bold h-8 text-xs gap-1 shadow-sm">
+                <Button size="sm" className="bg-[#10b981] hover:bg-[#059669] text-[var(--text-main)] font-bold h-8 text-xs gap-1 shadow-sm">
                     Fit to one page
                 </Button>
                 {editable && (
-                    <Button size="sm" className="bg-[#10b981] hover:bg-[#059669] text-white font-bold h-8 text-xs gap-1 shadow-sm">
+                    <Button size="sm" className="bg-[#10b981] hover:bg-[#059669] text-[var(--text-main)] font-bold h-8 text-xs gap-1 shadow-sm">
                         <Edit3 className="w-3 h-3" /> Edit Mode
                     </Button>
                 )}
@@ -554,7 +554,7 @@ const ResumePaper = ({
             </div>
 
             <div className="absolute bottom-4 left-0 right-0 text-center no-print">
-                <span className="bg-black text-white text-xs font-bold px-3 py-1 rounded-full opacity-80">1/1</span>
+                <span className="bg-black text-[var(--text-main)] text-xs font-bold px-3 py-1 rounded-full opacity-80">1/1</span>
             </div>
         </div>
     );

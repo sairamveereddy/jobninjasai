@@ -10,11 +10,14 @@
 
 .brand-name-static {
     white-space: nowrap;
+    letter-spacing: -0.02em;
 }
 
 .brand-suffix-ai {
-    color: #10b981;
-    margin-left: 0.02em;
+    color: #c5a059;
+    margin-left: 0.05em;
+    font-weight: 500;
+    opacity: 0.9;
 }
 
 /* Side Menu / Footer adjustments if needed */

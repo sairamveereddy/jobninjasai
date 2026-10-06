@@ -7,7 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 ROOT_DIR = Path(".")
 load_dotenv(ROOT_DIR / ".env")
 
-db_name = os.environ.get("DB_NAME", "novaninjas")
+db_name = os.environ.get("DB_NAME", "jobninjas")
 mongo_url = os.environ.get("MONGO_URL")
 
 print(f"MONGO_URL: {'set' if mongo_url else 'MISSING'}")

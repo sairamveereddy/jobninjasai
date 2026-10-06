@@ -4,7 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 load_dotenv('.env')
 m = AsyncIOMotorClient(os.environ.get('MONGO_URL'), tlsAllowInvalidCertificates=True)
-db = m[os.environ.get('DB_NAME','novaninjas')]
+db = m[os.environ.get('DB_NAME','jobninjas')]
 
 async def check():
     c = await db.contact_messages.count_documents({})

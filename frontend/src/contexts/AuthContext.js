@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Amplify } from 'aws-amplify';
 import { API_URL } from '../config/api';
+
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: process.env.REACT_APP_USER_POOL_ID,
+      userPoolClientId: process.env.REACT_APP_USER_POOL_CLIENT_ID,
+    }
+  }
+});
 
 const AuthContext = createContext();
 
@@ -87,8 +97,33 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  // Login function - calls backend API
+  // Login function - calls backend API or Cognito
   const login = async (email, password, turnstileToken) => {
+    // Check if Cognito is enabled
+    const useCognito = process.env.REACT_APP_USE_COGNITO === 'true';
+    
+    if (useCognito) {
+      try {
+        const { signIn } = await import('aws-amplify/auth');
+        const output = await signIn({ username: email, password });
+        // After Cognito login, we still sync with our backend for session
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, cognito_session: output, turnstile_token: turnstileToken })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'Backend sync failed');
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('user_data', JSON.stringify(data.user));
+        setUser(data.user);
+        return { success: true, user: data.user };
+      } catch (error) {
+        console.error('Cognito login error:', error);
+        throw error;
+      }
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
@@ -146,7 +181,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const value = {
+  const value = React.useMemo(() => ({
     user,
     loading,
     isAuthenticated: !!user,
@@ -159,18 +194,18 @@ export const AuthProvider = ({ children }) => {
     signup,
     logout,
     refreshUser
-  };
+  }), [user, loading, login, signup, logout, refreshUser]);
 
   // Derived state
   const hasActiveSubscription = user?.subscription_status === 'active' || user?.plan === 'unlimited' || user?.plan === 'pro' || user?.plan === 'ai-yearly'
     || user?.role === 'admin' || user?.role === 'employee' || user?.is_admin === true;
   const isTrialActive = user?.subscription_status === 'trial' && new Date(user?.trial_expires_at) > new Date();
 
-  const contextValue = {
+  const contextValue = React.useMemo(() => ({
     ...value,
     hasActiveSubscription,
     isTrialActive
-  };
+  }), [value, hasActiveSubscription, isTrialActive]);
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

@@ -10,7 +10,7 @@ load_dotenv(".env")
 
 # Source: MongoDB
 MONGO_URL = os.environ.get("MONGO_URL")
-DB_NAME = os.environ.get("DB_NAME", "novaninjas")
+DB_NAME = os.environ.get("DB_NAME", "jobninjas")
 
 # Destination: Supabase
 SUPABASE_URL = os.environ.get("SUPABASE_URL")

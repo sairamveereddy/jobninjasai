@@ -16,7 +16,7 @@ async def check_duplicate_users():
         
     mongo_url = os.getenv("MONGO_URL")
     mongo = AsyncIOMotorClient(mongo_url)
-    db = mongo[os.getenv("DB_NAME", "novaninjas")]
+    db = mongo[os.getenv("DB_NAME", "jobninjas")]
     print("\nMONGODB USERS:")
     cursor = db.users.find({"email": email})
     docs = await cursor.to_list(length=100)

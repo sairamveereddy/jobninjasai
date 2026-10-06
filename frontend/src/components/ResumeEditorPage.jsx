@@ -649,16 +649,16 @@ const ResumeEditorPage = () => {
 
     return (
         <>
-            <div className="resume-editor-container-inner">
+            <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
 
                 {/* Top Navigation / Toolbar - Matching Image 3 exactly */}
-                <header className="editor-nav-high-fidelity">
-                    <div className="nav-left">
-                        <div className="file-context no-margin">
-                            <div className="file-name-row">
+                <header className="flex h-[60px] items-center justify-between border-b border-border bg-background px-5 z-50">
+                    <div className="flex items-center gap-6">
+                        <div className="flex flex-col gap-1 m-0">
+                            <div className="flex items-center gap-2">
                                 {isEditingName ? (
                                     <input
-                                        className="file-name-input"
+                                        className="text-base font-semibold text-foreground border border-ring rounded px-1.5 py-0.5 bg-background outline-none shadow-[0_0_0_2px_rgba(0,112,243,0.1)]"
                                         value={editableName}
                                         onChange={(e) => setEditableName(e.target.value)}
                                         onBlur={() => {
@@ -675,10 +675,10 @@ const ResumeEditorPage = () => {
                                     />
                                 ) : (
                                     <>
-                                        <h1 className="file-name-text" onClick={() => setIsEditingName(true)}>{resumeName}</h1>
-                                        <button className="edit-btn-slim" onClick={() => setIsEditingName(true)}><Pencil className="w-3.5 h-3.5" /></button>
+                                        <h1 className="text-base font-semibold text-foreground m-0 cursor-pointer px-1.5 py-0.5 rounded hover:bg-muted transition-colors" onClick={() => setIsEditingName(true)}>{resumeName}</h1>
+                                        <button className="bg-transparent border-none text-muted-foreground cursor-pointer p-1" onClick={() => setIsEditingName(true)}><Pencil className="w-3.5 h-3.5" /></button>
                                         {isTailored && (
-                                            <div className="tailoring-badge">
+                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted border border-border text-foreground text-xs font-medium">
                                                 <NinjaIcon className="w-3.5 h-3.5" />
                                                 <span>Tailoring Mode</span>
                                             </div>
@@ -689,10 +689,10 @@ const ResumeEditorPage = () => {
                         </div>
                     </div>
 
-                    <div className="nav-right">
-                        <div className="history-group">
+                    <div className="flex items-center gap-5">
+                        <div className="flex gap-2">
                             <button
-                                className={`control-btn-icon ${history.past.length === 0 ? 'disabled' : ''}`}
+                                className={`w-9 h-9 flex items-center justify-center rounded-md bg-secondary border border-border text-muted-foreground transition-colors hover:border-ring hover:text-ring hover:bg-background disabled:opacity-30 disabled:cursor-not-allowed`}
                                 onClick={undo}
                                 title="Undo (Ctrl+Z)"
                                 disabled={history.past.length === 0}
@@ -700,7 +700,7 @@ const ResumeEditorPage = () => {
                                 <RotateCcw className="w-4 h-4" />
                             </button>
                             <button
-                                className={`control-btn-icon flip-h ${history.future.length === 0 ? 'disabled' : ''}`}
+                                className={`w-9 h-9 flex items-center justify-center rounded-md bg-secondary border border-border text-muted-foreground transition-colors hover:border-ring hover:text-ring hover:bg-background disabled:opacity-30 disabled:cursor-not-allowed scale-x-[-1]`}
                                 onClick={redo}
                                 title="Redo (Ctrl+Y)"
                                 disabled={history.future.length === 0}
@@ -709,115 +709,116 @@ const ResumeEditorPage = () => {
                             </button>
                         </div>
 
-                        <div className="zoom-group-premium">
-                            <button className="zoom-control-item" onClick={() => setZoom(z => Math.max(z - 10, 50))}>
+                        <div className="flex items-center bg-secondary border border-border rounded-md p-0.5">
+                            <button className="w-8 h-8 flex items-center justify-center relative bg-transparent border-none text-muted-foreground cursor-pointer hover:text-foreground" onClick={() => setZoom(z => Math.max(z - 10, 50))}>
                                 <Search className="w-3.5 h-3.5" />
-                                <Minus className="w-2 h-2 overlay-minus" />
+                                <Minus className="w-2 h-2 absolute bottom-2 right-2 bg-background rounded-full" />
                             </button>
-                            <div className="zoom-value-wrapper">
-                                <span className="zoom-text">{zoom}%</span>
-                                <span className="zoom-auto">Auto</span>
+                            <div className="flex flex-col items-center px-2 min-w-[50px]">
+                                <span className="text-xs font-semibold text-foreground">{zoom}%</span>
+                                <span className="text-[10px] text-blue-600 font-semibold">Auto</span>
                             </div>
-                            <button className="zoom-control-item" onClick={() => setZoom(z => Math.min(z + 10, 200))}>
+                            <button className="w-8 h-8 flex items-center justify-center relative bg-transparent border-none text-muted-foreground cursor-pointer hover:text-foreground" onClick={() => setZoom(z => Math.min(z + 10, 200))}>
                                 <Search className="w-3.5 h-3.5" />
-                                <Plus className="w-2 h-2 overlay-plus" />
+                                <Plus className="w-2 h-2 absolute bottom-2 right-2 bg-background rounded-full" />
                             </button>
                         </div>
 
-                        <div className="action-buttons-group">
-                            <button className="btn-secondary-editor" onClick={handleExport}>
+                        <div className="flex items-center gap-3 shrink-0">
+                            <button className="vercel-button-outline text-sm h-10 px-4" onClick={handleExport}>
                                 <Download className="w-4 h-4" />
                                 <span>Download</span>
                             </button>
 
                             {isTailored && (
-                                <button className="btn-primary-editor-emerald" onClick={() => handleSave(true)}>
+                                <button className="vercel-button text-sm h-10 px-4" onClick={() => handleSave(true)}>
                                     <Save className="w-4 h-4" />
                                     <span>Save as New</span>
                                 </button>
                             )}
 
-                            <button className={`btn-primary-editor-blue ${isTailored ? 'secondary-save' : ''}`} onClick={() => handleSave(false)}>
+                            <button className={`vercel-button text-sm h-10 px-5`} onClick={() => handleSave(false)}>
                                 <Save className="w-4 h-4" />
                                 <span>{isSaving ? 'Saving...' : isTailored ? 'Update Existing' : 'Save'}</span>
                             </button>
                         </div>
 
-                        <button className="btn-select-resume-header" onClick={() => setShowSelector(true)}>
+                        <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground bg-transparent border border-border rounded-md hover:bg-muted transition-colors" onClick={() => setShowSelector(true)}>
                             <span>Select Resume</span>
                             <ChevronDown className="w-4 h-4" />
                         </button>
                     </div>
 
                     {showSelector && (
-                        <div className="resume-modal-overlay">
-                            <div className="resume-modal-container animate-modal-up">
-                                <div className="modal-header-premium">
-                                    <div className="header-text">
-                                        <h3>Select Base Resume</h3>
-                                        <p>Choose which resume you want to tailor for <strong>{resumeName.split('.')[0]}</strong>.</p>
+                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] animate-in fade-in duration-200">
+                            <div className="bg-background w-full max-w-2xl rounded-xl shadow-xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-4">
+                                <div className="p-5 border-b border-border bg-muted/30 flex justify-between items-center">
+                                    <div className="flex flex-col gap-1">
+                                        <h3 className="text-lg font-semibold text-foreground m-0">Select Base Resume</h3>
+                                        <p className="text-sm text-muted-foreground m-0">Choose which resume you want to tailor for <strong className="text-foreground">{resumeName.split('.')[0]}</strong>.</p>
                                     </div>
-                                    <button className="close-modal-btn" onClick={() => setShowSelector(false)}>
+                                    <button className="p-2 bg-transparent border-none text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors cursor-pointer" onClick={() => setShowSelector(false)}>
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
-                                <div className="modal-content-premium custom-scrollbar">
-                                    <div className="job-context-card-premium">
-                                        <div className="context-icon-wrapper">
-                                            <NinjaIcon className="w-4 h-4 text-blue-500" />
+                                <div className="p-6 max-h-[60vh] overflow-y-auto">
+                                    <div className="flex items-center gap-4 p-4 rounded-lg bg-muted border border-border mb-6">
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background border border-border text-foreground">
+                                            <NinjaIcon className="w-4 h-4 text-foreground" />
                                         </div>
-                                        <div className="context-info">
-                                            <span className="job-title-context">Job Match Context</span>
-                                            <span className="company-info-context">Based on your current tailoring session</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-semibold text-foreground">Job Match Context</span>
+                                            <span className="text-xs text-muted-foreground">Based on your current tailoring session</span>
                                         </div>
                                     </div>
 
-                                    <div className="resumes-selection-list">
-                                        <h4 className="list-title-premium">Your Resumes</h4>
-                                        <div className="list-grid-premium">
-                                            {savedResumes.filter(r => r.isBase).map(res => (
+                                    <div className="flex flex-col gap-3">
+                                        <h4 className="text-sm font-semibold text-muted-foreground m-0">Your Resumes</h4>
+                                        <div className="flex flex-col gap-2">
+                                            {savedResumes.filter(r => r.isBase).map(res => {
+                                                const isActive = selectedResumeId === (res.id || res._id);
+                                                return (
                                                 <div
                                                     key={res.id || res._id}
-                                                    className={`resume-selection-item ${selectedResumeId === (res.id || res._id) ? 'active' : ''}`}
+                                                    className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${isActive ? 'border-ring bg-muted' : 'border-border hover:bg-muted/50'}`}
                                                     onClick={() => setSelectedResumeId(res.id || res._id)}
-                                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                                                 >
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                        <div className="radio-indicator">
-                                                            <div className="radio-inner" />
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isActive ? 'border-ring' : 'border-border'}`}>
+                                                            <div className={`w-2 h-2 rounded-full bg-ring transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`} />
                                                         </div>
-                                                        <div className="resume-item-icon">
-                                                            <FileText className="w-5 h-5 text-slate-400" />
+                                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-muted-foreground">
+                                                            <FileText className="w-4 h-4" />
                                                         </div>
-                                                        <div className="resume-item-details">
-                                                            <span className="resume-item-name">{res.resumeName || res.resume_name}</span>
-                                                            <span className="resume-item-meta">Updated recently</span>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-foreground">{res.resumeName || res.resume_name}</span>
+                                                            <span className="text-xs text-muted-foreground">Updated recently</span>
                                                         </div>
                                                     </div>
                                                     <button
-                                                        className="delete-resume-btn hover-bg-light"
+                                                        className="p-2 rounded-md bg-transparent border-none text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                                                         onClick={(e) => handleDeleteResume(res.id || res._id, e)}
-                                                        style={{ padding: '8px', borderRadius: '6px' }}
                                                     >
-                                                        <Trash2 className="w-4 h-4 text-red-400 hover:text-red-600" />
+                                                        <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="modal-footer-premium">
-                                    <button className="btn-manage-resumes" onClick={() => navigate('/resumes')}>
+                                <div className="p-4 border-t border-border bg-muted/30 flex items-center justify-between">
+                                    <button className="bg-transparent border-none text-sm font-medium text-muted-foreground hover:text-foreground underline-offset-4 hover:underline cursor-pointer" onClick={() => navigate('/resumes')}>
                                         Manage Resumes
                                     </button>
-                                    <div className="footer-right-actions">
-                                        <button className="btn-add-resume-ghost" onClick={() => { fileInputRef.current?.click(); setShowSelector(false); }}>
+                                    <div className="flex items-center gap-3">
+                                        <button className="vercel-button-outline" onClick={() => { fileInputRef.current?.click(); setShowSelector(false); }}>
                                             Add Resume
                                         </button>
                                         <button
-                                            className="btn-modal-next"
+                                            className="vercel-button"
                                             disabled={!selectedResumeId}
                                             onClick={() => {
                                                 const selected = savedResumes.find(r => (r.id || r._id) === selectedResumeId);
@@ -834,7 +835,7 @@ const ResumeEditorPage = () => {
                     )}
                 </header>
 
-                <div className="editor-side-by-side-layout">
+                <div className="flex flex-1 overflow-hidden bg-muted/20">
                     {/* Hidden file input always available */}
                     <input
                         type="file"
@@ -845,30 +846,30 @@ const ResumeEditorPage = () => {
                     />
 
                     {/* Left Pane: Inputs & Configuration (45%) */}
-                    <aside className="editor-input-pane custom-scrollbar">
-                        <div className="pane-header-tabs">
-                            <button className={`pane-tab ${activeTab === 'resume' ? 'active' : ''}`} onClick={() => setActiveTab('resume')}>
+                    <aside className="w-[45%] flex-shrink-0 bg-background border-r border-border flex flex-col overflow-y-auto relative z-40">
+                        <div className="flex sticky top-0 bg-background/95 backdrop-blur z-50 p-3 gap-2 border-b border-border">
+                            <button className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider rounded-md transition-all ${activeTab === 'resume' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-none cursor-pointer'}`} onClick={() => setActiveTab('resume')}>
                                 <NinjaIcon className="w-4 h-4" />
                                 <span>OPTIMIZE</span>
                             </button>
-                            <button className={`pane-tab ${activeTab === 'design' ? 'active' : ''}`} onClick={() => setActiveTab('design')}>
+                            <button className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider rounded-md transition-all ${activeTab === 'design' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-none cursor-pointer'}`} onClick={() => setActiveTab('design')}>
                                 <Layout className="w-4 h-4" />
                                 <span>DESIGN</span>
                             </button>
-                            <button className={`pane-tab ${activeTab === 'cover_letter' ? 'active' : ''}`} onClick={() => setActiveTab('cover_letter')}>
+                            <button className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider rounded-md transition-all ${activeTab === 'cover_letter' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-none cursor-pointer'}`} onClick={() => setActiveTab('cover_letter')}>
                                 <FileText className="w-4 h-4" />
                                 <span>COVER LETTER</span>
                             </button>
-                            <button className={`pane-tab ${activeTab === 'cold_mail' ? 'active' : ''}`} onClick={() => setActiveTab('cold_mail')}>
+                            <button className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider rounded-md transition-all ${activeTab === 'cold_mail' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground border-none cursor-pointer'}`} onClick={() => setActiveTab('cold_mail')}>
                                 <Mail className="w-4 h-4" />
                                 <span>COLD EMAIL</span>
                             </button>
                         </div>
 
-                        <div className="pane-content">
-                            <div className="editor-banner-emerald">
-                                <NinjaIcon className="w-4 h-4" />
-                                <span>Tailor your resume for any job in seconds with AI Ninja.</span>
+                        <div className="p-5 flex flex-col gap-5">
+                            <div className="flex items-center gap-3 bg-muted border border-border rounded-lg p-4 text-sm font-medium text-foreground">
+                                <NinjaIcon className="w-4 h-4 text-foreground" />
+                                <span>Tailor your resume for any job in seconds with <strong className="font-bold">AI Ninja</strong>.</span>
                             </div>
 
                             {activeTab === 'resume' && (
@@ -890,78 +891,78 @@ const ResumeEditorPage = () => {
                                         setConfig={setAiConfig}
                                     />
 
-                                    <div className="content-config-section mt-8 pt-8 border-t border-slate-100">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <label className="content-field-label">Quick Contact Edit</label>
+                                    <div className="mt-8 pt-8 border-t border-border">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <label className="text-sm font-bold text-foreground uppercase tracking-wide">Quick Contact Edit</label>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[10px] text-slate-500 font-bold uppercase">Show Icons</span>
+                                                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Show Icons</span>
                                                 <button
                                                     onClick={() => setShowContactIcons(!showContactIcons)}
-                                                    className={`w-8 h-4 rounded-full transition-colors relative ${showContactIcons ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                                    className={`w-8 h-4 rounded-full transition-colors relative border-none cursor-pointer ${showContactIcons ? 'bg-primary' : 'bg-muted-foreground/30'}`}
                                                 >
-                                                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${showContactIcons ? 'left-4.5' : 'left-0.5'}`} style={{ left: showContactIcons ? '18px' : '2px' }} />
+                                                    <div className={`absolute top-0.5 w-3 h-3 bg-background rounded-full transition-all ${showContactIcons ? 'left-4' : 'left-0.5'}`} />
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-3">
-                                            <div className="content-input-wrapper with-icon">
-                                                <Mail className="w-3.5 h-3.5 text-slate-400" />
+                                        <div className="flex flex-col gap-3">
+                                            <div className="relative flex items-center">
+                                                <Mail className="w-4 h-4 text-muted-foreground absolute left-3" />
                                                 <input
                                                     type="email"
                                                     value={contactEmail}
                                                     onChange={(e) => setContactEmail(e.target.value)}
-                                                    className="content-field-input"
+                                                    className="w-full h-10 pl-10 pr-3 rounded-md border border-input bg-transparent text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                                                     placeholder="Email Address"
                                                 />
                                             </div>
-                                            <div className="content-input-wrapper with-icon">
-                                                <Phone className="w-3.5 h-3.5 text-slate-400" />
+                                            <div className="relative flex items-center">
+                                                <Phone className="w-4 h-4 text-muted-foreground absolute left-3" />
                                                 <input
                                                     type="tel"
                                                     value={contactPhone}
                                                     onChange={(e) => setContactPhone(e.target.value)}
-                                                    className="content-field-input"
+                                                    className="w-full h-10 pl-10 pr-3 rounded-md border border-input bg-transparent text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                                                     placeholder="Phone Number"
                                                 />
                                             </div>
-                                            <div className="content-input-wrapper with-icon">
-                                                <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                                            <div className="relative flex items-center">
+                                                <MapPin className="w-4 h-4 text-muted-foreground absolute left-3" />
                                                 <input
                                                     type="text"
                                                     value={contactLocation}
                                                     onChange={(e) => setContactLocation(e.target.value)}
-                                                    className="content-field-input"
+                                                    className="w-full h-10 pl-10 pr-3 rounded-md border border-input bg-transparent text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                                                     placeholder="Location"
                                                 />
                                             </div>
-                                            <div className="content-input-wrapper with-icon">
-                                                <Globe className="w-3.5 h-3.5 text-slate-400" />
+                                            <div className="relative flex items-center">
+                                                <Globe className="w-4 h-4 text-muted-foreground absolute left-3" />
                                                 <input
                                                     type="text"
                                                     value={contactWebsite}
                                                     onChange={(e) => setContactWebsite(e.target.value)}
-                                                    className="content-field-input"
+                                                    className="w-full h-10 pl-10 pr-3 rounded-md border border-input bg-transparent text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                                                     placeholder="Website URL"
                                                 />
                                             </div>
-                                            <div className="content-input-wrapper with-icon">
-                                                <Github className="w-3.5 h-3.5 text-slate-400" />
+                                            <div className="relative flex items-center">
+                                                <Github className="w-4 h-4 text-muted-foreground absolute left-3" />
                                                 <input
                                                     type="text"
                                                     value={contactGitHub}
                                                     onChange={(e) => setContactGitHub(e.target.value)}
-                                                    className="content-field-input"
+                                                    className="w-full h-10 pl-10 pr-3 rounded-md border border-input bg-transparent text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                                                     placeholder="GitHub URL"
                                                 />
                                             </div>
-                                            <div className="content-input-wrapper with-icon">
-                                                <Linkedin className="w-3.5 h-3.5 text-slate-400" />
+                                            <div className="relative flex items-center">
+                                                <Linkedin className="w-4 h-4 text-muted-foreground absolute left-3" />
                                                 <input
                                                     type="text"
                                                     value={contactLinkedIn}
                                                     onChange={(e) => setContactLinkedIn(e.target.value)}
-                                                    className="content-field-input"
+                                                    className="w-full h-10 pl-10 pr-3 rounded-md border border-input bg-transparent text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                                                     placeholder="LinkedIn URL"
                                                 />
                                             </div>
@@ -1004,7 +1005,7 @@ const ResumeEditorPage = () => {
                                                 style={{ fontFamily: font === 'FAANG Font' ? 'Arial' : font }}
                                             >
                                                 <span>{font}</span>
-                                                {fontFamily === font && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                                                {fontFamily === font && <CheckCircle2 className="w-4 h-4 text-foreground" />}
                                             </button>
                                         ))}
                                     </div>
@@ -1026,13 +1027,13 @@ const ResumeEditorPage = () => {
                             {activeTab === 'cover_letter' && (
                                 <div className="extra-feature-section-container">
                                     {!coverLetter && (
-                                        <div className="extra-feature-section animate-in slide-in-from-bottom-5">
-                                            <div className="feature-icon-circle blue">
-                                                <NinjaIcon className="w-6 h-6" />
+                                        <div className="extra-feature-section animate-in slide-in-from-bottom-5 flex flex-col items-center p-8 bg-background border border-border rounded-xl">
+                                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted border border-border mb-4">
+                                                <NinjaIcon className="w-6 h-6 text-foreground" />
                                             </div>
-                                            <h3>Generate Cover Letter</h3>
-                                            <p className="section-hint">JobNinjas AI will write a personalized cover letter matching your new resume to the job description.</p>
-                                            <button className="btn-feature-action emerald" onClick={handleGenerateCoverLetter} disabled={isGenerating}>
+                                            <h3 className="text-lg font-bold text-foreground mb-2">Generate Cover Letter</h3>
+                                            <p className="text-sm text-muted-foreground mb-6 text-center max-w-sm">JobNinjas AI will write a personalized cover letter matching your new resume to the job description.</p>
+                                            <button className="vercel-button" onClick={handleGenerateCoverLetter} disabled={isGenerating}>
                                                 {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <NinjaIcon className="w-4 h-4" />}
                                                 <span>{isGenerating ? 'Writing...' : 'Write with AI'}</span>
                                             </button>
@@ -1072,13 +1073,13 @@ const ResumeEditorPage = () => {
                             {activeTab === 'cold_mail' && (
                                 <div className="extra-feature-section-container">
                                     {!coldMail && (
-                                        <div className="extra-feature-section animate-in slide-in-from-bottom-5">
-                                            <div className="feature-icon-circle blue">
-                                                <Mail className="w-6 h-6" />
+                                        <div className="extra-feature-section animate-in slide-in-from-bottom-5 flex flex-col items-center p-8 bg-background border border-border rounded-xl">
+                                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted border border-border mb-4">
+                                                <Mail className="w-6 h-6 text-foreground" />
                                             </div>
-                                            <h3>Generate Cold Email</h3>
-                                            <p className="section-hint">JobNinjas AI will write a punchy cold outreach message for this role.</p>
-                                            <button className="btn-feature-action emerald" onClick={handleGenerateColdMail} disabled={isGenerating}>
+                                            <h3 className="text-lg font-bold text-foreground mb-2">Generate Cold Email</h3>
+                                            <p className="text-sm text-muted-foreground mb-6 text-center max-w-sm">JobNinjas AI will write a punchy cold outreach message for this role.</p>
+                                            <button className="vercel-button" onClick={handleGenerateColdMail} disabled={isGenerating}>
                                                 {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <NinjaIcon className="w-4 h-4" />}
                                                 <span>{isGenerating ? 'Generating...' : 'Generate with AI'}</span>
                                             </button>
@@ -1118,42 +1119,50 @@ const ResumeEditorPage = () => {
                     </aside>
 
                     {/* Right Pane: Document Stage (55%) */}
-                    <main className="editor-preview-pane custom-scrollbar">
+                    <main className="flex-1 relative bg-muted/30 overflow-hidden flex flex-col custom-scrollbar">
                         {isGenerating && (
-                            <div className="generation-overlay">
-                                <div className="pulse-circle"></div>
-                                <div className="generation-status">
-                                    <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-                                    <span>AI is tailoring your resume...</span>
+                            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-[60] flex flex-col items-center justify-center">
+                                <div className="w-12 h-12 border-4 border-border border-t-ring rounded-full animate-spin mb-4" />
+                                <div className="flex flex-col items-center gap-2">
+                                    <Loader2 className="w-8 h-8 text-ring animate-spin" />
+                                    <span className="text-sm font-medium text-foreground">AI is tailoring your resume...</span>
                                 </div>
                             </div>
                         )}
 
                         {!resumeData && !tailoredResume ? (
-                            <div className="empty-stage-selector">
-                                <div className="selection-card-premium">
-                                    <FileText className="w-12 h-12 text-emerald-100 mb-4" />
-                                    <h3>Select Base Resume</h3>
-                                    <p>Your AI Ninja Workspace is ready. Select a base resume to begin tailoring.</p>
+                            <div className="h-full w-full flex items-center justify-center p-8 bg-muted/30">
+                                <div className="bg-background max-w-md w-full rounded-2xl shadow-xl border border-border p-8 flex flex-col items-center text-center animate-in slide-in-from-bottom-4">
+                                    <div className="w-16 h-16 bg-muted/50 rounded-2xl flex items-center justify-center mb-6">
+                                        <FileText className="w-8 h-8 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-foreground mb-2">Select Base Resume</h3>
+                                    <p className="text-sm text-muted-foreground mb-8">Your AI Ninja Workspace is ready. Select a base resume to begin tailoring.</p>
 
-                                    <div className="selection-actions">
+                                    <div className="w-full flex flex-col gap-6">
                                         <button
-                                            className="btn-upload-selection"
+                                            className="vercel-button w-full flex justify-center py-6 text-base"
                                             onClick={() => fileInputRef.current?.click()}
                                             disabled={isUploading}
                                         >
                                             {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
                                             <span>{isUploading ? 'Uploading...' : 'Upload New Resume'}</span>
                                         </button>
-                                        <div className="divider-or"><span>OR</span></div>
-                                        <div className="saved-resumes-mini-list custom-scrollbar">
+                                        
+                                        <div className="flex items-center gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest w-full">
+                                            <div className="flex-1 h-px bg-border" />
+                                            <span>OR</span>
+                                            <div className="flex-1 h-px bg-border" />
+                                        </div>
+                                        
+                                        <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar w-full">
                                             {isLoadingSaved ? (
-                                                <div className="loading-spinner-mini"><Loader2 className="w-5 h-5 animate-spin" /></div>
+                                                <div className="flex justify-center p-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
                                             ) : savedResumes.filter(r => r.isBase).length > 0 ? (
                                                 savedResumes.filter(r => r.isBase).map(res => (
                                                     <div
                                                         key={res.id || res._id}
-                                                        className="saved-resume-item-mini"
+                                                        className="flex items-center p-3 rounded-lg border border-border bg-background hover:border-ring transition-colors cursor-pointer group"
                                                         onClick={() => {
                                                             setResumeData(res);
                                                             setResumeName(res.resumeName || res.resume_name || 'Saved_Resume.docx');
@@ -1161,11 +1170,11 @@ const ResumeEditorPage = () => {
                                                             setHistory({ past: [], future: [] });
                                                         }}
                                                     >
-                                                        <FileText className="w-4 h-4 text-emerald-500" />
-                                                        <span style={{ flex: 1 }}>{res.resumeName || res.resume_name}</span>
+                                                        <FileText className="w-4 h-4 text-muted-foreground group-hover:text-ring mr-3" />
+                                                        <span className="flex-1 text-sm font-medium text-left truncate text-foreground">{res.resumeName || res.resume_name}</span>
                                                         <button
                                                             onClick={(e) => handleDeleteResume(res.id || res._id, e)}
-                                                            className="text-slate-400 hover:text-red-500"
+                                                            className="p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
@@ -1173,13 +1182,12 @@ const ResumeEditorPage = () => {
                                                 ))
                                             ) : (
                                                 <div
-                                                    className="no-resumes-prompt cursor-pointer hover:bg-slate-50 transition-colors"
+                                                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer"
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    style={{ cursor: 'pointer' }}
                                                 >
-                                                    <Upload className="w-8 h-8 text-emerald-500/50 mb-2 mx-auto" />
-                                                    <p className="font-semibold text-slate-300">Welcome to AI Ninja!</p>
-                                                    <p className="text-xs text-slate-500">Upload your first resume to start tailoring.</p>
+                                                    <Upload className="w-6 h-6 mb-2 opacity-50" />
+                                                    <p className="font-medium text-sm text-foreground">Welcome to AI Ninja!</p>
+                                                    <p className="text-xs">Upload your first resume to start tailoring.</p>
                                                 </div>
                                             )}
                                         </div>
@@ -1187,7 +1195,8 @@ const ResumeEditorPage = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="document-container" style={{ transform: `scale(${zoom / 100})` }}>
+                            <div className="h-full w-full overflow-y-auto p-4 sm:p-8 flex justify-center bg-muted/30 custom-scrollbar" style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center' }}>
+                                <div className="w-full max-w-[800px] bg-background shadow-xl min-h-[1056px] print:shadow-none print:m-0 print:p-0 transition-all duration-300 mx-auto">
                                 <ResumePaper
                                     content={
                                         activeTab === 'resume' ? (tailoredResume || resumeData?.resumeText || resumeData?.resume_text || '') :
@@ -1221,11 +1230,12 @@ const ResumeEditorPage = () => {
                                         showIcons: showContactIcons
                                     }}
                                 />
+                                </div>
                                 {isRefiningSection && (
-                                    <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
-                                        <div className="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center gap-4">
-                                            <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-                                            <p className="font-bold text-slate-700">AI is refining this section...</p>
+                                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                                        <div className="bg-background p-6 rounded-xl shadow-xl flex flex-col items-center gap-4 border border-border">
+                                            <Loader2 className="w-10 h-10 text-ring animate-spin" />
+                                            <p className="font-bold text-foreground">AI is refining this section...</p>
                                         </div>
                                     </div>
                                 )}
@@ -1235,30 +1245,30 @@ const ResumeEditorPage = () => {
                         {/* Section Edit Modal */}
                         {editingSection && (
                             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] animate-in fade-in duration-200">
-                                <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-                                    <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-                                        <h3 className="font-bold text-slate-800 text-lg uppercase">Edit {editingSection.key}</h3>
-                                        <button onClick={() => setEditingSection(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
-                                            <X className="w-5 h-5 text-slate-500" />
+                                <div className="bg-background w-full max-w-2xl rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col animate-in slide-in-from-bottom-4">
+                                    <div className="p-4 border-b border-border flex justify-between items-center bg-muted/30">
+                                        <h3 className="font-bold text-foreground text-lg uppercase">Edit {editingSection.key}</h3>
+                                        <button onClick={() => setEditingSection(null)} className="p-2 hover:bg-muted text-muted-foreground hover:text-foreground rounded-full transition-colors bg-transparent border-none cursor-pointer">
+                                            <X className="w-5 h-5" />
                                         </button>
                                     </div>
                                     <div className="p-6">
                                         <textarea
-                                            className="w-full h-96 p-4 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-serif text-sm leading-relaxed resize-none"
+                                            className="w-full h-96 p-4 border border-input rounded-xl focus:ring-2 focus:ring-ring focus:border-ring outline-none font-serif text-sm leading-relaxed resize-none bg-background text-foreground"
                                             value={editingSection.content}
                                             onChange={(e) => setEditingSection(prev => ({ ...prev, content: e.target.value }))}
                                         />
                                     </div>
-                                    <div className="p-4 bg-slate-50 border-t flex justify-end gap-3">
+                                    <div className="p-4 bg-muted/30 border-t border-border flex justify-end gap-3">
                                         <button
                                             onClick={() => setEditingSection(null)}
-                                            className="px-6 py-2 font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-all"
+                                            className="vercel-button-outline"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={() => handleSaveEditedSection(editingSection.content)}
-                                            className="px-8 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
+                                            className="vercel-button"
                                         >
                                             Save Changes
                                         </button>
@@ -1268,26 +1278,26 @@ const ResumeEditorPage = () => {
                         )}
 
                         {/* Integrated Floating Controls */}
-                        <div className="pane-floating-toolbar">
-                            <div className="toolbar-segment">
-                                <span className="segment-label">Font</span>
-                                <div className="toolbar-group" onClick={() => setFontFamily(f => f === 'Times New Roman' ? 'Arial' : 'Times New Roman')}>
-                                    <span className="font-name" style={{ fontFamily: fontFamily === 'FAANG Font' ? 'Arial' : fontFamily }}>{fontFamily}</span>
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-background/95 backdrop-blur shadow-lg border border-border rounded-full p-2 px-4 z-50">
+                            <div className="flex items-center gap-3 pr-3">
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Font</span>
+                                <div className="flex items-center gap-1 cursor-pointer hover:text-foreground text-muted-foreground" onClick={() => setFontFamily(f => f === 'Times New Roman' ? 'Arial' : 'Times New Roman')}>
+                                    <span className="text-xs font-medium" style={{ fontFamily: fontFamily === 'FAANG Font' ? 'Arial' : fontFamily }}>{fontFamily}</span>
                                     <ChevronDown className="w-3.5 h-3.5" />
                                 </div>
                             </div>
-                            <div className="v-divider" />
-                            <div className="toolbar-segment">
-                                <span className="segment-label">Size</span>
-                                <div className="toolbar-group size-group">
-                                    <button className="size-action" onClick={() => setFontSize(s => Math.max(s - 1, 8))}><Minus className="w-3 h-3" /></button>
-                                    <span className="size-text">{fontSize}pt</span>
-                                    <button className="size-action" onClick={() => setFontSize(s => Math.min(s + 1, 14))}><Plus className="w-3 h-3" /></button>
+                            <div className="w-px h-6 bg-border" />
+                            <div className="flex items-center gap-3 px-3">
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Size</span>
+                                <div className="flex items-center gap-2">
+                                    <button className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground border-none bg-transparent cursor-pointer" onClick={() => setFontSize(s => Math.max(s - 1, 8))}><Minus className="w-3 h-3" /></button>
+                                    <span className="text-xs font-medium w-8 text-center text-foreground">{fontSize}pt</span>
+                                    <button className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground border-none bg-transparent cursor-pointer" onClick={() => setFontSize(s => Math.min(s + 1, 14))}><Plus className="w-3 h-3" /></button>
                                 </div>
                             </div>
-                            <div className="v-divider" />
-                            <button className="btn-ai-enhance-pill emerald" onClick={handleGenerate}>
-                                <NinjaIcon className="w-4 h-4" />
+                            <div className="w-px h-6 bg-border mr-2" />
+                            <button className="flex items-center gap-2 px-4 py-1.5 bg-ring text-primary-foreground hover:bg-ring/90 font-medium text-xs rounded-full transition-all border-none shadow-sm cursor-pointer" onClick={handleGenerate}>
+                                <NinjaIcon className="w-3.5 h-3.5" />
                                 <span>AI Enhance</span>
                             </button>
                         </div>
@@ -1304,21 +1314,21 @@ const ResumeEditorPage = () => {
                 isDeleting={isDeletingResume}
             />
             {showTrackerNotify && (
-                <div className="fixed bottom-6 right-6 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl z-[200] animate-in slide-in-from-right-10 flex items-center gap-4 max-w-sm border border-slate-800">
-                    <div className="bg-emerald-500/20 p-2 rounded-xl">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                <div className="fixed bottom-6 right-6 bg-background text-foreground p-4 rounded-xl shadow-xl z-[200] animate-in slide-in-from-right-10 flex items-center gap-4 max-w-sm border border-border">
+                    <div className="bg-ring/20 p-2 rounded-xl">
+                        <CheckCircle2 className="w-6 h-6 text-ring" />
                     </div>
                     <div className="flex-1">
-                        <p className="font-bold text-sm text-white">Resumed Tailored & Tracked!</p>
-                        <p className="text-xs text-slate-400">This application is now visible in your Application Tracker.</p>
+                        <p className="font-semibold text-sm text-foreground">Resumed Tailored & Tracked!</p>
+                        <p className="text-xs text-muted-foreground">This application is now visible in your Application Tracker.</p>
                     </div>
                     <button
                         onClick={() => navigate('/dashboard?tab=tracker')}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                        className="bg-ring hover:bg-ring/90 text-primary-foreground text-xs font-medium px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap border-none cursor-pointer"
                     >
                         GO TO TRACKER
                     </button>
-                    <button onClick={() => setShowTrackerNotify(false)} className="text-slate-500 hover:text-white">
+                    <button onClick={() => setShowTrackerNotify(false)} className="text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer">
                         <X className="w-4 h-4" />
                     </button>
                 </div>

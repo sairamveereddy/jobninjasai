@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+:root {
+  /* Elite Premium Palette - Refined */
+  --jobninjas-primary: #1a3a5f; /* Deep Royal Blue */
+  --jobninjas-primary-hover: #152e4d;
+  --jobninjas-primary-light: #f1f5f9;
+  --jobninjas-accent: #c5a059; /* Classic Gold */
+  --jobninjas-accent-hover: #b38f4d;
+  --jobninjas-accent-soft: rgba(197, 160, 89, 0.1);
+  
+  /* Neutral Palette - Sophisticated Slate */
+  --bg-main: #f5f4ed;
+  --bg-card: #ffffff;
+  --bg-sidebar: rgba(255, 255, 255, 0.9);
+  
+  /* High-end Borders */
+  --border-light: rgba(0, 0, 0, 0.05);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-active: #c5a059;
+
+  /* Text - High Contrast Deep Navy */
+  --text-main: #1a3a5f;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  /* Premium Depth & Glassmorphism */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+  --shadow-bento: 0 8px 30px rgba(0, 0, 0, 0.04);
+  
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-blur: blur(16px);
+  
+  --radius-bento: 1.25rem;
+  --radius-pill: 9999px;
+  
+  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* Shadcn-like Compatibility */
+  --background: 210 40% 98%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-slate-200;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-[#f8fafc] text-slate-900;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight text-slate-900;
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white/40 shadow-sm rounded-3xl;
+    transition: var(--transition-smooth);
+  }
+
+  .glass-card:hover {
+    @apply shadow-2xl shadow-blue-900/5 border-white/60 bg-white/90;
+    transform: translateY(-2px);
+  }
+
+  .bento-card {
+    @apply bg-white border border-slate-100/80 rounded-3xl shadow-sm transition-all duration-500 overflow-hidden;
+  }
+
+  .bento-card:hover {
+    @apply shadow-2xl shadow-blue-900/5 border-blue-100/50;
+    transform: translateY(-4px);
+  }
+
+  .btn-premium {
+    @apply px-7 py-3.5 rounded-2xl font-semibold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2;
+  }
+
+  .btn-premium-primary {
+    @apply btn-premium bg-[#1a3a5f] text-white shadow-xl shadow-blue-900/10 hover:bg-[#152e4d] hover:shadow-blue-900/20 active:bg-[#0f213a];
+  }
+
+  .btn-premium-accent {
+    @apply btn-premium bg-[#c5a059] text-white shadow-xl shadow-amber-900/10 hover:bg-[#b38f4d] hover:shadow-amber-900/20;
+  }
+
+  .btn-premium-outline {
+    @apply btn-premium bg-white border border-slate-200 text-slate-700 hover:border-[#1a3a5f] hover:text-[#1a3a5f] hover:bg-[#f1f5f9];
+  }
+
+  .elite-badge {
+    @apply px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 border;
+  }
+
+  .elite-badge-gold {
+    @apply elite-badge bg-[#c5a059]/10 text-[#c5a059] border-[#c5a059]/20;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

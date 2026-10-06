@@ -98,7 +98,7 @@ const ProfileOrion = ({
                     </div>
                 )}
                 {profile.person.githubUrl && (
-                    <div className="flex items-center gap-2 bg-gray-800 px-3 py-1.5 rounded-full text-sm text-white">
+                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-sm text-gray-700">
                         <Github className="w-4 h-4" /> GitHub
                     </div>
                 )}
@@ -207,7 +207,7 @@ const ProfileOrion = ({
             <div className="space-y-12">
                 {profile.education.map((edu, index) => (
                     <div key={index} className="relative pl-8 border-l-2 border-orange-100 pb-2">
-                        <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 border-orange-300 bg-white" />
+                        <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 border-orange-300 bg-[#faf9ff]" />
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center justify-between">
                                 <div className="font-bold text-gray-900 text-lg">{edu.school || 'New Institution'}</div>
@@ -276,7 +276,7 @@ const ProfileOrion = ({
             <div className="space-y-12">
                 {profile.employment_history.map((job, index) => (
                     <div key={index} className="relative pl-8 border-l-2 border-indigo-100 pb-2">
-                        <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 border-indigo-300 bg-white" />
+                        <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 border-indigo-300 bg-[#faf9ff]" />
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center justify-between">
                                 <div className="font-bold text-gray-900 text-lg">{job.title || 'Job Title'}</div>
@@ -351,11 +351,11 @@ const ProfileOrion = ({
                             value={profile.skills.primary}
                             onChange={(e) => handleProfileChange('skills', 'primary', e.target.value)}
                             placeholder="e.g. React, Python, AWS, Docker..."
-                            className="bg-white border-gray-200 text-lg"
+                            className="bg-[#faf9ff] border-gray-200 text-lg"
                         />
                         <div className="mt-6 flex flex-wrap gap-2">
                             {(profile.skills.primary || '').split(',').map(s => s.trim()).filter(Boolean).map(skill => (
-                                <Badge key={skill} variant="secondary" className="bg-white shadow-sm text-emerald-700 border-none px-4 py-1.5 text-sm font-bold">
+                                <Badge key={skill} variant="secondary" className="bg-[#faf9ff] shadow-sm text-emerald-700 border-none px-4 py-1.5 text-sm font-bold">
                                     {skill}
                                 </Badge>
                             ))}
@@ -544,7 +544,7 @@ const ProfileOrion = ({
                     </div>
 
                     {/* Tab Content Area */}
-                    <div className="bg-white rounded-[40px] border border-gray-100 p-12 min-h-[600px] shadow-sm relative overflow-hidden">
+                    <div className="bg-[#faf9ff] rounded-[40px] border border-gray-100 p-12 min-h-[600px] shadow-sm relative overflow-hidden">
                         {/* Background pattern */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/20 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
 
@@ -578,7 +578,7 @@ const ProfileOrion = ({
                     {/* Status Widget */}
                     <div className="bg-indigo-600 rounded-[40px] p-10 relative overflow-hidden text-white shadow-xl shadow-indigo-100">
                         <div className="relative z-10">
-                            <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8 border border-white/10">
+                            <div className="w-14 h-14 bg-[#faf9ff]/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8 border border-black/10">
                                 {completion === 100 ? <CheckCircle2 className="w-8 h-8 text-white" /> : <NinjaIcon className="w-8 h-8 text-emerald-300" />}
                             </div>
 
@@ -587,7 +587,7 @@ const ProfileOrion = ({
                                     {completion === 100 ? 'Profile Optimized' : 'Power Up Your Ninja'}
                                 </h3>
                                 <div className="flex items-center gap-3">
-                                    <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
+                                    <div className="flex-1 h-2 bg-[#faf9ff]/20 rounded-full overflow-hidden">
                                         <div className="h-full bg-emerald-400 transition-all duration-1000" style={{ width: `${completion}%` }} />
                                     </div>
                                     <span className="font-black text-sm">{completion}%</span>
@@ -600,13 +600,13 @@ const ProfileOrion = ({
                                     : "Complete your profile to unlock Turbo features and 2x better job matching accuracy."}
                             </p>
 
-                            <Button onClick={() => window.location.href = '/ai-ninja'} className="w-full bg-white hover:bg-gray-50 text-indigo-600 py-7 rounded-2xl font-black transition-all hover:translate-y-[-2px] shadow-lg shadow-indigo-900/20">
+                            <Button onClick={() => window.location.href = '/ai-ninja'} className="w-full bg-[#faf9ff] hover:bg-gray-50 text-indigo-600 py-7 rounded-2xl font-black transition-all hover:translate-y-[-2px] shadow-lg shadow-indigo-900/20">
                                 {completion === 100 ? 'START APPLYING' : 'EXPLORE JOBS'}
                             </Button>
                         </div>
 
                         {/* Abstract shapes */}
-                        <div className="absolute top-[-20%] right-[-20%] w-60 h-60 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute top-[-20%] right-[-20%] w-60 h-60 bg-[#e8e3f8] rounded-full blur-3xl pointer-events-none" />
                         <div className="absolute bottom-[-10%] left-[-10%] w-40 h-40 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none" />
                     </div>
 
@@ -616,7 +616,7 @@ const ProfileOrion = ({
 
                         <button
                             onClick={() => document.getElementById('resume-upload').click()}
-                            className="w-full flex items-center justify-between p-7 bg-white border border-gray-100 rounded-[32px] hover:border-emerald-200 hover:bg-emerald-50/30 transition-all group shadow-sm"
+                            className="w-full flex items-center justify-between p-7 bg-[#faf9ff] border border-gray-100 rounded-[32px] hover:border-emerald-200 hover:bg-emerald-50/30 transition-all group shadow-sm"
                         >
                             <div className="flex items-center gap-5">
                                 <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-emerald-100/50 transition-all">
@@ -632,7 +632,7 @@ const ProfileOrion = ({
 
                         <button
                             onClick={() => setActiveSubTab('personal')}
-                            className="w-full flex items-center justify-between p-7 bg-white border border-gray-100 rounded-[32px] hover:border-blue-200 hover:bg-blue-50/30 transition-all group shadow-sm"
+                            className="w-full flex items-center justify-between p-7 bg-[#faf9ff] border border-gray-100 rounded-[32px] hover:border-blue-200 hover:bg-blue-50/30 transition-all group shadow-sm"
                         >
                             <div className="flex items-center gap-5">
                                 <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-blue-100/50 transition-all">
@@ -646,7 +646,7 @@ const ProfileOrion = ({
                             <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                         </button>
 
-                        <div className="p-8 bg-gradient-to-br from-gray-900 to-black rounded-[32px] mt-8 text-white relative overflow-hidden border border-white/5">
+                        <div className="p-8 bg-gradient-to-br from-[var(--jobninjas-accent)] to-[#4F52B5] rounded-[32px] mt-8 text-white relative overflow-hidden border border-black/5">
                             <div className="relative z-10">
                                 <div className="flex items-center gap-2 text-emerald-400 mb-4 font-black text-[10px] tracking-widest uppercase">
                                     <NinjaIcon className="w-3.5 h-3.5" />

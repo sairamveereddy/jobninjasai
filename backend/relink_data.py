@@ -6,7 +6,7 @@ from supabase import create_client
 
 load_dotenv(".env")
 MONGO_URL = os.environ.get("MONGO_URL")
-DB_NAME = os.environ.get("DB_NAME", "novaninjas")
+DB_NAME = os.environ.get("DB_NAME", "jobninjas")
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 

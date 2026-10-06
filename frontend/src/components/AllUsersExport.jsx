@@ -14,7 +14,8 @@ const AllUsersExport = () => {
     const fetchAllUsers = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_URL}/api/admin/all-users-export?admin_key=jobninjas2025admin`);
+            const ADMIN_KEY = process.env.REACT_APP_ADMIN_KEY || "jobninjas2025admin";
+            const response = await fetch(`${API_URL}/api/admin/all-users-export?admin_key=${ADMIN_KEY}`);
             if (!response.ok) throw new Error('Failed to fetch user data');
             const data = await response.json();
             setUserData(data);
@@ -97,7 +98,7 @@ const AllUsersExport = () => {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div className="bg-[#faf9ff] rounded-lg shadow-sm p-6 mb-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -111,7 +112,7 @@ const AllUsersExport = () => {
                         </div>
                         <button
                             onClick={downloadCSV}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition"
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-[var(--text-main)] rounded-lg hover:bg-primary/90 transition"
                         >
                             <Download className="w-4 h-4" />
                             Download CSV
@@ -121,7 +122,7 @@ const AllUsersExport = () => {
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-white rounded-lg shadow-sm p-4">
+                    <div className="bg-[#faf9ff] rounded-lg shadow-sm p-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                                 <Users className="w-5 h-5 text-blue-600" />
@@ -133,7 +134,7 @@ const AllUsersExport = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm p-4">
+                    <div className="bg-[#faf9ff] rounded-lg shadow-sm p-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                                 <Briefcase className="w-5 h-5 text-green-600" />
@@ -147,7 +148,7 @@ const AllUsersExport = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm p-4">
+                    <div className="bg-[#faf9ff] rounded-lg shadow-sm p-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                                 <Phone className="w-5 h-5 text-purple-600" />
@@ -161,7 +162,7 @@ const AllUsersExport = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm p-4">
+                    <div className="bg-[#faf9ff] rounded-lg shadow-sm p-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
                                 <Mail className="w-5 h-5 text-orange-600" />
@@ -177,7 +178,7 @@ const AllUsersExport = () => {
                 </div>
 
                 {/* User Table */}
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-[#faf9ff] rounded-lg shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b">

@@ -12,7 +12,7 @@ MONGO_URL = os.environ.get("MONGO_URL")
 async def migrate():
     print("Connecting to Mongo and Supabase...")
     mongo_client = AsyncIOMotorClient(MONGO_URL, tlsAllowInvalidCertificates=True)
-    db = mongo_client["novaninjas"]
+    db = mongo_client["jobninjas"]
     supa_client = SupabaseService.get_client()
 
     print("Cleaning up orphaned applications in Supabase...")

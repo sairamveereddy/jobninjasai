@@ -30,7 +30,6 @@ const Header = ({ onMenuClick }) => {
             <Menu className="w-5 h-5" />
           </button>
           <button onClick={() => { navigate('/'); window.scrollTo(0, 0); }} className="nav-logo flex items-center">
-            <img src={BRAND.logoPath} alt={BRAND.logoAlt} className="logo-image mr-2" />
             <BrandLogo />
           </button>
         </div>

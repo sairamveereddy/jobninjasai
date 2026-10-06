@@ -1,34 +1,34 @@
 
 // ============================================
-// JOB NINJAS - CENTRALIZED BRANDING CONFIG
+// JobNinjas - CENTRALIZED BRANDING CONFIG
 // ============================================
 // Update these values to change branding across the entire app
 
 export const BRAND = {
   // Core branding
-  name: 'jobNinjas.ai',
-  oldName: 'Nova Ninjas', // For reference during migration
-  domain: 'jobNinjas.ai',
+  name: 'JobNinjas',
+  oldName: 'JobNinjas.ai',
+  domain: 'jobninjas.ai',
 
   // Taglines
   tagline: 'Apply Smarter, Land Faster',
   shortTagline: 'Your Personal Job Ninja',
-  heroTagline: 'AI-Powered Resume Tools & Human Job Application Service',
+  heroTagline: 'AI-Powered Career Coaching & Job Search Automation',
 
   // Contact
-  contactEmail: 'hello@jobNinjas.ai',
-  supportEmail: 'support@jobNinjas.ai',
+  contactEmail: 'hello@jobninjas.ai',
+  supportEmail: 'support@jobninjas.ai',
 
   // Social/Links
-  website: 'https://jobNinjas.ai',
+  website: 'https://jobninjas.ai',
 
   // Logo (update path when new logo is ready)
   logoPath: '/logo.png',
-  logoAlt: 'Job Ninjas Logo',
+  logoAlt: 'JobNinjas Logo',
 
   // Company info
   year: new Date().getFullYear(),
-  copyright: `© ${new Date().getFullYear()} jobNinjas.ai. All rights reserved.`,
+  copyright: `© ${new Date().getFullYear()} JobNinjas.ai. All rights reserved.`,
 };
 
 // ============================================
@@ -42,12 +42,6 @@ export const PRODUCTS = {
     description: 'Self-serve AI-powered job applications',
     tagline: 'Apply smarter, not slower.',
   },
-  HUMAN_NINJA: {
-    name: 'Human Ninja',
-    path: '/human-ninja',
-    description: 'Done-for-you application service',
-    tagline: 'No time to apply? Let a human Ninja run your search.',
-  },
 };
 
 // ============================================
@@ -58,177 +52,72 @@ export const PRICING = {
   // ============================================
   // AI NINJA PLANS
   // ============================================
-  AI_FREE: {
-    id: 'ai-free',
-    name: 'AI Ninja – Free',
-    price: 0,
-    priceDisplay: 'Free',
-    period: '',
-    applications: 10,
-    isBeta: true,
-    description: 'Try jobNinjas.ai for free with essential tools.',
+  NINJA_STARTER: {
+    id: 'ninja-starter',
+    name: 'AI Ninja Starter',
+    price: 15,
+    originalPrice: 19,
+    priceDisplay: '$15',
+    period: 'Monthly',
+    calls: '1 call per week',
+    description: 'Perfect for regular check-ins and guidance.',
     features: [
-      'Access to all Free Tools',
-      'AI Resume Scanner',
-      '5 Resume Tailoring per day',
-      '5 Auto Fill per day',
-      'Full access to Job Board',
-      'Store 1 base resume',
+      '1 AI Ninja Call per week',
+      'AI-generated report after every call',
+      'Public AI Portfolio (Basic URL)',
+      'Personalized career roadmap',
+      'Basic Email Support',
     ],
   },
-  AI_MONTHLY: {
-    id: 'ai-monthly',
-    name: 'AI Ninja Monthly',
-    price: 5,
-    priceDisplay: '$5',
-    period: '/month',
-    applications: 'Unlimited',
-    popular: false,
-    description: 'Full access to all tools.',
-    features: [
-      'Unlimited AI-powered job applications',
-      'Full access to Auto Fill',
-      'AI Interview Prep',
-      'Tailored resume + cover letter for each job',
-      'Job Tracker & Auto Fill Extension',
-      '24/7 Job Board Access',
-      'Access to all future tools',
-      'Store and manage multiple resumes',
-      'Priority Email Support',
-    ],
-  },
-  AI_YEARLY: {
-    id: 'ai-yearly',
+  NINJA_PRO: {
+    id: 'ninja-pro',
     name: 'AI Ninja Pro',
-    price: 49,
-    priceDisplay: '$49',
-    originalPrice: 99.99,
-    discountPercent: 50,
-    period: ' 1 Year Access',
-    applications: '25 per day',
-    autofills: '35 per day',
-    popular: false,
-    description: 'Perfect for most active job seekers.',
-    features: [
-      '25 AI-powered job applications per day',
-      '35 Auto Fills per day',
-      'AI Interview Prep',
-      'Tailored resume + cover letter for each job',
-      'Job Tracker & Auto Fill Extension',
-      'Store and manage multiple resumes',
-      'Priority Email Support',
-    ],
-  },
-  AI_PRO_PLUS: {
-    id: 'ai-pro-plus',
-    name: 'AI Ninja Pro Plus',
-    price: 69,
-    priceDisplay: '$69',
-    originalPrice: 139.99,
-    discountPercent: 50,
-    period: ' 1 Year Access',
-    applications: '35 per day',
-    autofills: '50 per day',
+    price: 59,
+    originalPrice: 79,
+    priceDisplay: '$59',
+    period: 'Monthly',
+    calls: 'Alternate day calls',
     popular: true,
-    description: 'Higher limits for aggressive applications.',
+    description: 'Accelerated growth with scheduled calls.',
     features: [
-      '35 AI-powered job applications per day',
-      '50 Auto Fills per day',
-      'AI Interview Prep',
-      'Tailored resume + cover letter for each job',
-      'Job Tracker & Auto Fill Extension',
-      'Store and manage multiple resumes',
-      'Priority Email Support',
-    ],
-  },
-  AI_PRO_MAX: {
-    id: 'ai-pro-max',
-    name: 'AI Ninja Pro Max',
-    price: 89,
-    priceDisplay: '$89',
-    originalPrice: 179.99,
-    discountPercent: 50,
-    period: ' 1 Year Access',
-    applications: '55 per day',
-    autofills: '80 per day',
-    popular: false,
-    description: 'Maximum limits for extreme application volume.',
-    features: [
-      '55 AI-powered job applications per day',
-      '80 Auto Fills per day',
-      'AI Interview Prep',
-      'Tailored resume + cover letter for each job',
-      'Job Tracker & Auto Fill Extension',
-      'Store and manage multiple resumes',
+      '3-4 AI Ninja Calls per week',
+      'Custom URL (username.jobninjas.ai)',
+      'Verified Skill Badges on Portfolio',
+      'Daily growth tips and roadmap adjustments',
       'Priority Support',
     ],
   },
-
-  // ============================================
-  // HUMAN NINJA PLANS (Done-for-You)
-  // ============================================
-  HUMAN_STARTER: {
-    id: 'human-starter',
-    name: 'Starter Pack',
-    price: 50,
-    priceDisplay: '$50',
-    period: '',
-    applications: 50,
-    description: 'Our team applies for you using AI + human judgment.',
+  NINJA_ELITE: {
+    id: 'ninja-elite',
+    name: 'AI Ninja Elite',
+    price: 99,
+    originalPrice: 129,
+    priceDisplay: '$99',
+    period: 'Monthly',
+    calls: 'Everyday calls',
+    description: 'Maximum intensity for rapid career transition.',
     features: [
-      'We shortlist roles based on your profile',
-      'We manually apply to 50 targeted roles for you',
-      'We use your AI-tailored documents when possible',
-      'All 50 applications logged in your Application Tracker',
+      '7 AI Ninja Calls per week (Daily)',
+      'Premium Custom URL & Live Portfolio',
+      'Advanced performance analytics',
+      'Direct recruiter chat activation',
+      '24/7 Priority Support',
     ],
   },
-  HUMAN_GROWTH: {
-    id: 'human-growth',
-    name: 'Growth Pack',
-    price: 199,
-    priceDisplay: '$199',
-    period: '',
-    applications: 200,
-    description: 'Higher-volume campaign for serious job seekers.',
+  NINJA_CREDIT: {
+    id: 'ninja-credit',
+    name: 'AI Ninja Call Credit',
+    price: 5,
+    priceDisplay: '$5',
+    period: ' per credit',
+    description: 'One-off call when you need it.',
     features: [
-      'We run a higher-volume campaign with 200 targeted applications',
-      'We avoid spamming many roles inside the same company',
-      'All 200 applications logged in your Application Tracker',
+      '1 AI Ninja Call',
+      'Immediate report generation',
+      'No subscription required',
     ],
-  },
-  HUMAN_SCALE: {
-    id: 'human-scale',
-    name: 'Scale Pack',
-    price: 399,
-    priceDisplay: '$399',
-    period: '',
-    applications: 400,
-    description: 'Aggressive outreach while staying targeted.',
-    features: [
-      'We manage a larger campaign with 400 targeted applications',
-      'Ideal if you want aggressive outreach while staying targeted',
-      'All 400 applications logged in your Application Tracker',
-    ],
-  },
-  HUMAN_ENTERPRISE: {
-    id: 'human-enterprise',
-    name: 'Enterprise',
-    price: null,
-    priceDisplay: 'Contact Us',
-    period: '',
-    applications: 'Custom',
-    description: 'For high-volume or custom requirements.',
-    features: [
-      'Custom number of applications tailored to your needs',
-      'Dedicated account manager',
-      'Priority support and faster turnaround',
-      'Custom reporting and analytics',
-    ],
-    isEnterprise: true,
   },
 
-  // Disclaimer for Human Ninja section
-  HUMAN_NINJA_DISCLAIMER: 'We do not guarantee a job or visa outcome. We run a serious, structured job search process so you\'re not doing this alone.',
 };
 
 // ============================================

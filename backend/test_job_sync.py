@@ -18,7 +18,7 @@ load_dotenv()
 async def test_job_sync():
     # Connect to MongoDB
     mongo_url = os.getenv("MONGO_URL")
-    db_name = os.getenv("DB_NAME", "novaninjas")
+    db_name = os.getenv("DB_NAME", "jobninjas")
     
     client = AsyncIOMotorClient(mongo_url)
     db = client[db_name]

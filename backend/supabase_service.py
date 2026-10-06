@@ -57,6 +57,28 @@ class SupabaseService:
             logger.error(f"Error fetching user by email: {e}")
             return None
 
+    @staticmethod
+    def verify_legacy_auth(email: str, password: str) -> bool:
+        """
+        Verify credentials against Supabase Auth API for legacy users.
+        """
+        client = SupabaseService.get_client()
+        if not client:
+            return False
+        
+        try:
+            # Note: We need the project's public key (anon key) for client-side auth usually,
+            # but service_role key can also perform auth. 
+            # However, sign_in_with_password is the standard way to verify a password.
+            response = client.auth.sign_in_with_password({"email": email, "password": password})
+            if response.user:
+                logger.info(f"✅ Legacy auth successful for {email}")
+                return True
+            return False
+        except Exception as e:
+            logger.warning(f"⚠️ Legacy auth failed for {email}: {e}")
+            return False
+
 
 
     @staticmethod

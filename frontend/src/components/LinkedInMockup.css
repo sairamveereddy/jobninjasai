@@ -8,7 +8,7 @@
 
 /* Header */
 .li-header {
-    background-color: #ffffff;
+    background-color: #faf9ff;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     position: sticky;
     top: 0;
@@ -239,11 +239,11 @@
 }
 
 /* ============================================ */
-/* jobNinjas MATCH WIDGET (Image 3 Styling) */
+/* jobninjas MATCH WIDGET (Image 3 Styling) */
 /* ============================================ */
 .jobninjas-match-widget {
     margin: 0 24px 24px;
-    background: linear-gradient(to bottom, #eff6ff 0%, #ffffff 100%);
+    background: linear-gradient(to bottom, #eff6ff 0%, #faf9ff 100%);
     border: 1px solid rgba(37, 99, 235, 0.1);
     border-radius: 12px;
     overflow: hidden;
@@ -333,7 +333,7 @@
 .gauge-score {
     font-size: 24px;
     font-weight: 800;
-    color: #1a1a2e;
+    color: #1b1b3a;
 }
 
 .gauge-label {
@@ -369,7 +369,7 @@
     top: -4px;
     width: 8px;
     height: 8px;
-    background: #1a1a2e;
+    background: #1b1b3a;
     border-radius: 50%;
     border: 2px solid white;
 }
@@ -397,7 +397,7 @@
 .brand-name {
     font-weight: 700;
     font-size: 15px;
-    color: #1a1a2e;
+    color: #1b1b3a;
 }
 
 /* Sections */

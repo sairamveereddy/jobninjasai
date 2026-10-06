@@ -403,40 +403,39 @@ const Jobs = () => {
   };
 
   return (
-    <div className="jobs-page-content p-3 sm:p-4 md:p-6">
+    <div className="jobs-page-content p-4 md:p-8 max-w-7xl mx-auto bg-background min-h-screen">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#111827] tracking-tight">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">
             {searchKeyword || locationFilter || selectedJobFunctions.length > 0 ? "Filtered Jobs" : "All Jobs"}
           </h1>
-          <p className="text-sm text-[#6b7280] mt-1 font-medium">
+          <p className="text-sm text-muted-foreground mt-1">
             {searchKeyword || locationFilter ? `Showing results for "${searchKeyword || locationFilter}"` : "Showing all 110,000+ available roles across the globe"}
           </p>
         </div>
-        <div className="bg-[#E6FAF5] text-[#007A5A] px-4 py-2 rounded-xl text-sm font-bold border border-[#00C896]/20 shadow-sm">
+        <div className="bg-secondary text-muted-foreground px-4 py-2 rounded-md text-sm font-medium border border-border shadow-sm">
           {pagination.total.toLocaleString()} matching jobs
         </div>
       </div>
 
-
-      {/* Filters Section Redesign */}
-      <section className="jobs-filters-section mb-6">
+      {/* Filters Section */}
+      <section className="mb-6">
         <div className="flex flex-col gap-4">
-          {/* Search Bar Row - Redesigned to match image exactly */}
-          <div className="flex flex-col md:flex-row items-stretch gap-2.5">
+          {/* Search Bar Row */}
+          <div className="flex flex-col md:flex-row items-stretch gap-2">
             {/* Search Box */}
-            <div className="relative flex-[1.8] bg-white rounded-xl shadow-sm border border-gray-100 h-12 flex items-center px-4">
-              <Search className="w-4 h-4 text-gray-400 mr-3 shrink-0" />
+            <div className="relative flex-[1.8] bg-background rounded-md shadow-sm border border-border h-11 flex items-center px-4 focus-within:ring-1 focus-within:ring-foreground transition-all">
+              <Search className="w-4 h-4 text-muted-foreground mr-3 shrink-0" />
               <Input
                 placeholder="Search jobs..."
-                className="border-0 focus-visible:ring-0 bg-transparent text-sm w-full h-full p-0"
+                className="border-0 focus-visible:ring-0 bg-transparent text-sm w-full h-full p-0 shadow-none"
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
               />
             </div>
 
             {/* Experience Box */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-12 flex items-center min-w-[140px]">
+            <div className="bg-background rounded-md shadow-sm border border-border h-11 flex items-center min-w-[140px] focus-within:ring-1 focus-within:ring-foreground transition-all">
               <Select value={selectedExperience[0] || 'all'} onValueChange={(val) => setSelectedExperience(val === 'all' ? [] : [val])}>
                 <SelectTrigger className="border-0 focus:ring-0 shadow-none bg-transparent text-sm gap-2 h-full flex-1 px-4">
                   <SelectValue placeholder="Experience" />
@@ -453,11 +452,11 @@ const Jobs = () => {
             </div>
 
             {/* Location Box */}
-            <div className="relative flex-1 bg-white rounded-xl shadow-sm border border-gray-100 h-12 flex items-center px-4">
-              <MapPin className="w-4 h-4 text-gray-400 mr-3 shrink-0" />
+            <div className="relative flex-1 bg-background rounded-md shadow-sm border border-border h-11 flex items-center px-4 focus-within:ring-1 focus-within:ring-foreground transition-all">
+              <MapPin className="w-4 h-4 text-muted-foreground mr-3 shrink-0" />
               <Input
                 placeholder="Location..."
-                className="border-0 focus-visible:ring-0 bg-transparent text-sm w-full h-full p-0"
+                className="border-0 focus-visible:ring-0 bg-transparent text-sm w-full h-full p-0 shadow-none"
                 value={locationFilter}
                 onChange={(e) => setLocationFilter(e.target.value)}
               />
@@ -466,14 +465,14 @@ const Jobs = () => {
             {/* Search Button */}
             <Button
               onClick={() => fetchJobs(1)}
-              className="px-8 h-12 bg-[#00875A] hover:bg-[#00704A] text-white font-bold rounded-xl transition-all active:scale-95 text-sm shrink-0"
+              className="vercel-button h-11 px-8 shrink-0"
             >
               Search
             </Button>
           </div>
 
           {/* Filter Tags Row */}
-          <div className="flex flex-wrap items-center gap-2 px-1">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => {
                 setWorkTypeFilter('all');
@@ -484,9 +483,9 @@ const Jobs = () => {
                 setCurrentPage(1);
                 fetchJobs(1);
               }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${workTypeFilter === 'all' && !searchKeyword && !locationFilter
-                ? 'bg-[#00875A] text-white shadow-sm'
-                : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${workTypeFilter === 'all' && !searchKeyword && !locationFilter
+                ? 'bg-foreground text-background shadow-sm'
+                : 'bg-secondary border border-border text-foreground hover:bg-muted'
                 }`}
             >
               All Jobs
@@ -509,9 +508,9 @@ const Jobs = () => {
                     setWorkTypeFilter(workTypeFilter === tag.value ? 'all' : tag.value);
                   }
                 }}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${(workTypeFilter === tag.value || (tag.value === 'visa-friendly' && sponsorshipFilter === 'visa-friendly'))
-                  ? 'bg-[#00875A] text-white shadow-sm'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${(workTypeFilter === tag.value || (tag.value === 'visa-friendly' && sponsorshipFilter === 'visa-friendly'))
+                  ? 'bg-foreground text-background shadow-sm'
+                  : 'bg-secondary border border-border text-foreground hover:bg-muted'
                   }`}
               >
                 {tag.label}
@@ -519,13 +518,9 @@ const Jobs = () => {
             ))}
 
             <div className="ml-auto flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-gray-400 hover:text-gray-600 text-xs gap-1.5">
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground text-xs gap-1.5">
                 <X className="w-3.5 h-3.5" /> Reset Filters
               </Button>
-
-              <span className="text-[11px] font-bold text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                {pagination.total.toLocaleString()} jobs found
-              </span>
             </div>
           </div>
         </div>
@@ -533,23 +528,23 @@ const Jobs = () => {
 
       {/* Job List Section */}
       <section className="job-list-section">
-        <div className="container">
+        <div className="container p-0">
           {/* Loading State */}
           {isLoading && (
-            <div className="loading-state">
-              <Loader2 className="w-12 h-12 animate-spin" />
-              <p>Loading jobs...</p>
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <Loader2 className="w-8 h-8 animate-spin mb-4" />
+              <p className="text-sm font-medium">Loading jobs...</p>
             </div>
           )}
 
           {/* Error State */}
           {error && !isLoading && (
-            <div className="error-state">
-              <div className="error-icon">⚠️</div>
-              <h3>Unable to load jobs</h3>
-              <p>{error}</p>
-              <Button onClick={() => fetchJobs(1)} className="btn-primary">
-                <RefreshCw className="w-4 h-4 mr-2" /> Try Again
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="text-2xl mb-2">⚠️</div>
+              <h3 className="text-lg font-medium text-foreground mb-1">Unable to load jobs</h3>
+              <p className="text-sm text-muted-foreground mb-4">{error}</p>
+              <Button onClick={() => fetchJobs(1)} variant="outline" className="gap-2">
+                <RefreshCw className="w-4 h-4" /> Try Again
               </Button>
             </div>
           )}
@@ -565,16 +560,16 @@ const Jobs = () => {
               </div>
 
               {displayJobs.length === 0 && (
-                <div className="no-jobs-found">
-                  <Filter className="w-12 h-12" />
-                  <h3>No jobs found</h3>
-                  <p>Try adjusting your filters or search terms.</p>
+                <div className="flex flex-col items-center justify-center py-20 text-center border border-border rounded-md bg-secondary/30">
+                  <Filter className="w-8 h-8 text-muted-foreground mb-3" />
+                  <h3 className="text-lg font-medium text-foreground">No jobs found</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Try adjusting your filters or search terms.</p>
                   <Button variant="outline" onClick={clearFilters}>Clear all filters</Button>
                 </div>
               )}
 
               {pagination.pages > 1 && (
-                <div className="pagination-controls flex items-center justify-center gap-4 mt-12 pb-12">
+                <div className="flex items-center justify-center gap-4 mt-8 pb-12">
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -585,7 +580,7 @@ const Jobs = () => {
                   >
                     Previous
                   </Button>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-muted-foreground">
                     Page {currentPage} of {pagination.pages}
                   </span>
                   <Button

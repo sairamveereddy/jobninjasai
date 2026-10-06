@@ -8,7 +8,7 @@ load_dotenv(".env")
 async def update_mongo_role():
     mongo_url = os.getenv("MONGO_URL")
     client = AsyncIOMotorClient(mongo_url)
-    db = client[os.getenv("DB_NAME", "novaninjas")]
+    db = client[os.getenv("DB_NAME", "jobninjas")]
     
     email = "srkreddy452@gmail.com"
     

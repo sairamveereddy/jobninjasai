@@ -1,5 +1,5 @@
 // background.js - Orchestrates auth, data fetching, and cross-frame communication
-const API_BASE_URL = 'https://nova-ninjas-production.up.railway.app';
+const API_BASE_URL = 'https://jobninjas-production.up.railway.app';
 
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: true })

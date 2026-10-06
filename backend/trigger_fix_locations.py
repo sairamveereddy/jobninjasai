@@ -1,7 +1,7 @@
 import requests
 import time
 
-url = "https://nova-ninjas-production.up.railway.app/api/debug/fix-locations"
+url = "https://jobninjas-production.up.railway.app/api/debug/fix-locations"
 
 print(f"Triggering location fix at {url}...")
 try:

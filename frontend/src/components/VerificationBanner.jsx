@@ -125,7 +125,7 @@ const VerificationBanner = () => {
             </div>
             {error && (
                 <div className="container mx-auto mt-1 flex justify-center">
-                    <span className="text-[10px] text-red-600 font-bold bg-white px-2 py-0.5 rounded border border-red-100 shadow-sm animate-pulse">
+                    <span className="text-[10px] text-red-600 font-bold bg-[#faf9ff] px-2 py-0.5 rounded border border-red-100 shadow-sm animate-pulse">
                         {error}
                     </span>
                 </div>

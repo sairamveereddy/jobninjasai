@@ -46,7 +46,7 @@ async def run_aggregation():
             logger.warning("certifi not found, falling back to default SSL")
             client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=15000)
             
-        db = client[os.getenv("DB_NAME", "novaninjas")]
+        db = client[os.getenv("DB_NAME", "jobninjas")]
         logger.info(f"Connected to database: {db.name}")
         
         # Initialize Aggregator

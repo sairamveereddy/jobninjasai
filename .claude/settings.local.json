@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start:*)",
+      "Bash(sed 's/@api_router\\\\.//')",
+      "Read(//c/Users/vsair/Downloads/novasquar-main/novasquad-main/nova-ninjas/**)",
+      "Bash(node -e \"const lr = require\\('lucide-react'\\); const keys = Object.keys\\(lr\\); console.log\\(keys.filter\\(k => /linkedin|instagram|social/i.test\\(k\\)\\)\\)\")",
+      "Bash(node -e \"const lr = require\\('lucide-react'\\); console.log\\('LinkedinIcon:', typeof lr.LinkedinIcon\\); console.log\\('InstagramIcon:', typeof lr.InstagramIcon\\); console.log\\('SocialTooltip check - file exists:'\\); \")",
+      "Bash(npx react-scripts:*)",
+      "Bash(node -e \"const lr = require\\('lucide-react'\\); ['Chrome','Layers','Play','LayoutDashboard'].forEach\\(k => console.log\\(k + ':', typeof lr[k]\\)\\)\")",
+      "Bash(node -e \"const lr=require\\('lucide-react'\\); ['Phone','Trophy','Calendar','BookOpen','BarChart','Flame','Activity','Upload','Play'].forEach\\(k=>console.log\\(k+':',typeof lr[k]\\)\\)\")",
+      "Bash(node -e \"const lr=require\\('lucide-react'\\); ['BookOpen','Search','Upload','Play','Phone','Trophy','Calendar','BarChart','Flame','Activity'].forEach\\(k=>console.log\\(k+':',typeof lr[k]\\)\\)\")"
+    ]
+  }
+}

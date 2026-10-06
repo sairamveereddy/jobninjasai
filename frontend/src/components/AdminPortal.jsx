@@ -150,7 +150,7 @@ const AdminPortal = () => {
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-                <Card className="w-full max-w-md shadow-2xl border-t-4 border-t-indigo-600">
+                <Card className="w-full max-w-md shadow-xl border-t-4 border-t-indigo-600">
                     <CardHeader className="text-center pb-2">
                         <div className="mx-auto bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                             <Shield className="h-8 w-8 text-indigo-600" />
@@ -224,11 +224,11 @@ const AdminPortal = () => {
             )}
 
             {/* Header */}
-            <header className="bg-white border-b sticky top-0 z-10">
+            <header className="bg-[#faf9ff] border-b sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="bg-indigo-600 p-2 rounded-lg">
-                            <LayoutDashboard className="h-5 w-5 text-white" />
+                            <LayoutDashboard className="h-5 w-5 text-[var(--text-main)]" />
                         </div>
                         <h1 className="text-xl font-bold text-slate-900 tracking-tight">Admin<span className="text-indigo-600">Portal</span></h1>
                     </div>
@@ -269,7 +269,7 @@ const AdminPortal = () => {
 
             <main className="max-w-7xl mx-auto px-4 py-8">
                 <Tabs defaultValue="overview" onValueChange={setActiveTab}>
-                    <TabsList className="bg-white border p-1 mb-8 shadow-sm rounded-xl h-auto">
+                    <TabsList className="bg-[#faf9ff] border p-1 mb-8 shadow-sm rounded-xl h-auto">
                         <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 px-6 py-2.5 rounded-lg font-semibold">Overview</TabsTrigger>
                         <TabsTrigger value="users" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 px-6 py-2.5 rounded-lg font-semibold">All Users</TabsTrigger>
                         <TabsTrigger value="today" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 px-6 py-2.5 rounded-lg font-semibold">Today's Users</TabsTrigger>
@@ -280,7 +280,7 @@ const AdminPortal = () => {
 
                     <TabsContent value="overview">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <Card className="border-none shadow-sm bg-white overflow-hidden">
+                            <Card className="border-none shadow-sm bg-[#faf9ff] overflow-hidden">
                                 <CardHeader className="pb-2">
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-medium text-slate-500">Total Users</p>
@@ -291,7 +291,7 @@ const AdminPortal = () => {
                                 <div className="h-1 bg-indigo-500 w-full opacity-20"></div>
                             </Card>
 
-                            <Card className="border-none shadow-sm bg-white overflow-hidden">
+                            <Card className="border-none shadow-sm bg-[#faf9ff] overflow-hidden">
                                 <CardHeader className="pb-2">
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-medium text-slate-500">Last 24h Reg</p>
@@ -302,7 +302,7 @@ const AdminPortal = () => {
                                 <div className="h-1 bg-green-500 w-full opacity-20"></div>
                             </Card>
 
-                            <Card className="border-none shadow-sm bg-white overflow-hidden">
+                            <Card className="border-none shadow-sm bg-[#faf9ff] overflow-hidden">
                                 <CardHeader className="pb-2">
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-medium text-slate-500">Resumes/Apps</p>
@@ -313,7 +313,7 @@ const AdminPortal = () => {
                                 <div className="h-1 bg-orange-500 w-full opacity-20"></div>
                             </Card>
 
-                            <Card className="border-none shadow-sm bg-white overflow-hidden">
+                            <Card className="border-none shadow-sm bg-[#faf9ff] overflow-hidden">
                                 <CardHeader className="pb-2">
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-medium text-slate-500">Call Success</p>
@@ -327,7 +327,7 @@ const AdminPortal = () => {
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* User Visualization */}
-                            <Card className="border-none shadow-sm bg-white">
+                            <Card className="border-none shadow-sm bg-[#f5f3ff]">
                                 <CardHeader>
                                     <CardTitle className="text-lg">Subscription Mix</CardTitle>
                                     <CardDescription>Free vs Paid users distribution</CardDescription>
@@ -371,7 +371,7 @@ const AdminPortal = () => {
                             </Card>
 
                             {/* Job Stats */}
-                            <Card className="border-none shadow-sm bg-white">
+                            <Card className="border-none shadow-sm bg-[#f5f3ff]">
                                 <CardHeader>
                                     <CardTitle className="text-lg">Job Engine (24h)</CardTitle>
                                     <CardDescription>New jobs pulled automatically</CardDescription>
@@ -380,7 +380,7 @@ const AdminPortal = () => {
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-4 p-4 bg-green-50 border border-green-100 rounded-xl">
                                             <div className="bg-green-500 p-3 rounded-xl shadow-lg shadow-green-200">
-                                                <TrendingUp className="h-6 w-6 text-white" />
+                                                <TrendingUp className="h-6 w-6 text-[var(--text-main)]" />
                                             </div>
                                             <div>
                                                 <p className="text-sm font-semibold text-green-800">Total New Jobs</p>
@@ -404,7 +404,7 @@ const AdminPortal = () => {
                     </TabsContent>
 
                     <TabsContent value="users">
-                        <Card className="border-none shadow-sm bg-white">
+                        <Card className="border-none shadow-sm bg-[#f5f3ff]">
                             <CardHeader className="border-b">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
@@ -477,7 +477,7 @@ const AdminPortal = () => {
                     </TabsContent>
 
                     <TabsContent value="today">
-                        <Card className="border-none shadow-sm bg-white">
+                        <Card className="border-none shadow-sm bg-[#f5f3ff]">
                             <CardHeader>
                                 <CardTitle>New Registrations (Today)</CardTitle>
                                 <CardDescription>{todayUsers.length} users signed up today</CardDescription>
@@ -518,7 +518,7 @@ const AdminPortal = () => {
                     </TabsContent>
 
                     <TabsContent value="requests">
-                        <Card className="border-none shadow-sm bg-white">
+                        <Card className="border-none shadow-sm bg-[#f5f3ff]">
                             <CardHeader>
                                 <CardTitle>Call Consultations</CardTitle>
                                 <CardDescription>Users who requested a 1:1 call</CardDescription>
@@ -554,7 +554,7 @@ const AdminPortal = () => {
                     </TabsContent>
 
                     <TabsContent value="messages">
-                        <Card className="border-none shadow-sm bg-white">
+                        <Card className="border-none shadow-sm bg-[#f5f3ff]">
                             <CardHeader>
                                 <CardTitle>Contact Form Messages</CardTitle>
                                 <CardDescription>Inquiries from the contact page</CardDescription>
@@ -564,7 +564,7 @@ const AdminPortal = () => {
                                     <div className="text-center py-12 text-slate-400 italic">No messages found.</div>
                                 ) : (
                                     messages.map((m) => (
-                                        <div key={m._id} className="p-6 border rounded-2xl hover:border-indigo-200 transition-colors bg-white">
+                                        <div key={m._id} className="p-6 border rounded-2xl hover:border-indigo-200 transition-colors bg-[#f5f3ff]">
                                             <div className="flex justify-between items-start mb-4">
                                                 <div>
                                                     <h4 className="font-bold text-slate-900">{m.name || (m.firstName ? `${m.firstName} ${m.lastName}` : 'Anonymous')}</h4>
@@ -580,7 +580,7 @@ const AdminPortal = () => {
                         </Card>
                     </TabsContent>
                     <TabsContent value="waitlist">
-                        <Card className="border-none shadow-sm bg-white">
+                        <Card className="border-none shadow-sm bg-[#f5f3ff]">
                             <CardHeader>
                                 <CardTitle>Waitlist Signups</CardTitle>
                                 <CardDescription>Users waiting for the AI Ninja feature ({waitlist.length} total)</CardDescription>

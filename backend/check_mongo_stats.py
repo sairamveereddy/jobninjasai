@@ -5,7 +5,7 @@ from supabase import create_client
 
 load_dotenv('.env')
 m = AsyncIOMotorClient(os.environ.get('MONGO_URL'))
-db = m[os.environ.get('DB_NAME','novaninjas')]
+db = m[os.environ.get('DB_NAME','jobninjas')]
 
 async def check():
     verified = await db.users.count_documents({'is_verified': True})

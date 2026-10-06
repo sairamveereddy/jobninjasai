@@ -1,4 +1,4 @@
-# Nova Ninjas - SaaS Application
+# JobNinjas - SaaS Application
 
 A full-stack SaaS application for human-powered job application services with role-based dashboards.
 

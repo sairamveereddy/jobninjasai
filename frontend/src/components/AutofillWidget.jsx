@@ -15,6 +15,7 @@ import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
+import { BRAND } from '../config/branding';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -40,18 +41,18 @@ const AutofillWidget = ({ jobTitle, company, companyLogo = "https://logo.clearbi
 
             {/* Circular Floating Icon - Middle Right (Bird Button) */}
             <div className={`floating-circle-icon ${isOpen ? 'active' : ''}`} onClick={() => setIsOpen(!isOpen)}>
-                <img src="/bird.png" alt="jobNinjas" />
+                <img src="/bird.png" alt={BRAND.name} />
                 <div className="notification-dot"></div>
             </div>
 
             {/* Popup Dialog */}
             {isOpen && (
                 <div className="widget-popup">
-                    <Card className="widget-card shadow-2xl">
+                    <Card className="widget-card shadow-xl">
                         <div className="widget-header">
                             <div className="header-left">
-                                <img src="/ninjasface.png" alt="jobNinjas" className="header-logo" />
-                                <span className="header-title">jobNinjas</span>
+                                <img src={BRAND.logoPath} alt={BRAND.name} className="header-logo" />
+                                <span className="header-title">{BRAND.name}</span>
                             </div>
                             <div className="header-actions">
                                 <Button variant="ghost" size="sm" className="p-1 h-auto text-gray-400">

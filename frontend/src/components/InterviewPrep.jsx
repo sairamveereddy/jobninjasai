@@ -17,7 +17,6 @@ import { useAuth } from '../contexts/AuthContext';
 import SideMenu from './SideMenu';
 import Header from './Header';
 import SubscriptionWall from './SubscriptionWall';
-import './SideMenu.css';
 import './InterviewPrep.css';
 
 const InterviewPrep = () => {

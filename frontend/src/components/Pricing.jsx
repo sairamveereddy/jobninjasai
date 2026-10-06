@@ -6,7 +6,7 @@ import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription }
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { BRAND, PRICING } from '../config/branding';
-import BookCallModal from './BookCallModal';
+// BookCallModal removed
 import { TimelineContent } from "./ui/timeline-animation";
 import { VerticalCutReveal } from "./ui/vertical-cut-reveal";
 import NumberFlow from "@number-flow/react";
@@ -14,65 +14,12 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { API_URL, apiCall } from '../config/api';
 
-const PricingSwitch = ({
-  selected,
-  onSwitch,
-  className,
-}) => {
-  return (
-    <div className={cn("flex justify-start", className)}>
-      <div className="relative z-10 flex w-fit rounded-xl bg-neutral-100 border border-gray-200 p-1">
-        <button
-          onClick={() => onSwitch("0")}
-          className={cn(
-            "relative z-10 w-fit cursor-pointer h-12 rounded-xl sm:px-6 px-3 sm:py-2 py-1 font-medium transition-colors sm:text-base text-sm",
-            selected === "0" ? "text-white" : "text-muted-foreground hover:text-black",
-          )}
-        >
-          {selected === "0" && (
-            <motion.span
-              layoutId={"switch"}
-              className="absolute top-0 left-0 h-10 w-full rounded-xl border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600 my-1"
-              style={{ top: '1px' }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            />
-          )}
-          <span className="relative">AI Ninja (SaaS)</span>
-        </button>
 
-        <button
-          onClick={() => onSwitch("1")}
-          className={cn(
-            "relative z-10 w-fit cursor-pointer h-12 flex-shrink-0 rounded-xl sm:px-6 px-3 sm:py-2 py-1 font-medium transition-colors sm:text-base text-sm",
-            selected === "1" ? "text-white" : "text-muted-foreground hover:text-black",
-          )}
-        >
-          {selected === "1" && (
-            <motion.span
-              layoutId={"switch"}
-              className="absolute top-0 left-0 h-10 w-full rounded-xl border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600 my-1"
-              style={{ top: '1px' }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            />
-          )}
-          <span className="relative flex items-center gap-2">
-            Human Ninja (Service)
-          </span>
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, refreshUser } = useAuth();
-  const [isBookCallModalOpen, setIsBookCallModalOpen] = useState(false);
-  const [switchValue, setSwitchValue] = useState("0"); // "0" for ai, "1" for human
-
   const pricingRef = useRef(null);
-
-  const planType = switchValue === "0" ? 'ai' : 'human';
 
   const revealVariants = {
     visible: (i) => ({
@@ -80,64 +27,36 @@ const Pricing = () => {
       opacity: 1,
       filter: "blur(0px)",
       transition: {
-        delay: i * 0.2,
+        delay: i * 0.1,
         duration: 0.5,
       },
     }),
     hidden: {
       filter: "blur(10px)",
-      y: -20,
+      y: -10,
       opacity: 0,
     },
   };
 
-  const isProSubscriber = user?.subscription_plan === 'ai-yearly' && user?.subscription_status === 'active';
-  const isProPlusSubscriber = user?.subscription_plan === 'ai-pro-plus' && user?.subscription_status === 'active';
-  const isProMaxSubscriber = user?.subscription_plan === 'ai-pro-max' && user?.subscription_status === 'active';
-
-  const hasUsedTrial = user?.has_used_free_trial;
-
   const aiNinjaPlans = [
     {
-      ...PRICING.AI_YEARLY,
+      ...PRICING.NINJA_STARTER,
       popular: false,
-      buttonVariant: 'outline',
-      description: !hasUsedTrial ? "7-Day Free Trial included. Then $49/year." : PRICING.AI_YEARLY.description,
-      isSubscribed: isProSubscriber,
-      showTrial: !hasUsedTrial
+      isSubscribed: user?.subscription_tier === 'ninja-starter' && user?.subscription_status === 'active',
     },
     {
-      ...PRICING.AI_PRO_PLUS,
+      ...PRICING.NINJA_PRO,
       popular: true,
-      buttonVariant: 'default',
-      description: !hasUsedTrial ? "7-Day Free Trial included. Then $69/year." : PRICING.AI_PRO_PLUS.description,
-      // If user paid $49 (Pro), this becomes $20 (69-49=20)
-      price: isProSubscriber ? 20 : PRICING.AI_PRO_PLUS.price,
-      isSubscribed: isProPlusSubscriber,
-      showTrial: !hasUsedTrial
+      isSubscribed: user?.subscription_tier === 'ninja-pro' && user?.subscription_status === 'active',
     },
     {
-      ...PRICING.AI_PRO_MAX,
+      ...PRICING.NINJA_ELITE,
       popular: false,
-      buttonVariant: 'outline',
-      description: !hasUsedTrial ? "7-Day Free Trial included. Then $89/year." : PRICING.AI_PRO_MAX.description,
-      // If user paid $49 (Pro), this becomes $40 (89-49=40)
-      price: isProSubscriber ? 40 : PRICING.AI_PRO_MAX.price,
-      isSubscribed: isProMaxSubscriber,
-      showTrial: !hasUsedTrial
+      isSubscribed: user?.subscription_tier === 'ninja-elite' && user?.subscription_status === 'active',
     },
   ];
 
-  const humanNinjaPlans = [
-    { ...PRICING.HUMAN_STARTER, popular: false, buttonVariant: 'outline', description: 'We manually apply to 50 roles for you.' },
-    { ...PRICING.HUMAN_GROWTH, popular: true, buttonVariant: 'default', description: 'Higher-volume campaign for serious seekers.' },
-    { ...PRICING.HUMAN_SCALE, popular: false, buttonVariant: 'outline', description: 'Aggressive outreach while staying targeted.' },
-    { ...PRICING.HUMAN_ENTERPRISE, popular: false, buttonVariant: 'outline', description: 'For high-volume or custom requirements.' },
-  ];
-
-  const currentPlans = planType === 'ai' ? aiNinjaPlans : humanNinjaPlans;
-
-  const handleDodoCheckout = async (planId) => {
+  const handleCheckout = async (planId) => {
     if (!isAuthenticated) {
       navigate('/signup');
       return;
@@ -151,226 +70,184 @@ const Pricing = () => {
           'Content-Type': 'application/json',
           'token': token
         },
-        body: JSON.stringify({ plan_id: planId })
+        body: JSON.stringify({ 
+          plan_id: planId
+        })
       });
 
       if (data && data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.detail || "Failed to initiate checkout.");
+        const email = user?.email;
+        const checkoutUrl = `https://buy.dodopayments.com/${planId}?customer_email=${encodeURIComponent(email || '')}`;
+        window.location.href = checkoutUrl;
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      alert(error.message || "An error occurred. Please try again.");
+      const email = user?.email;
+      const checkoutUrl = `https://buy.dodopayments.com/${planId}?customer_email=${encodeURIComponent(email || '')}`;
+      window.location.href = checkoutUrl;
     }
   };
 
   return (
-    <div className="pricing-page">
-      <div className="max-w-7xl mx-auto px-6 py-10 relative" ref={pricingRef}>
-        <article className="text-left mb-6 space-y-4 max-w-2xl">
-          <h2 className="md:text-6xl text-4xl capitalize font-medium text-gray-900 mb-4">
-            <VerticalCutReveal
-              splitBy="words"
-              staggerDuration={0.15}
-              staggerFrom="first"
-              reverse={true}
-              containerClassName="justify-start"
-              transition={{
-                type: "spring",
-                stiffness: 250,
-                damping: 40,
-                delay: 0,
-              }}
-            >
-              We've got a plan that's perfect for you
-            </VerticalCutReveal>
-          </h2>
+    <div className="bg-[#f5f3ff] min-h-screen text-[var(--text-main)] pt-20 pb-32 overflow-hidden relative">
+      {/* Background Ambient Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[800px] bg-[radial-gradient(circle_at_50%_0%,rgba(94,106,210,0.06)_0%,transparent_70%)] pointer-events-none" />
 
-          <TimelineContent
-            as="p"
-            animationNum={0}
-            timelineRef={pricingRef}
-            customVariants={revealVariants}
-            className="md:text-base text-sm text-gray-600 w-[80%]"
+      <div className="max-w-7xl mx-auto px-6 relative z-10" ref={pricingRef}>
+        <div className="text-center mb-20 max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#faf9ff] border border-black/10 text-[10px] font-medium uppercase tracking-[0.2em] mb-6 text-[#5c5c7a]"
           >
-            Trusted by candidates worldwide. {planType === 'ai' ? 'Automate your search with AI. You only need this once—land your dream job during your first month or first year.' : 'Let our human Ninjas handle everything.'} Choose your path.
-          </TimelineContent>
+            <Zap size={12} className="text-[var(--jobninjas-accent)]" />
+            Transparent Institutional Pricing
+          </motion.div>
+          
+          <h1 className="text-4xl md:text-6xl font-medium tracking-tight mb-6">
+            Land your dream job with <span className="text-[var(--jobninjas-accent)] italic">AI precision.</span>
+          </h1>
+          
+          <p className="text-[#5c5c7a] text-lg font-light leading-relaxed">
+            Choose the protocol that fits your career trajectory. Trusted by candidates globally to automate mastery.
+          </p>
+        </div>
 
-          <TimelineContent
-            as="div"
-            animationNum={1}
-            timelineRef={pricingRef}
-            customVariants={revealVariants}
-          >
-            <PricingSwitch
-              selected={switchValue}
-              onSwitch={setSwitchValue}
-              className="w-fit"
-            />
-          </TimelineContent>
-        </article>
-
-        <div className={`grid gap-4 py-6 ${planType === 'ai' ? 'md:grid-cols-3 max-w-6xl mx-auto' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
-          {currentPlans.map((plan, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-24">
+          {aiNinjaPlans.map((plan, index) => (
             <TimelineContent
               key={plan.id}
               as="div"
-              animationNum={2 + index}
+              animationNum={index}
               timelineRef={pricingRef}
               customVariants={revealVariants}
             >
-              <Card
-                className={`relative border h-full flex flex-col transition-all duration-300 ${plan.popular
-                  ? "border-neutral-200 ring-2 ring-blue-500 bg-blue-50 shadow-xl"
-                  : "border-neutral-200 bg-white shadow-sm"
-                  }`}
+              <div
+                className={cn(
+                  "relative flex flex-col h-full rounded-2xl border transition-all duration-500 overflow-hidden group",
+                  plan.popular 
+                    ? "bg-[#faf9ff] border-[var(--jobninjas-accent)]/30 shadow-[0_0_50px_rgba(94,106,210,0.06)]" 
+                    : "bg-[#eeeafc] border-black/5"
+                )}
               >
-                <CardHeader className="text-left">
-                  <div className="flex justify-between items-start">
-                    <h3 className="xl:text-3xl md:text-2xl text-2xl font-semibold text-gray-900 mb-2">
-                      {plan.name}
-                    </h3>
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {plan.popular && (
-                        <span className="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded text-[11px] font-medium tracking-wide">
-                          popular
-                        </span>
-                      )}
-                      {plan.discountPercent && (
-                        <span className="bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded text-[11px] font-medium">
-                          {plan.discountPercent}% off
-                        </span>
-                      )}
-                      {plan.isBeta && (
-                        <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[11px] font-medium">
-                          beta
-                        </span>
-                      )}
+                {plan.popular && (
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--jobninjas-accent)] to-transparent opacity-50" />
+                )}
+
+                <div className="p-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h3 className="text-2xl font-medium text-[var(--text-main)] mb-1">{plan.name.replace('AI Ninja ', '')}</h3>
+                      <p className="text-sm text-[#5c5c7a] font-light">{plan.description}</p>
+                    </div>
+                    {plan.popular && (
+                      <span className="bg-[var(--jobninjas-accent)]/10 text-[var(--jobninjas-accent)] border border-[var(--jobninjas-accent)]/20 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-widest">
+                        Popular
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mb-8">
+                    {plan.originalPrice && (
+                      <div className="text-sm text-[#5c5c7a] line-through mb-1 opacity-50">${plan.originalPrice}</div>
+                    )}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-medium text-[var(--text-main)]">${plan.price}</span>
+                      <span className="text-[#5c5c7a] text-sm font-light">/ {plan.period}</span>
                     </div>
                   </div>
-                  <p className="xl:text-sm md:text-xs text-sm text-gray-600 mb-4">
-                    {plan.description}
-                  </p>
 
-
-
-                  {plan.originalPrice && (
-                    <div className="mb-2">
-                      <span className="text-lg text-gray-400 line-through">
-                        ${plan.originalPrice}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-baseline gap-2">
-                    <>
-                      <span className="text-4xl font-semibold text-gray-900">
-                        {plan.price !== null ? (
-                          <>
-                            $
-                            <NumberFlow
-                              format={{ minimumFractionDigits: plan.price % 1 === 0 ? 0 : 2 }}
-                              value={plan.price}
-                              className="text-4xl font-semibold"
-                            />
-                          </>
-                        ) : (
-                          "Contact Us"
-                        )}
-                      </span>
-                      {plan.price !== null && (
-                        <div className="flex flex-col">
-                          <span className="text-gray-600">
-                            {planType === 'ai' ? `USD ${plan.period}` : `/${plan.period ? plan.period.replace('/', '') : 'package'}`}
-                          </span>
-                          {planType === 'ai' && (
-                            <span className="text-xs text-gray-400 line-through italic">
-                              not /month
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-0 flex-1 flex flex-col">
                   <button
-                    className={`w-full mb-4 p-3 text-lg font-semibold rounded-xl transition-all ${plan.popular
-                      ? "bg-gradient-to-t from-blue-600 to-blue-700 shadow-lg shadow-blue-500 border border-blue-400 text-white"
-                      : "bg-gradient-to-t from-neutral-900 to-neutral-700 shadow-lg shadow-neutral-900 border border-neutral-700 text-white"
-                      }`}
-                    onClick={() => {
-                      if (plan.id === 'human-enterprise') {
-                        setIsBookCallModalOpen(true);
-                      } else if (planType === 'human') {
-                        setIsBookCallModalOpen(true);
-                      } else if (planType === 'ai') {
-                        handleDodoCheckout(plan.id);
-                      } else if (plan.price === 0) {
-                        navigate('/ai-ninja');
-                      } else {
-                        navigate(`/checkout?plan=${plan.id}&auto=true`);
-                      }
-                    }}
+                    onClick={() => handleCheckout(plan.id)}
+                    className={cn(
+                      "w-full h-11 rounded-lg text-xs font-medium uppercase tracking-widest transition-all mb-8",
+                      plan.popular
+                        ? "bg-[var(--jobninjas-accent)] hover:bg-[#4c57b5] text-white shadow-lg shadow-[var(--jobninjas-accent)]/20"
+                        : "bg-[#eeeafc] hover:bg-[#e8e3f8] text-[var(--text-main)] border border-black/10"
+                    )}
                   >
-                    {planType === 'ai'
-                      ? (plan.isSubscribed
-                        ? '✅ Subscribed'
-                        : (plan.showTrial ? 'Start 7-Day Free Trial' : `Get ${plan.name.replace('AI Ninja ', '')}`))
-                      : (plan.price === 0 ? 'Try Free' : (plan.id === 'human-enterprise' ? 'Contact Us' : 'Get Started'))}
+                    {plan.isSubscribed ? 'Active Protocol' : `Initialize ${plan.name.replace('AI Ninja ', '')}`}
                   </button>
 
-
-
-                  <div className="space-y-4 pt-4 border-t border-neutral-200">
-                    <h4 className="font-semibold text-sm uppercase text-gray-400 tracking-wider">
-                      Includes:
-                    </h4>
+                  <div className="space-y-4 pt-8 border-t border-black/5">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-[#5c5c7a] font-medium">Protocol Specifications</div>
                     <ul className="space-y-3">
                       {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-start">
-                          <span className="h-5 w-5 bg-white border border-blue-500 rounded-full flex items-center justify-center mt-0.5 mr-3 shrink-0">
-                            <CheckCheck className="h-3 w-3 text-blue-600" />
-                          </span>
-                          <span className="text-sm text-gray-600">{feature}</span>
+                        <li key={featureIndex} className="flex items-start gap-3">
+                          <div className="w-4 h-4 rounded-full bg-[var(--jobninjas-accent)]/10 border border-[var(--jobninjas-accent)]/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <Check size={10} className="text-[var(--jobninjas-accent)]" />
+                          </div>
+                          <span className="text-sm text-[#5c5c7a] font-light">{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </TimelineContent>
           ))}
         </div>
 
-        {planType === 'ai' && (
-          <TimelineContent
-            animationNum={3}
-            className="text-center mt-6 max-w-2xl mx-auto"
+        {/* A LA CARTE SECTION */}
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative p-1 bg-gradient-to-b from-white/10 to-transparent rounded-[32px]"
           >
-            <p className="text-sm text-gray-500 italic">
-              * Most users land a job within the first month. We designed this so you won't need to renew!
-            </p>
-          </TimelineContent>
-        )}
+            <div className="bg-[#eeeafc] rounded-[31px] p-8 md:p-12 overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--jobninjas-accent)]/5 rounded-full blur-3xl -mr-48 -mt-48" />
+              
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+                <div className="space-y-6 max-w-xl text-center md:text-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--jobninjas-accent)]/10 border border-[var(--jobninjas-accent)]/20 text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--jobninjas-accent)]">
+                    Single Burst Mode
+                  </div>
+                  <h3 className="text-3xl font-medium tracking-tight">Need a single session?</h3>
+                  <p className="text-[#5c5c7a] font-light text-lg">
+                    No commitment required. Purchase 1 AI Ninja Call Credit for just $5. Credits never expire and can be used on any protocol day.
+                  </p>
+                  
+                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-6 pt-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCheck size={16} className="text-[var(--jobninjas-accent)]" />
+                      <span className="text-sm text-[#5c5c7a] font-medium">1 AI Ninja Call</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCheck size={16} className="text-[var(--jobninjas-accent)]" />
+                      <span className="text-sm text-[#5c5c7a] font-medium">Neural Insights Report</span>
+                    </div>
+                  </div>
+                </div>
 
-        {planType === 'human' && (
-          <TimelineContent
-            animationNum={currentPlans.length + 2}
-            className="text-center mt-12 max-w-2xl mx-auto"
-          >
-            <p className="text-sm text-gray-500 italic">
-              {PRICING.HUMAN_NINJA_DISCLAIMER}
+                <div className="w-full md:w-64 bg-[#faf9ff] border border-black/10 p-8 rounded-2xl text-center">
+                  <div className="text-[10px] font-medium uppercase tracking-widest text-[#5c5c7a] mb-2">Pay Per Use</div>
+                  <div className="flex items-baseline justify-center gap-1 mb-6">
+                    <span className="text-5xl font-medium text-[var(--text-main)]">$5</span>
+                    <span className="text-[#5c5c7a] text-sm">/ credit</span>
+                  </div>
+                  <button
+                    onClick={() => handleCheckout('ninja-credit')}
+                    className="btn-premium-primary w-full h-11 text-xs uppercase tracking-widest"
+                  >
+                    Buy 1 Credit
+                  </button>
+                  <p className="text-[10px] text-[#5c5c7a] mt-4 font-light italic">Secure Transaction via Dodo</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+          
+          <div className="mt-8 text-center">
+            <p className="text-xs text-[#5c5c7a] font-light italic">
+              * Subscriptions are billed monthly. Protocol termination available anytime via dashboard control.
             </p>
-          </TimelineContent>
-        )}
+          </div>
+        </div>
       </div>
-
-      <BookCallModal
-        isOpen={isBookCallModalOpen}
-        onClose={() => setIsBookCallModalOpen(false)}
-      />
     </div>
   );
 };

@@ -10,7 +10,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <span className="text-xl font-bold text-primary">Nova Ninjas</span>
+              <span className="text-xl font-bold text-primary">JobNinjas.ai</span>
             </div>
             <div className="flex items-center gap-4">
               <Link href="/pricing" className="text-sm font-medium">
@@ -102,7 +102,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t py-8 px-4">
         <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 Nova Ninjas. All rights reserved.</p>
+          <p>&copy; 2026 JobNinjas.ai. All rights reserved.</p>
         </div>
       </footer>
     </div>

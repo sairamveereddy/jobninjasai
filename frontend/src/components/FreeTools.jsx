@@ -59,7 +59,7 @@ const FreeTools = () => {
             id: 'linkedin-mockup',
             icon: <NinjaIcon className="w-8 h-8" />,
             name: 'LinkedIn Extension Demo',
-            description: 'See how jobNinjas integrates with LinkedIn in our live simulation.',
+            description: 'See how jobninjas integrates with LinkedIn in our live simulation.',
             path: '/linkedin-mockup',
             color: 'from-blue-600 to-indigo-500',
             users: 'Live!'

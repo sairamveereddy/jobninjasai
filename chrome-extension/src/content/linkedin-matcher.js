@@ -1,7 +1,7 @@
 // LinkedIn Match Score Widget - Jobright-style overlay for LinkedIn job pages
 // Detects LinkedIn job pages, extracts job data, calculates match score, and injects widget
 
-const API_BASE_URL = 'https://nova-ninjas-production.up.railway.app';
+const API_BASE_URL = 'https://jobninjas-production.up.railway.app';
 let matchWidget = null;
 let currentJobId = null;
 

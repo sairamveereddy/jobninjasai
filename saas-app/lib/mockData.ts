@@ -124,7 +124,7 @@ export const mockEmployees = [
   {
     id: "emp_456",
     name: "Sarah Martinez",
-    email: "sarah@novaninjas.com",
+    email: "sarah@jobninjas.ai",
     role: "employee" as const,
     assignedCases: 8,
     appsThisWeek: 156,
@@ -133,7 +133,7 @@ export const mockEmployees = [
   {
     id: "emp_789",
     name: "James Chen",
-    email: "james@novaninjas.com",
+    email: "james@jobninjas.ai",
     role: "employee" as const,
     assignedCases: 6,
     appsThisWeek: 124,

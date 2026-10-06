@@ -1,0 +1,3 @@
+Sairam Veereddy
+AI Engineer
+Skills: Python, React, FastAPI

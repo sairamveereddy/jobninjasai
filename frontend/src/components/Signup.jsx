@@ -4,12 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from './ui/card';
-import { Menu } from 'lucide-react';
-import SideMenu from './SideMenu';
-import GoogleAuthButton from './GoogleAuthButton';
-import './SideMenu.css';
-import { BRAND } from '../config/branding';
+import { Mail, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
+import BrandLogo from './BrandLogo';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -25,7 +22,6 @@ const Signup = () => {
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
 
   // Turnstile State
   const turnstileRef = React.useRef(null);
@@ -34,22 +30,31 @@ const Signup = () => {
   // Render Turnstile
   useEffect(() => {
     const renderTurnstile = () => {
-      if (window.turnstile && turnstileRef.current) {
-        window.turnstile.render(turnstileRef.current, {
-          sitekey: '0x4AAAAAAACeyHCDFw5HGsmjQ',
-          callback: function (token) {
-            setTurnstileToken(token);
-            setError('');
-          },
-        });
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (window.turnstile && turnstileRef.current && !isLocal) {
+        try {
+          window.turnstile.render(turnstileRef.current, {
+            sitekey: '0x4AAAAAAACeyHCDFw5HGsmjQ',
+            callback: function (token) {
+              setTurnstileToken(token);
+              setError('');
+            },
+            'error-callback': function() {
+              console.warn('Turnstile failed to load, falling back to permissive mode.');
+              if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                setTurnstileToken('local-dev-token');
+              }
+            }
+          });
+        } catch (e) {
+          console.error('Turnstile render error:', e);
+        }
       }
     };
 
-    // If turnstile script is already loaded
     if (window.turnstile) {
       renderTurnstile();
     } else {
-      // Check periodically or wait for load (simple retry)
       const interval = setInterval(() => {
         if (window.turnstile) {
           clearInterval(interval);
@@ -63,7 +68,7 @@ const Signup = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [isAuthenticated, authLoading, navigate]);
 
@@ -88,18 +93,18 @@ const Signup = () => {
       return;
     }
 
-    if (!turnstileToken) {
-      // Turnstile widget may not have rendered (ad blocker, domain mismatch, etc.)
-      // Allow signup to proceed — backend still validates the request
-      console.warn('Turnstile token not available, proceeding without it.');
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!turnstileToken && !isLocal) {
+      setError('Please complete the security check.');
+      return;
     }
 
     setSubmitting(true);
 
     try {
-      const result = await signup(formData.email, formData.password, formData.name, referralCode, turnstileToken);
+      const result = await signup(formData.email, formData.password, formData.name, referralCode, turnstileToken || 'local-bypass');
       if (result.success) {
-        navigate('/'); // Redirect to home page after signup
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
@@ -109,135 +114,150 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] py-12 px-4">
-      <Card className="w-full max-w-[440px] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-4 md:p-8">
-        <CardHeader className="space-y-6 pt-2 pb-8">
-          <div className="flex justify-center">
-            <Link to="/" className="flex items-center gap-2">
-              <img src={BRAND.logoPath} alt={BRAND.logoAlt} className="h-10" />
-              <span className="text-3xl font-bold tracking-tight text-[#0a0a0a]">{BRAND.name}</span>
-            </Link>
-          </div>
-          <div className="space-y-2 text-center">
-            <h1 className="text-[28px] font-bold tracking-tight text-[#1a1a1a]">Create account</h1>
-            <p className="text-[#666666] text-[15px]">
-              First time? We will sign you up automatically.
-            </p>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <div className="bg-[#f5f3ff] min-h-screen text-[var(--text-main)] flex flex-col relative overflow-hidden">
+      {/* Background Ambient Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[800px] bg-[radial-gradient(circle_at_50%_0%,rgba(94,106,210,0.06)_0%,transparent_70%)] pointer-events-none" />
 
-          {/* Google Sign-Up Button */}
-          <div className="space-y-4">
-            <GoogleAuthButton mode="signup" />
+      <nav className="w-full max-w-7xl mx-auto flex justify-between items-center py-8 px-6 relative z-10">
+        <Link to="/" className="flex items-center">
+          <BrandLogo className="!text-xl" />
+        </Link>
+        <Link to="/login" className="text-xs font-medium uppercase tracking-widest text-[#5c5c7a] hover:text-[var(--text-main)] transition-colors">
+          Sign In
+        </Link>
+      </nav>
 
-            {/* OR Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#f9fafb] px-2 text-gray-500">OR</span>
-              </div>
+      <div className="flex-grow flex items-center justify-center px-6 relative z-10 py-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-[480px]"
+        >
+          <div className="bg-[#eeeafc] border border-black/5 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--jobninjas-accent)] to-transparent opacity-30" />
+            
+            <div className="text-center mb-10">
+              <h1 className="text-3xl font-medium tracking-tight mb-3">Create profile</h1>
+              <p className="text-[#5c5c7a] text-sm font-light">
+                Initialize your professional AI career gateway.
+              </p>
             </div>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-4 text-sm font-medium text-red-800 bg-red-50 border border-red-100 rounded-xl">
+              <div className="mb-8 p-4 bg-red-500/5 border border-red-500/10 text-red-600 text-xs rounded-lg flex items-center gap-3">
+                <div className="w-1 h-1 rounded-full bg-red-500 shrink-0" />
                 {error}
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-[13px] font-bold text-[#4b5563] ml-1 uppercase tracking-wide">Full Name</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="John Doe"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="h-12 px-5 border-[#e5e7eb] bg-white text-base rounded-xl focus:ring-2 focus:ring-[#22c55e]/20 focus:border-[#22c55e]"
-              />
-            </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1 ml-0.5">
+                  <User size={12} className="text-[#8e8ea8]" />
+                  <Label className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#5c5c7a]">
+                    Full Name
+                  </Label>
+                </div>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="h-12 bg-[#faf9ff] border-black/10 text-[var(--text-main)] placeholder:text-black/20 rounded-lg focus:border-[var(--jobninjas-accent)]/50 transition-all text-sm"
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-[13px] font-bold text-[#4b5563] ml-1 uppercase tracking-wide">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="h-12 px-5 border-[#e5e7eb] bg-white text-base rounded-xl focus:ring-2 focus:ring-[#22c55e]/20 focus:border-[#22c55e]"
-              />
-            </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1 ml-0.5">
+                  <Mail size={12} className="text-[#8e8ea8]" />
+                  <Label className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#5c5c7a]">
+                    Email Address
+                  </Label>
+                </div>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="name@company.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="h-12 bg-[#faf9ff] border-black/10 text-[var(--text-main)] placeholder:text-black/20 rounded-lg focus:border-[var(--jobninjas-accent)]/50 transition-all text-sm"
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="password" title="password" className="text-[13px] font-bold text-[#4b5563] ml-1 uppercase tracking-wide">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="h-12 px-5 border-[#e5e7eb] bg-white text-base rounded-xl focus:ring-2 focus:ring-[#22c55e]/20 focus:border-[#22c55e]"
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 mb-1 ml-0.5">
+                    <Lock size={12} className="text-[#8e8ea8]" />
+                    <Label className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#5c5c7a]">
+                      Password
+                    </Label>
+                  </div>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="h-12 bg-[#faf9ff] border-black/10 text-[var(--text-main)] placeholder:text-black/20 rounded-lg focus:border-[var(--jobninjas-accent)]/50 transition-all text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 mb-1 ml-0.5">
+                    <Lock size={12} className="text-[#8e8ea8]" />
+                    <Label className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#5c5c7a]">
+                      Confirm
+                    </Label>
+                  </div>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    className="h-12 bg-[#faf9ff] border-black/10 text-[var(--text-main)] placeholder:text-black/20 rounded-lg focus:border-[var(--jobninjas-accent)]/50 transition-all text-sm"
+                  />
+                </div>
+              </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="confirmPassword" title="confirmPassword" className="text-[13px] font-bold text-[#4b5563] ml-1 uppercase tracking-wide">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className="h-12 px-5 border-[#e5e7eb] bg-white text-base rounded-xl focus:ring-2 focus:ring-[#22c55e]/20 focus:border-[#22c55e]"
-              />
-            </div>
+              <div className="flex justify-center py-2">
+                <div ref={turnstileRef} className="opacity-50 scale-90"></div>
+              </div>
 
-            {/* Turnstile Widget */}
-            <div className="flex justify-center my-4">
-              <div ref={turnstileRef}></div>
-            </div>
-
-            <div className="pt-2">
-              <Button
+              <button
                 type="submit"
-                className="w-full h-14 bg-[#22c55e] hover:bg-[#16a34a] text-white text-lg font-bold rounded-full shadow-[0_4px_14px_rgba(34,197,94,0.39)] transition-all active:scale-[0.98]"
                 disabled={submitting}
+                className="w-full h-12 bg-[var(--jobninjas-accent)] hover:bg-[#4c57b5] text-[var(--text-main)] font-medium rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 active:scale-[0.98] text-xs uppercase tracking-widest shadow-lg shadow-[var(--jobninjas-accent)]/20"
               >
-                {submitting ? 'Creating account...' : 'Continue'}
-              </Button>
-            </div>
-          </form>
+                {submitting ? 'Initializing...' : 'Create Account'}
+                {!submitting && <ArrowRight size={14} />}
+              </button>
+            </form>
 
-          <div className="pt-2 text-center">
-            <p className="text-[15px] text-[#666666]">
-              Already have an account?{' '}
-              <Link to="/login" className="text-[#22c55e] font-bold hover:underline ml-1">
-                Sign in
-              </Link>
-            </p>
+            <div className="mt-10 text-center">
+              <p className="text-[10px] text-[#8e8ea8] font-light leading-relaxed">
+                By creating an account, you agree to our{' '}
+                <Link to="/terms" className="text-[#5c5c7a] hover:text-[var(--text-main)] underline underline-offset-4">Legal Protocol</Link>
+                {' '}and{' '}
+                <Link to="/privacy" className="text-[#5c5c7a] hover:text-[var(--text-main)] underline underline-offset-4">Privacy Framework</Link>.
+              </p>
+            </div>
           </div>
 
-          <p className="text-center text-[12px] text-[#999999] leading-relaxed px-4">
-            By signing up, you agree to our{' '}
-            <Link to="/terms" className="underline hover:text-[#666666]">Terms of Service</Link>
-            {' '}and{' '}
-            <Link to="/privacy" className="underline hover:text-[#666666]">Privacy Policy</Link>
-          </p>
-        </CardContent>
-      </Card>
+          <div className="mt-8 flex items-center justify-center gap-2 opacity-40 text-[10px] uppercase tracking-[0.2em] text-[#8e8ea8] font-medium">
+            <ShieldCheck size={12} className="text-[var(--jobninjas-accent)]" />
+            <span>Encrypted Registration Protocol</span>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import os
 
-log_path = r"c:\Users\vsair\Downloads\novasquar-main\novasquad-main\nova-ninjas\backend\server_log.txt"
+log_path = r"c:\Users\vsair\Downloads\novasquar-main\novasquad-main\jobninjas\backend\server_log.txt"
 
 def search_log(path, query):
     if not os.path.exists(path):

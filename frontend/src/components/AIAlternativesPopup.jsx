@@ -25,7 +25,7 @@ const AIAlternativesPopup = ({ activeItem, alternatives, onApply, onClose }) => 
     };
 
     return (
-        <div className="ai-alternatives-popup shadow-2xl">
+        <div className="ai-alternatives-popup shadow-xl">
             <div className="popup-header">
                 <div className="pagination">
                     <button className="page-nav" onClick={handlePrev}><ChevronLeft className="w-4 h-4" /></button>

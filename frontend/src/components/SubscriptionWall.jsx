@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Lock, ArrowRight, Check } from 'lucide-react';
+import { BRAND } from '../config/branding';
 
 /**
  * SubscriptionWall Component
@@ -78,17 +79,17 @@ const SubscriptionWall = ({ children }) => {
                 </div>
 
                 {/* Overlay - Using fixed to ensure it covers the viewport */}
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-                    <Card className="max-w-lg w-full p-8 text-center shadow-2xl relative bg-white animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#faf9ff] backdrop-blur-sm px-4">
+                    <Card className="max-w-lg w-full p-8 text-center shadow-xl relative bg-[#faf9ff] animate-in zoom-in-95 duration-200">
                         <div className="md:w-24 md:h-24 w-20 h-20 bg-transparent rounded-full flex items-center justify-center mx-auto mb-4">
                             <img
-                                src="/ninjasface.png"
-                                alt="Ninja Pro"
+                                src={BRAND.logoPath}
+                                alt={BRAND.name}
                                 className="w-full h-full object-contain drop-shadow-md"
                             />
                         </div>
                         <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-3">
-                            Unlock Ninja Pro
+                            Unlock {BRAND.name} Pro
                         </h2>
                         <p className="text-lg text-gray-600 mb-6">
                             Get unlimited access to AI Cover Letters and all other tools with a <strong>Pro subscription</strong>.
@@ -119,7 +120,7 @@ const SubscriptionWall = ({ children }) => {
 
                         <Button
                             size="lg"
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all"
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-[var(--text-main)] border-0 shadow-lg hover:shadow-xl transition-all"
                             onClick={() => navigate('/pricing')}
                         >
                             Upgrade Now <ArrowRight className="w-5 h-5 ml-2" />

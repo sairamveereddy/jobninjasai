@@ -1,5 +1,5 @@
 import sys
-sys.path.append(r"c:\Users\vsair\Downloads\novasquar-main\novasquad-main\nova-ninjas\backend")
+sys.path.append(r"c:\Users\vsair\Downloads\novasquar-main\novasquad-main\jobninjas\backend")
 
 from core.supabase_service import SupabaseService
 import uuid
