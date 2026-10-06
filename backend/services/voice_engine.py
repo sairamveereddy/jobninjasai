@@ -4,10 +4,8 @@ import logging
 import asyncio
 import base64
 import boto3
-import numpy as np
 from typing import Dict, Any, List
-from faster_whisper import WhisperModel
-from pydub import AudioSegment
+from groq import AsyncGroq
 from services.ai_portfolio_service import AIPortfolioService
 
 logger = logging.getLogger(__name__)
@@ -22,39 +20,29 @@ polly = boto3.client(
 
 class VoiceEngine:
     _instance = None
-    _model = None
+    _groq_client = None
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(VoiceEngine, cls).__new__(cls)
-            # Load model lazily
-            # cls._model = WhisperModel("base", device="cpu", compute_type="int8") 
         return cls._instance
 
-    def get_model(self):
-        if self._model is None:
-            logger.info("Loading Faster-Whisper model...")
-            self._model = WhisperModel("base", device="cpu", compute_type="int8")
-        return self._model
+    def get_client(self):
+        if self._groq_client is None:
+            # Fallback API key, expects actual key in env
+            self._groq_client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY", "dummy"))
+        return self._groq_client
 
     async def transcribe(self, audio_bytes: bytes) -> str:
         """Convert audio bytes (e.g. from web) to text."""
-        model = self.get_model()
-        
-        # Whisper expects a file-like object or path
-        audio_file = io.BytesIO(audio_bytes)
-        
-        # Convert to proper format if needed using pydub
+        client = self.get_client()
         try:
-            audio = AudioSegment.from_file(audio_file)
-            # Export as wav for whisper
-            wav_io = io.BytesIO()
-            audio.export(wav_io, format="wav")
-            wav_io.seek(0)
-            
-            segments, info = model.transcribe(wav_io, beam_size=5)
-            text = " ".join([segment.text for segment in segments])
-            return text.strip()
+            # Groq audio transcriptions expect a tuple (filename, file_content)
+            response = await client.audio.transcriptions.create(
+                file=("audio.wav", audio_bytes),
+                model="whisper-large-v3"
+            )
+            return response.text.strip()
         except Exception as e:
             logger.error(f"Transcription error: {e}")
             return ""
