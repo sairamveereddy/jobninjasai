@@ -130,8 +130,9 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: { layerId
       setFlightsState('SEARCHING');
       const res = await fetch('/api/ophelia/search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vertical: 'travel', providers: ['flights'], origin: SARAH.fromCode, destination: SARAH.toCode, date: SARAH.checkIn })
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+        body: JSON.stringify({ vertical: 'travel', providers: ['flights'], origin: SARAH.fromCode, destination: SARAH.toCode, date: SARAH.checkIn, _t: Date.now() })
       });
       const data = await res.json();
       setFlights(data.results || []);
@@ -147,8 +148,9 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: { layerId
       setDiningState('SEARCHING');
       const res = await fetch('/api/ophelia/search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vertical: 'lifestyle', providers: ['dining'], location: SARAH.toCode, date: SARAH.checkIn })
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+        body: JSON.stringify({ vertical: 'lifestyle', providers: ['dining'], location: SARAH.toCode, date: SARAH.checkIn, _t: Date.now() })
       });
       const data = await res.json();
       setDiningOptions(data.results || []);
