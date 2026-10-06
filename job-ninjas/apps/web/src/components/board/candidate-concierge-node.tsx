@@ -184,6 +184,8 @@ export const CandidateConciergeNode = ({ layerId, layer, isSelected }: {
   const [countdown, setCountdown] = useState<number>(900); // 15 min
   const countdownRef = useRef<any>(null);
   const [spent, setSpent] = useState(0);
+  const [flightsState, setFlightsState] = useState<'IDLE'|'SEARCHING'|'FOUND'>('IDLE');
+  const [diningState, setDiningState] = useState<'IDLE'|'SEARCHING'|'FOUND'>('IDLE');
 
   // ── Sync state to layer config ─────────────────────────────────────────
   useEffect(() => {

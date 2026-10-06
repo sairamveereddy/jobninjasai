@@ -716,7 +716,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             {layer.agentRole === 'candidate-node' ? (
               <CandidateNodeBlock layer={layer} isSelected={isSelected} />
             ) : ((layer.agentRole === 'word-doc' || layer.agentRole === 'excel-doc') && !(layer as any).displayMode) ? (
-              <div className="w-full h-full rounded-xl border-2 border-indigo-500 shadow-xl flex flex-col items-center justify-center p-4 bg-card gap-4">
+              <div className="w-full h-full rounded-2xl border-2 border-indigo-500 shadow-2xl flex flex-col items-center justify-center p-6 bg-white gap-4">
                 <div className="text-center space-y-1">
                   <h4 className="font-bold text-foreground text-sm">Display Options</h4>
                   <p className="text-xs text-muted-foreground">How do you want to show this document?</p>
@@ -754,11 +754,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
               </div>
             ) : (
             <div 
-              className={`w-full h-full rounded-xl border-2 flex flex-col overflow-hidden bg-card shadow-xl ${
-                isSelected ? 'border-indigo-500 shadow-indigo-500/20' : 'border-border'
+              className={`w-full h-full rounded-2xl border flex flex-col overflow-hidden bg-white/95 backdrop-blur-xl shadow-xl transition-all duration-300 ${
+                isSelected ? 'border-indigo-500 ring-4 ring-indigo-500/10 shadow-indigo-500/20 scale-[1.02] z-50' : 'border-slate-200 shadow-slate-200/50 hover:shadow-slate-300/50 hover:border-slate-300'
               }`}
             >
-              <div className="bg-muted px-3 py-2 border-b border-border flex items-center justify-between">
+              <div className="bg-slate-50/80 backdrop-blur-md px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {(() => {
                     const meta = AGENTS.find(a => a.role === layer.agentRole) || AGENTS.find(a => a.role === 'custom-agent');
@@ -768,7 +768,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                         <div className={`p-1.5 rounded-md ${meta?.bg} ${meta?.color}`}>
                           {Icon ? <Icon className="w-4 h-4" /> : <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>}
                         </div>
-                        <span className="font-semibold text-sm text-foreground capitalize">
+                        <span className="font-bold text-[13px] text-slate-700 capitalize tracking-tight">
                           {meta?.label || layer.agentRole?.replace('-', ' ') || 'AI Agent'}
                         </span>
                       </>
@@ -786,9 +786,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                   }`} />
                 </div>
               </div>
-              <div className="flex-1 p-3 flex flex-col justify-between bg-card">
+              <div className="flex-1 p-4 flex flex-col justify-between bg-white">
                 <div className="mb-2">
-                  <h4 className="font-bold text-foreground text-lg mb-1">{layer.value || 'AI Agent'}</h4>
+                  <h4 className="font-extrabold text-slate-900 text-[17px] mb-1 leading-tight">{layer.value || 'AI Agent'}</h4>
                   <p className="text-xs text-muted-foreground line-clamp-2">
                     {layer.result ? 'Result available' : 'Waiting for input to process.'}
                   </p>
@@ -798,7 +798,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleRunSingleAgent(layerId); }}
                       disabled={layer.status === 'running'}
-                      className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-600 disabled:bg-green-50/50 disabled:text-green-600/50 text-sm font-semibold rounded transition-colors flex items-center gap-1"
+                      className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 disabled:bg-emerald-50/50 disabled:text-emerald-600/50 text-[13px] font-bold rounded-lg transition-colors flex items-center gap-1.5"
                     >
                       {layer.status === 'running' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />}
                       Run
