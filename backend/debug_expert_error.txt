@@ -1,8 +1,0 @@
-ERROR:\nTraceback (most recent call last):
-  File "C:\Users\vsair\Downloads\novasquar-main\novasquad-main\nova-ninjas\backend\document_generator.py", line 1330, in generate_expert_documents
-    job_title=(e.job_title or e.title or "").strip(),
-               ^^^^^^^^^^^
-  File "C:\Users\vsair\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py", line 1026, in __getattr__
-    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
-AttributeError: 'ExperienceNew' object has no attribute 'job_title'
-\n\nRAW JSON:\nNo json_text
