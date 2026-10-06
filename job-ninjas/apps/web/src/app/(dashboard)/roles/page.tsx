@@ -267,7 +267,7 @@ export default function RolesPage() {
                 <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Role Title *</label>
                 <input required type="text" value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+                  className="w-full px-3 py-2.5 text-[13px] text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
                   placeholder="e.g. Senior Product Manager" />
               </div>
 
@@ -276,7 +276,7 @@ export default function RolesPage() {
                   <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Department *</label>
                   <select required value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    className="w-full px-3 py-2.5 text-[13px] text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                     <option value="">Select...</option>
                     {Object.keys(DEPT_COLORS).map((d) => <option key={d}>{d}</option>)}
                   </select>
@@ -285,7 +285,7 @@ export default function RolesPage() {
                   <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Location *</label>
                   <input required type="text" value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400"
+                    className="w-full px-3 py-2.5 text-[13px] text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400"
                     placeholder="Remote, US" />
                 </div>
               </div>
@@ -294,7 +294,7 @@ export default function RolesPage() {
                 <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Hiring Manager *</label>
                 <input required type="text" value={formData.hiringManager}
                   onChange={(e) => setFormData({ ...formData, hiringManager: e.target.value })}
-                  className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400"
+                  className="w-full px-3 py-2.5 text-[13px] text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400"
                   placeholder="e.g. Jane Doe" />
               </div>
 
@@ -302,7 +302,7 @@ export default function RolesPage() {
                 <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Job Description</label>
                 <textarea rows={3} value={formData.jobDescription}
                   onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
-                  className="w-full px-3 py-2.5 text-[13px] border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder-slate-400"
+                  className="w-full px-3 py-2.5 text-[13px] text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder-slate-400"
                   placeholder="Brief summary of the role..." />
               </div>
 

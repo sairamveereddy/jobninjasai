@@ -42,49 +42,42 @@ export default function DashboardPage() {
       icon: Briefcase,
       color: "text-blue-600",
       bg: "bg-blue-50",
-      trend: "+2 this week",
+      trend: "",
       trendUp: true,
     },
     {
       label: "Candidates in Pipeline",
-      value: candidates.length || 24,
+      value: candidates.length,
       sub: "Across all roles",
       icon: Users,
       color: "text-violet-600",
       bg: "bg-violet-50",
-      trend: "+8 this week",
+      trend: "",
       trendUp: true,
     },
     {
       label: "Agent Runs Today",
-      value: 47,
-      sub: "12 pending",
+      value: 0,
+      sub: "0 pending",
       icon: Bot,
       color: "text-emerald-600",
       bg: "bg-emerald-50",
-      trend: "↑ 18% vs yesterday",
+      trend: "",
       trendUp: true,
     },
     {
       label: "Interviews Scheduled",
-      value: 9,
-      sub: "Next: Today 3PM",
+      value: 0,
+      sub: "None today",
       icon: Clock,
       color: "text-amber-600",
       bg: "bg-amber-50",
-      trend: "3 this week",
+      trend: "",
       trendUp: false,
     },
   ];
 
-  const activity = [
-    { icon: CheckCircle2, color: "text-emerald-500", text: "Resume Verifier completed for Senior React Engineer", time: "2m ago" },
-    { icon: Bot, color: "text-blue-500", text: "Sourcing Agent found 14 new candidates for Product Designer", time: "18m ago" },
-    { icon: AlertCircle, color: "text-amber-500", text: "Background check flagged 1 candidate for review", time: "1h ago" },
-    { icon: CheckCircle2, color: "text-emerald-500", text: "Offer letter sent to Alex M. via DocuSign", time: "2h ago" },
-    { icon: Bot, color: "text-violet-500", text: "Transcript Analyzer reviewed 3 interviews for Data Analyst", time: "3h ago" },
-    { icon: CheckCircle2, color: "text-emerald-500", text: "Candidate ranker updated shortlist — 6 moved forward", time: "4h ago" },
-  ];
+  const activity: Array<{ icon: any; color: string; text: string; time: string }> = [];
 
   return (
     <div className="p-6 max-w-full">
@@ -173,15 +166,24 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            {activity.map((a, i) => (
-              <div key={i} className={`flex items-start gap-3 px-4 py-3 ${i !== 0 ? "border-t border-slate-50" : ""}`}>
-                <a.icon className={`w-4 h-4 mt-0.5 shrink-0 ${a.color}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] text-slate-700 leading-relaxed">{a.text}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{a.time}</p>
+            {activity.length === 0 ? (
+              <div className="py-8 flex flex-col items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-slate-300" />
                 </div>
+                <p className="text-[12px] font-medium text-slate-400">No agent activity yet</p>
               </div>
-            ))}
+            ) : (
+              activity.map((a, i) => (
+                <div key={i} className={`flex items-start gap-3 px-4 py-3 ${i !== 0 ? "border-t border-slate-50" : ""}`}>
+                  <a.icon className={`w-4 h-4 mt-0.5 shrink-0 ${a.color}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] text-slate-700 leading-relaxed">{a.text}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{a.time}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
