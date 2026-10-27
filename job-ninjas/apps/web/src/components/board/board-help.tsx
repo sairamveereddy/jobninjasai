@@ -47,7 +47,8 @@ export function BoardHelp() {
           </ul>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Team notes</h3>
-          <p>Sticky notes are for your team. Agents do not read them, even if you color a note, pin it, or link it to a person. A transcript has to be pasted on the Transcript step, and a resume has to be attached to a candidate.</p>
+          <p>Sticky notes are for your team. Agents do not read them, even if you color a note, pin it, or link it to a person. <span className="text-white">Must-ask note</span> is that kind of checklist: work authorization, pay, notice period, and access needs. A transcript has to be pasted on the Transcript step, and a resume has to be attached to a candidate.</p>
+          <p className="mt-2">Switching the selected person changes what each step shows. Done, ready, and blocked describe that person. Someone else’s scorecard stays on their row in This role.</p>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Hiring templates</h3>
           <p className="mb-2">Open <span className="text-white">Edit role setup</span> and start from one of these. Replacing the pipeline keeps documents and team notes.</p>

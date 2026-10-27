@@ -11,7 +11,7 @@ import { getStroke } from 'perfect-freehand';
 import Link from 'next/link';
 import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Mail, Calendar, MessageSquare, Database, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles } from 'lucide-react';
 import { getNodeSpec } from '@/lib/agents/node-specs';
-import { collectUpstreamOutputs, dataTypeLabel, documentKind, localRunBlockers, plainLanguage, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
+import { collectUpstreamOutputs, dataTypeLabel, documentKind, isSharedStep, localRunBlockers, outputForCandidate, plainLanguage, stepHealth, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
 import { SelectionBox } from './selection-box';
 import { resizeBounds } from '@/lib/geometry';
 import { Side, XYWH } from '@/types/canvas';
@@ -23,7 +23,7 @@ import { CandidateConciergeNode } from './candidate-concierge-node';
 import { CandidateNodeBlock } from './candidate-node-block';
 import { BoardHelp } from './board-help';
 import { ArtifactSheet, artifactKind, artifactTitle } from './artifact-sheet';
-import { saveResultEdit } from './result-edits';
+import { markCandidateRun, recordCandidateRun, saveResultEdit } from './result-edits';
 
 let jdPersistTimer: ReturnType<typeof setTimeout> | undefined;
 function persistJobDescription(roleId: string | undefined, text: string) {
@@ -197,6 +197,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [activeHasResume, setActiveHasResume] = useState<boolean | null>(null);
+  const [activeCandidateId, setActiveCandidateId] = useState<string | null>(null);
   const [isMcpPanelOpen, setIsMcpPanelOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -250,11 +251,12 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
        return true;
     }
 
-    const collected = collectUpstreamOutputs(layers, Object.values(edges), layerId);
+    const activeCandIdEarly = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') || '' : '';
+    const collected = collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandIdEarly);
     const upstreamNodeIds = collected.upstreamNodeIds;
     const clientUpstreamOutputs = collected.outputs;
 
-    let activeCandId = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') || '' : '';
+    let activeCandId = activeCandIdEarly;
     if (!activeCandId) {
       for (const upId of upstreamNodeIds) {
         const upLayer = layers[upId] as any;
@@ -267,7 +269,6 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
     if (!activeCandId && layer.agentRole !== 'agent-jd-parser') {
       const message = 'Pick a candidate on this role first. Use This role to add someone and attach a resume.';
-      updateLayer(layerId, { status: 'error', errorDetails: message });
       setConnectionNotice({ tone: 'error', message });
       return false;
     }
@@ -279,12 +280,14 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     });
     if (blockers.length) {
       const message = blockers.join(' ');
-      updateLayer(layerId, { status: 'error', errorDetails: message });
+      if (activeCandId) recordCandidateRun(layerId, activeCandId, { ok: false, error: message });
+      else updateLayer(layerId, { status: 'error', errorDetails: message });
       setConnectionNotice({ tone: 'error', message });
       return false;
     }
 
-    updateLayer(layerId, { status: 'running', errorDetails: undefined });
+    if (activeCandId) markCandidateRun(layerId, activeCandId);
+    else updateLayer(layerId, { status: 'running', errorDetails: undefined });
 
     try {
       const response = await fetch('/api/agents/execute', {
@@ -303,13 +306,12 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       const data = await response.json();
       
       if (response.ok && data.status !== 'ERROR' && data.status !== 'BLOCKED') {
-        updateLayer(layerId, { 
-          status: 'success', 
-          outputData: data.output,
-          inputData: data.input,
+        recordCandidateRun(layerId, activeCandId, {
+          ok: true,
+          output: data.output,
           executionTimeMs: data.executionTimeMs,
+          input: data.input,
           runId: data.runId,
-          errorDetails: undefined
         });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('candidateChanged'));
@@ -317,17 +319,17 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         return true;
       } else {
         const message = data.error || (Array.isArray(data.missingInputs) ? data.missingInputs.join(', ') : '') || 'Execution failed';
-        updateLayer(layerId, { 
-          status: 'error', 
-          errorDetails: message,
-          inputData: data.input,
-          executionTimeMs: data.executionTimeMs
+        recordCandidateRun(layerId, activeCandId, {
+          ok: false,
+          error: message,
+          executionTimeMs: data.executionTimeMs,
+          input: data.input,
         });
         setConnectionNotice({ tone: 'error', message });
         return false;
       }
     } catch (e: any) {
-      updateLayer(layerId, { status: 'error', errorDetails: e.message });
+      recordCandidateRun(layerId, activeCandId, { ok: false, error: e.message || 'This step failed.' });
       return false;
     }
   };
@@ -344,13 +346,18 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   useEffect(() => {
     const syncResume = (event?: Event) => {
       const candidate = (event as CustomEvent | undefined)?.detail?.candidate;
-      if (candidate) {
+      if (candidate?.id) setActiveCandidateId(candidate.id);
+      if (candidate && 'resumeText' in candidate) {
         setActiveHasResume(!!candidate.resumeText);
-        return;
+        if (candidate.firstName || candidate.lastName) return;
       }
-      const id = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '';
+      const id = candidate?.id || (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '');
+      if (id) setActiveCandidateId(id);
       if (!id || !boardId || boardId === 'new-workflow') {
-        setActiveHasResume(null);
+        if (!id) {
+          setActiveCandidateId(null);
+          setActiveHasResume(null);
+        }
         return;
       }
       fetch(`/api/candidates?candidateId=${id}`)
@@ -358,6 +365,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         .then((data) => {
           const next = data.candidate || data.candidates?.[0];
           setActiveHasResume(next ? !!next.resumeText : null);
+          if (next?.id && (next.firstName || next.lastName)) {
+            setNotePeople((people) => people.some((item) => item.id === next.id) ? people : [...people, next]);
+          }
         })
         .catch(() => setActiveHasResume(null));
     };
@@ -541,11 +551,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       setRunQueue({ active: stepName(currentId), next: upcoming });
       const freshEdges = Object.values(useBoardStore.getState().edges);
       const blockerId = freshEdges.find((edge) => edge.toNodeId === currentId && failed.has(edge.fromNodeId))?.fromNodeId;
-      if (blockerId) {
-        useBoardStore.getState().updateLayer(currentId, {
-          status: 'error',
-          errorDetails: `Stopped because ${stepName(blockerId)} did not finish. Fix that step, then run the pipeline again.`,
-        });
+        if (blockerId) {
+        const message = `Stopped because ${stepName(blockerId)} did not finish. Fix that step, then run the pipeline again.`;
+        recordCandidateRun(currentId, candId, { ok: false, error: message });
         failed.add(currentId);
         continue;
       }
@@ -558,7 +566,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     if (failed.size) {
       notice({ tone: 'error', message: `Pipeline stopped on ${failed.size} step${failed.size === 1 ? '' : 's'}. Read the message on the step. Earlier results stay where they are.` });
     } else {
-      notice({ tone: 'ok', message: 'Pipeline finished for the selected person. Each step keeps its last result.' });
+      notice({ tone: 'ok', message: 'Pipeline finished for the selected person. Their results stay on the steps when you switch people.' });
     }
     if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('candidateChanged'));
   };
@@ -1037,27 +1045,38 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
                 {/* Status Indicator Pill */}
                 <div className="flex items-center gap-1.5">
-                  {layer.status === 'running' && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200 animate-pulse">
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      Running
-                    </span>
-                  )}
-                  {layer.status === 'success' && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                      ✓ {layer.executionTimeMs ? `${(layer.executionTimeMs / 1000).toFixed(1)}s` : 'Done'}
-                    </span>
-                  )}
-                  {layer.status === 'error' && (
-                    <span title={layer.errorDetails || 'This step failed'} className="flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                      ✕ Error
-                    </span>
-                  )}
-                  {(!layer.status || layer.status === 'idle') && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Idle
-                    </span>
-                  )}
+                  {(() => {
+                    const shared = isSharedStep(layer.agentRole);
+                    const forPerson = !!layer.agentRole?.startsWith('agent-') && !shared;
+                    const scoped = outputForCandidate(layer, forPerson ? activeCandidateId : undefined);
+                    const scopedError = forPerson ? (layer.config?.errorsByCandidate?.[activeCandidateId || ''] as string | undefined) : (layer.status === 'error' ? layer.errorDetails : undefined);
+                    const running = layer.status === 'running' && (!forPerson || !layer.config?.lastRunCandidateId || layer.config.lastRunCandidateId === activeCandidateId);
+                    const upstream = forPerson ? collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandidateId).outputs : {};
+                    const blockers = forPerson ? localRunBlockers(layer.agentRole, upstream, {
+                      hasCandidate: !!activeCandidateId,
+                      hasResume: activeHasResume !== false,
+                      hasJobDescription: !!(currentRole?.jobDescription || outputForCandidate(Object.values(layers).find((item) => (item as { agentRole?: string }).agentRole === 'input-job-details') as { agentRole?: string; outputData?: unknown } | undefined, null)),
+                    }) : [];
+                    const health = stepHealth({
+                      running,
+                      hasResult: scoped != null && scoped !== '',
+                      hasError: !!scopedError && !running,
+                      blocked: forPerson ? (!activeCandidateId || blockers.length > 0) : layer.status === 'error',
+                    });
+                    const tone = health === 'done'
+                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                      : health === 'blocked'
+                      ? 'text-amber-800 bg-amber-50 border-amber-200'
+                      : health === 'running'
+                      ? 'text-indigo-700 bg-indigo-50 border-indigo-200'
+                      : 'text-slate-500 bg-slate-50 border-slate-200';
+                    const label = health === 'running' ? 'Running' : health === 'done' ? 'Done' : health === 'blocked' ? 'Blocked' : 'Ready';
+                    return (
+                      <span title={scopedError || blockers[0] || label} className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${tone} ${health === 'running' ? 'animate-pulse' : ''}`}>
+                        {label}
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -1067,18 +1086,37 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                   <h4 className="font-bold text-slate-900 text-[14px] leading-tight mb-1">
                     {layer.value || nodeSpec.displayName}
                   </h4>
-                  <p className={`text-[11px] leading-snug ${layer.status === 'error' ? 'line-clamp-3 text-rose-700' : 'line-clamp-2 text-slate-500'}`}>
-                    {layer.status === 'running'
-                      ? 'Running this step for the selected person…'
-                      : layer.status === 'error' && layer.errorDetails
-                      ? layer.errorDetails
-                      : layer.outputData
-                      ? summarizeAgentOutput(layer.agentRole, layer.outputData)
-                      : plainLanguage(layer.agentRole)}
+                  {layer.agentRole?.startsWith('agent-') && !isSharedStep(layer.agentRole) && (
+                    <p className="mb-1 text-[10px] font-medium text-indigo-700">
+                      {activeCandidateId
+                        ? `For ${(notePeople.find((item) => item.id === activeCandidateId) ? `${notePeople.find((item) => item.id === activeCandidateId)?.firstName || ''} ${notePeople.find((item) => item.id === activeCandidateId)?.lastName || ''}`.trim() : 'the selected person')}`
+                        : 'Select a person'}
+                    </p>
+                  )}
+                  <p className={`text-[11px] leading-snug ${layer.config?.errorsByCandidate?.[activeCandidateId || ''] ? 'line-clamp-3 text-rose-700' : 'line-clamp-2 text-slate-500'}`}>
+                    {(() => {
+                      const shared = isSharedStep(layer.agentRole);
+                      const forPerson = !!layer.agentRole?.startsWith('agent-') && !shared;
+                      const scoped = outputForCandidate(layer, forPerson ? activeCandidateId : undefined);
+                      const scopedError = forPerson ? layer.config?.errorsByCandidate?.[activeCandidateId || ''] : (layer.status === 'error' ? layer.errorDetails : undefined);
+                      const running = layer.status === 'running' && (!forPerson || !layer.config?.lastRunCandidateId || layer.config.lastRunCandidateId === activeCandidateId);
+                      const person = notePeople.find((item) => item.id === activeCandidateId);
+                      const personName = person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : 'the selected person';
+                      if (running) return `Running this step for ${personName}…`;
+                      if (!forPerson) {
+                        if (scopedError) return scopedError;
+                        if (scoped != null && scoped !== '') return summarizeAgentOutput(layer.agentRole, scoped);
+                        return plainLanguage(layer.agentRole);
+                      }
+                      if (!activeCandidateId) return 'Select a person in This role. This step will not show someone else’s result.';
+                      if (scopedError) return scopedError;
+                      if (scoped != null && scoped !== '') return summarizeAgentOutput(layer.agentRole, scoped);
+                      return `No result yet for ${personName}.`;
+                    })()}
                   </p>
-                  {layer.status === 'error' && layer.outputData && (
+                  {!!layer.agentRole?.startsWith('agent-') && !isSharedStep(layer.agentRole) && layer.config?.errorsByCandidate?.[activeCandidateId || ''] && outputForCandidate(layer, activeCandidateId) != null && (
                     <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-slate-500">
-                      Last result: {summarizeAgentOutput(layer.agentRole, layer.outputData)}
+                      Last result: {summarizeAgentOutput(layer.agentRole, outputForCandidate(layer, activeCandidateId))}
                     </p>
                   )}
                   {isSelected && (
@@ -1126,10 +1164,10 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                       </button>
                     )}
 
-                    {artifactKind(layer.agentRole, layer.outputData) && (
+                    {artifactKind(layer.agentRole, outputForCandidate(layer, isSharedStep(layer.agentRole) ? undefined : activeCandidateId)) && (
                       <button
                         type="button"
-                        aria-label={`View ${artifactTitle(artifactKind(layer.agentRole, layer.outputData)!)}`}
+                        aria-label={`View ${artifactTitle(artifactKind(layer.agentRole, outputForCandidate(layer, isSharedStep(layer.agentRole) ? undefined : activeCandidateId))!)} for ${activeCandidateId ? 'the selected person' : 'this step'}`}
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1647,11 +1685,13 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             <p className="mt-1 text-[#b1b3b8]">{runQueue.next.length ? `Next: ${runQueue.next.join(' → ')}` : 'This is the last step.'}</p>
           </div>
         )}
-        {!runQueue && layerIds.some((id) => (layers[id] as { agentRole?: string } | undefined)?.agentRole?.startsWith('agent-')) && !layerIds.some((id) => {
-          const step = layers[id] as { agentRole?: string; status?: string; outputData?: unknown } | undefined;
-          return !!step?.agentRole?.startsWith('agent-') && (step.status === 'success' || step.outputData);
-        }) && (
-          <p className="pointer-events-none text-[11px] text-slate-500">Runs the steps in order for whoever is selected. Last results stay on each step.</p>
+        {activeCandidateId && (
+          <p className="pointer-events-none text-[11px] text-slate-600">
+            Showing {notePeople.find((item) => item.id === activeCandidateId) ? `${notePeople.find((item) => item.id === activeCandidateId)?.firstName || ''} ${notePeople.find((item) => item.id === activeCandidateId)?.lastName || ''}`.trim() : 'the selected person'}. Done, ready, and blocked are for this person.
+          </p>
+        )}
+        {!activeCandidateId && !runQueue && (
+          <p className="pointer-events-none text-[11px] text-slate-500">Select a person in This role. Steps stay blank until you do.</p>
         )}
       </div>
 
@@ -1943,17 +1983,16 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           )}
         </g>
       </svg>
-      {openResultId && layers[openResultId] && artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, (layers[openResultId] as { outputData?: unknown }).outputData) && (
+      {openResultId && layers[openResultId] && artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, outputForCandidate(layers[openResultId] as { agentRole?: string; outputData?: unknown }, isSharedStep((layers[openResultId] as { agentRole?: string }).agentRole) ? undefined : activeCandidateId)) && (
         <ArtifactSheet
-          key={openResultId}
-          kind={artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, (layers[openResultId] as { outputData?: unknown }).outputData)!}
-          data={(layers[openResultId] as { outputData?: unknown }).outputData}
+          key={`${openResultId}-${activeCandidateId || 'role'}`}
+          kind={artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, outputForCandidate(layers[openResultId] as { agentRole?: string; outputData?: unknown }, isSharedStep((layers[openResultId] as { agentRole?: string }).agentRole) ? undefined : activeCandidateId))!}
+          data={outputForCandidate(layers[openResultId] as { agentRole?: string; outputData?: unknown }, isSharedStep((layers[openResultId] as { agentRole?: string }).agentRole) ? undefined : activeCandidateId)}
           candidateName={(() => {
-            const id = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '';
-            const person = notePeople.find((item) => item.id === id);
+            const person = notePeople.find((item) => item.id === activeCandidateId);
             return person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : undefined;
           })()}
-          candidateSelected={typeof window !== 'undefined' && !!window.localStorage.getItem('activeCandidateId')}
+          candidateSelected={!!activeCandidateId}
           onSelectCandidate={() => {
             const id = window.localStorage.getItem('activeCandidateId');
             if (!id) return;

@@ -13,7 +13,10 @@ import {
   defaultInspectorTab,
   extractPortPayloads,
   formatInterviewSlots,
+  isMustAskNote,
+  outputForCandidate,
   recommendationPresentation,
+  stepHealth,
   summarizeAgentOutput,
   validateConnection,
 } from './contracts';
@@ -180,6 +183,22 @@ assert.match(recommendationPresentation('NO_HIRE').nextStep, /pass note/i);
 assert.equal(defaultInspectorTab({ agentRole: 'agent-screen', status: 'success', outputData: { overallMatch: 80 } }), 'output');
 assert.equal(defaultInspectorTab({ agentRole: 'input-transcript', status: 'idle' }), 'parameters');
 assert.equal(defaultInspectorTab({ agentRole: 'agent-screen', status: 'idle' }), 'input');
+const ada = { agentRole: 'agent-screen', outputData: { overallMatch: 90 }, config: { lastRunCandidateId: 'ada', resultsByCandidate: { ada: { overallMatch: 90 }, ben: { overallMatch: 70 } } } };
+assert.equal(outputForCandidate(ada, 'ben').overallMatch, 70);
+assert.equal(outputForCandidate(ada, 'cara'), undefined);
+assert.equal(outputForCandidate({ agentRole: 'input-job-details', outputData: 'Help customers.' }, 'ben'), 'Help customers.');
+const hidden = collectUpstreamOutputs(
+  { screen: ada, plan: { type: LayerType.Agent, agentRole: 'agent-interview-plan' } },
+  [{ fromNodeId: 'screen', toNodeId: 'plan' }],
+  'plan',
+  'cara',
+);
+assert.equal(hidden.outputs.Scorecard, undefined);
+assert.equal(stepHealth({ hasResult: true }), 'done');
+assert.equal(stepHealth({ blocked: true }), 'blocked');
+assert.equal(stepHealth({ hasError: true, hasResult: true }), 'blocked');
+assert.equal(stepHealth({}), 'ready');
+assert.equal(isMustAskNote('Must-ask questions\nAgents do not read this.'), true);
 const times = formatInterviewSlots({
   timezone: 'PT',
   durationMinutes: 45,

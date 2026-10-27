@@ -342,10 +342,54 @@ export function extractPortPayloads(agentRole: string | undefined, outputData: a
   return payloads;
 }
 
+export function isSharedStep(role?: string) {
+  return role === 'input-job-details' || role === 'input-transcript' || role === 'input-resume' || role === 'agent-jd-parser';
+}
+
+export function outputForCandidate(
+  layer?: { agentRole?: string; outputData?: any; config?: { resultsByCandidate?: Record<string, any>; lastRunCandidateId?: string } } | null,
+  candidateId?: string | null,
+) {
+  if (!layer) return undefined;
+  if (candidateId === undefined) return layer.outputData;
+  if (isSharedStep(layer.agentRole)) return layer.outputData;
+  if (!candidateId) return undefined;
+  const saved = layer.config?.resultsByCandidate?.[candidateId];
+  if (saved !== undefined) return saved;
+  if (layer.config?.lastRunCandidateId === candidateId) return layer.outputData;
+  return undefined;
+}
+
+export type StepHealth = 'running' | 'done' | 'blocked' | 'ready';
+
+export function stepHealth(input: { running?: boolean; hasResult?: boolean; hasError?: boolean; blocked?: boolean }): StepHealth {
+  if (input.running) return 'running';
+  if (input.hasError) return 'blocked';
+  if (input.hasResult) return 'done';
+  if (input.blocked) return 'blocked';
+  return 'ready';
+}
+
+export const MUST_ASK_NOTE = [
+  'Must-ask questions',
+  'Agents do not read this.',
+  '',
+  '- Work authorization for this location',
+  '- Pay expectations',
+  '- Notice period or start date',
+  '- A must-have skill that is still unclear',
+  '- Interview access needs they raised',
+].join('\n');
+
+export function isMustAskNote(value?: string) {
+  return /must-ask questions/i.test(value || '');
+}
+
 export function collectUpstreamOutputs(
   layers: Record<string, FlowLayer>,
   edges: FlowEdge[],
-  targetId: string
+  targetId: string,
+  candidateId?: string | null,
 ): { outputs: Record<string, any>; upstreamNodeIds: string[] } {
   const outputs: Record<string, any> = {};
   const upstreamNodeIds: string[] = [];
@@ -358,8 +402,9 @@ export function collectUpstreamOutputs(
     seen.add(id);
     upstreamNodeIds.push(id);
     const layer = layers[id];
-    if (layer?.outputData && layer.agentRole) {
-      const extracted = extractPortPayloads(layer.agentRole, layer.outputData);
+    const payload = outputForCandidate(layer, candidateId);
+    if (payload != null && payload !== '' && layer?.agentRole) {
+      const extracted = extractPortPayloads(layer.agentRole, payload);
       for (const [key, value] of Object.entries(extracted)) {
         if (outputs[key] == null) outputs[key] = value;
       }
@@ -536,10 +581,14 @@ export function summarizeAgentOutput(agentRole: string | undefined, output: any)
 
 export type InspectorTab = 'input' | 'parameters' | 'output';
 
-export function defaultInspectorTab(layer?: { agentRole?: string; status?: string; outputData?: unknown } | null): InspectorTab {
+export function defaultInspectorTab(
+  layer?: { agentRole?: string; status?: string; outputData?: unknown; config?: { resultsByCandidate?: Record<string, any>; lastRunCandidateId?: string } } | null,
+  candidateId?: string | null,
+): InspectorTab {
   const role = layer?.agentRole || '';
   if (role === 'input-transcript' || role === 'input-job-details' || role === 'input-resume') return 'parameters';
-  if (layer?.outputData != null && layer.outputData !== '') return 'output';
+  const output = outputForCandidate(layer, candidateId);
+  if (output != null && output !== '') return 'output';
   return 'input';
 }
 

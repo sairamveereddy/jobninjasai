@@ -14,10 +14,10 @@ import {
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDemoStore } from "@/lib/store";
 import { getNodeSpec, NodeDescription } from "@/lib/agents/node-specs";
-import { collectUpstreamOutputs, dataTypeLabel, defaultInspectorTab, localRunBlockers, plainLanguage, portsCompatible, summarizeAgentOutput } from "@/lib/agents/contracts";
+import { collectUpstreamOutputs, dataTypeLabel, defaultInspectorTab, isSharedStep, localRunBlockers, outputForCandidate, plainLanguage, portsCompatible, summarizeAgentOutput } from "@/lib/agents/contracts";
 import { AgentIoCard } from "./agent-io-card";
 import { ArtifactSheet, artifactKind, artifactTitle } from "./artifact-sheet";
-import { saveResultEdit } from "./result-edits";
+import { markCandidateRun, recordCandidateRun, saveResultEdit } from "./result-edits";
 
 export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   const { inspectedNodeId, setInspectedNodeId, layers, updateLayer, deleteLayers, edges } = useBoardStore();
@@ -36,7 +36,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   useEffect(() => {
     setResultOpen(false);
     const current = inspectedNodeId ? useBoardStore.getState().layers[inspectedNodeId] : null;
-    setActiveTab(defaultInspectorTab(current as { agentRole?: string; status?: string; outputData?: unknown } | null));
+    const selectedId = typeof window !== "undefined" ? window.localStorage.getItem("activeCandidateId") : null;
+    setActiveTab(defaultInspectorTab(current as { agentRole?: string; outputData?: unknown } | null, selectedId));
   }, [inspectedNodeId]);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [availableCandidates, setAvailableCandidates] = useState<any[]>([]);
@@ -258,18 +259,17 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
     return Object.values(edges).filter(e => e.toNodeId === layerId);
   }, [edges, layerId]);
 
+  const activeCandidateId = selectedCandidate?.id || (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : null);
+
   const upstreamNodeIds = useMemo(() => {
     if (!layerId) return [] as string[];
-    return collectUpstreamOutputs(layers, Object.values(edges), layerId).upstreamNodeIds;
-  }, [edges, layerId, layers]);
+    return collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandidateId).upstreamNodeIds;
+  }, [edges, layerId, layers, activeCandidateId]);
 
   const clientUpstreamOutputs = useMemo(() => {
     if (!layerId) return {} as Record<string, any>;
-    return collectUpstreamOutputs(layers, Object.values(edges), layerId).outputs;
-  }, [edges, layerId, layers]);
-
-  // Resolved candidate ID
-  const activeCandidateId = selectedCandidate?.id || (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : null);
+    return collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandidateId).outputs;
+  }, [edges, layerId, layers, activeCandidateId]);
 
   // Compile real input view data
   const consolidatedInputData = useMemo(() => {
@@ -324,12 +324,15 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
         hasJobDescription: !!effectiveRole?.jobDescription,
       });
       if (blockers.length) {
-        updateLayer(layerId, { status: 'error', errorDetails: blockers.join(' ') });
+        const message = blockers.join(' ');
+        if (activeCandidateId) recordCandidateRun(layerId, activeCandidateId, { ok: false, error: message });
+        else updateLayer(layerId, { status: 'error', errorDetails: message });
         setActiveTab('output');
         return;
       }
     }
-    updateLayer(layerId, { status: 'running', errorDetails: undefined });
+    if (activeCandidateId) markCandidateRun(layerId, activeCandidateId);
+    else updateLayer(layerId, { status: 'running', errorDetails: undefined });
     setActiveTab('output');
     try {
       const response = await fetch('/api/agents/execute', {
@@ -346,34 +349,32 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
       });
       const data = await response.json();
       if (!response.ok || data.status === 'ERROR' || data.status === 'BLOCKED') {
-        updateLayer(layerId, { 
-          status: 'error', 
-          errorDetails: data.error || data.missingInputs?.join(', ') || 'Evaluation step failed',
-          inputData: data.input,
-          executionTimeMs: data.executionTimeMs
-        });
+        const message = data.error || data.missingInputs?.join(', ') || 'This step failed.';
+        recordCandidateRun(layerId, activeCandidateId || '', { ok: false, error: message, executionTimeMs: data.executionTimeMs, input: data.input });
       } else {
-        updateLayer(layerId, { 
-          status: 'success', 
-          outputData: data.output,
-          inputData: data.input,
+        recordCandidateRun(layerId, activeCandidateId || '', {
+          ok: true,
+          output: data.output,
+          input: data.input,
           executionTimeMs: data.executionTimeMs,
           runId: data.runId,
-          errorDetails: undefined
         });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('candidateChanged'));
         }
       }
     } catch (err: any) {
-      updateLayer(layerId, { status: 'error', errorDetails: err.message });
+      recordCandidateRun(layerId, activeCandidateId || '', { ok: false, error: err.message || 'This step failed.' });
     }
   };
 
   // Safe to return null if no node is inspected
   if (!layerId || !layer) return null;
 
-  const executionOutput = (layer as any).outputData || (layer as any).executionOutput;
+  const executionOutput = outputForCandidate(
+    layer as { agentRole?: string; outputData?: unknown },
+    isSharedStep((layer as { agentRole?: string }).agentRole) ? undefined : activeCandidateId,
+  );
   const executionTimeSec = (layer as any).executionTimeMs ? ((layer as any).executionTimeMs / 1000).toFixed(2) + 's' : null;
 
   return (
@@ -1261,7 +1262,9 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                 <Sparkles className="w-8 h-8 text-slate-300" />
                 <p className="text-xs font-bold text-slate-700">No result on this step yet</p>
                 <p className="text-[11px] text-slate-400 max-w-xs">
-                  Run this step, or run the pipeline for the selected person. The scorecard, shortlist, outreach draft, or recommendation will open from here.
+                  {activeCandidateId
+                    ? 'No result for the selected person yet. Run this step for them. Another person’s result stays on their row in This role.'
+                    : 'Select a person in This role, then run this step.'}
                 </p>
               </div>
             )}

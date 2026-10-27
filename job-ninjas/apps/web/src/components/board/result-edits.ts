@@ -1,4 +1,5 @@
 import { useBoardStore } from "@/store/board";
+import { isSharedStep } from "@/lib/agents/contracts";
 
 type ResultKind = "shortlist" | "outreach" | "schedule";
 
@@ -24,7 +25,17 @@ export function saveResultEdit(kind: ResultKind, candidateId: string | null | un
   const map = { ...(config[key] || {}) };
   const active = typeof window !== "undefined" ? window.localStorage.getItem("activeCandidateId") : "";
   const who = candidateId || active || "";
-  if (who) map[who] = { ...(map[who] || {}), ...patch };
+  if (who) {
+    map[who] = { ...(map[who] || {}), ...patch };
+    const results = { ...(config.resultsByCandidate || {}) };
+    const baseResult = results[who] && typeof results[who] === "object"
+      ? results[who]
+      : config.lastRunCandidateId === who && layer.outputData && typeof layer.outputData === "object"
+        ? layer.outputData
+        : {};
+    results[who] = { ...baseResult, ...patch };
+    config.resultsByCandidate = results;
+  }
   config[key] = map;
   const update: Record<string, unknown> = { config };
   if (!who || who === active) {
@@ -46,6 +57,71 @@ export function personResult(
   const saved = node?.config?.[configKey]?.[candidateId];
   if (saved) return { ...(artifact || {}), ...saved };
   if (artifact) return artifact;
-  if (candidateId && candidateId === activeId && node?.outputData && typeof node.outputData === "object") return node.outputData;
+  const scoped = node?.config?.resultsByCandidate?.[candidateId]
+    ?? (node?.config?.lastRunCandidateId === candidateId ? node?.outputData : undefined);
+  if (scoped && typeof scoped === "object") return scoped;
+  if (!candidateId && activeId && node?.config?.lastRunCandidateId === activeId && node?.outputData && typeof node.outputData === "object") {
+    return node.outputData;
+  }
   return null;
+}
+
+export function markCandidateRun(layerId: string, candidateId: string) {
+  const state = useBoardStore.getState();
+  const layer = state.layers[layerId] as { config?: Record<string, any>; agentRole?: string } | undefined;
+  if (!layer || isSharedStep(layer.agentRole)) {
+    state.updateLayer(layerId, { status: "running", errorDetails: undefined } as any);
+    return;
+  }
+  state.updateLayer(layerId, {
+    status: "running",
+    errorDetails: undefined,
+    config: { ...(layer.config || {}), lastRunCandidateId: candidateId },
+  } as any);
+}
+
+export function recordCandidateRun(
+  layerId: string,
+  candidateId: string,
+  result: { ok: true; output: unknown; executionTimeMs?: number; input?: unknown; runId?: string } | { ok: false; error: string; executionTimeMs?: number; input?: unknown },
+) {
+  const state = useBoardStore.getState();
+  const layer = state.layers[layerId] as { config?: Record<string, any>; agentRole?: string; outputData?: unknown } | undefined;
+  if (!layer) return;
+  if (isSharedStep(layer.agentRole) || !candidateId) {
+    state.updateLayer(layerId, result.ok
+      ? { status: "success", outputData: result.output, errorDetails: undefined, executionTimeMs: result.executionTimeMs, inputData: result.input, runId: result.runId }
+      : { status: "error", errorDetails: result.error, executionTimeMs: result.executionTimeMs, inputData: result.input } as any);
+    return;
+  }
+  const config = { ...(layer.config || {}) };
+  const results = { ...(config.resultsByCandidate || {}) };
+  const errors = { ...(config.errorsByCandidate || {}) };
+  config.lastRunCandidateId = candidateId;
+  if (result.ok) {
+    results[candidateId] = result.output;
+    delete errors[candidateId];
+    config.resultsByCandidate = results;
+    config.errorsByCandidate = errors;
+    state.updateLayer(layerId, {
+      status: "success",
+      outputData: result.output,
+      errorDetails: undefined,
+      executionTimeMs: result.executionTimeMs,
+      inputData: result.input,
+      runId: result.runId,
+      config,
+    } as any);
+    return;
+  }
+  errors[candidateId] = result.error;
+  config.resultsByCandidate = results;
+  config.errorsByCandidate = errors;
+  state.updateLayer(layerId, {
+    status: "error",
+    errorDetails: result.error,
+    executionTimeMs: result.executionTimeMs,
+    inputData: result.input,
+    config,
+  } as any);
 }
