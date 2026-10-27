@@ -14,6 +14,10 @@ import {
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDemoStore } from "@/lib/store";
 import { getNodeSpec, NodeDescription } from "@/lib/agents/node-specs";
+import { collectUpstreamOutputs, dataTypeLabel, defaultInspectorTab, isSharedStep, localRunBlockers, outputForCandidate, plainLanguage, portsCompatible, recommendationPresentation, summarizeAgentOutput } from "@/lib/agents/contracts";
+import { AgentIoCard } from "./agent-io-card";
+import { ArtifactSheet, artifactKind, artifactTitle } from "./artifact-sheet";
+import { markCandidateRun, recordCandidateRun, saveResultEdit } from "./result-edits";
 
 export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   const { inspectedNodeId, setInspectedNodeId, layers, updateLayer, deleteLayers, edges } = useBoardStore();
@@ -27,6 +31,14 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [inputViewMode, setInputViewMode] = useState<'formatted' | 'raw'>('formatted');
   const [outputViewMode, setOutputViewMode] = useState<'formatted' | 'raw'>('formatted');
+  const [resultOpen, setResultOpen] = useState(false);
+
+  useEffect(() => {
+    setResultOpen(false);
+    const current = inspectedNodeId ? useBoardStore.getState().layers[inspectedNodeId] : null;
+    const selectedId = typeof window !== "undefined" ? window.localStorage.getItem("activeCandidateId") : null;
+    setActiveTab(defaultInspectorTab(current as { agentRole?: string; outputData?: unknown } | null, selectedId));
+  }, [inspectedNodeId]);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [availableCandidates, setAvailableCandidates] = useState<any[]>([]);
 
@@ -216,6 +228,24 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
     }
   };
 
+  const attachBoardDocument = async (fileSrc: string, fileName: string) => {
+    if (!selectedCandidate?.id) {
+      setResumeUploadError("Pick a candidate on this role first. The document will be saved as their resume.");
+      return;
+    }
+    setUploadingResume(true);
+    setResumeUploadError(null);
+    try {
+      const response = await fetch(fileSrc);
+      const blob = await response.blob();
+      const file = new File([blob], fileName || "resume", { type: blob.type || "application/octet-stream" });
+      await handleUploadResumeFile(file);
+    } catch (err: any) {
+      setResumeUploadError(err.message || "Could not read that document");
+      setUploadingResume(false);
+    }
+  };
+
   // UNCONDITIONAL RESOLUTION FOR RULES OF HOOKS
   const layerId = selectedIds.length === 1 ? selectedIds[0] : null;
   const layer = layerId ? layers[layerId] : null;
@@ -229,32 +259,17 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
     return Object.values(edges).filter(e => e.toNodeId === layerId);
   }, [edges, layerId]);
 
-  const upstreamNodeIds = useMemo(() => {
-    return incomingEdges.map(e => e.fromNodeId);
-  }, [incomingEdges]);
-
-  const upstreamLayers = useMemo(() => {
-    return upstreamNodeIds.map(id => layers[id]).filter(Boolean);
-  }, [upstreamNodeIds, layers]);
-
-  // Collect client upstream outputs from layers in state
-  const clientUpstreamOutputs = useMemo(() => {
-    const outputs: Record<string, any> = {};
-    for (const upId of upstreamNodeIds) {
-      const upLayer = layers[upId] as any;
-      if (upLayer?.outputData) {
-        if (upLayer.agentRole === 'agent-resume') outputs['ResumeAnalysis'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-interview-plan') outputs['InterviewPlan'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-interview-analysis') outputs['InterviewAnalysis'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-decision') outputs['CandidateDecision'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-concierge') outputs['ConciergeItinerary'] = upLayer.outputData;
-      }
-    }
-    return outputs;
-  }, [upstreamNodeIds, layers]);
-
-  // Resolved candidate ID
   const activeCandidateId = selectedCandidate?.id || (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : null);
+
+  const upstreamNodeIds = useMemo(() => {
+    if (!layerId) return [] as string[];
+    return collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandidateId).upstreamNodeIds;
+  }, [edges, layerId, layers, activeCandidateId]);
+
+  const clientUpstreamOutputs = useMemo(() => {
+    if (!layerId) return {} as Record<string, any>;
+    return collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandidateId).outputs;
+  }, [edges, layerId, layers, activeCandidateId]);
 
   // Compile real input view data
   const consolidatedInputData = useMemo(() => {
@@ -301,7 +316,23 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
   const handleRunAgent = async () => {
     if (!layerId || !layer) return;
-    updateLayer(layerId, { status: 'running', errorDetails: undefined });
+    const agentRole = (layer as { agentRole?: string }).agentRole;
+    if (agentRole?.startsWith('agent-')) {
+      const blockers = localRunBlockers(agentRole, clientUpstreamOutputs, {
+        hasCandidate: !!activeCandidateId,
+        hasResume: selectedCandidate ? !!selectedCandidate.resumeText : true,
+        hasJobDescription: !!effectiveRole?.jobDescription,
+      });
+      if (blockers.length) {
+        const message = blockers.join(' ');
+        if (activeCandidateId) recordCandidateRun(layerId, activeCandidateId, { ok: false, error: message });
+        else updateLayer(layerId, { status: 'error', errorDetails: message });
+        setActiveTab('output');
+        return;
+      }
+    }
+    if (activeCandidateId) markCandidateRun(layerId, activeCandidateId);
+    else updateLayer(layerId, { status: 'running', errorDetails: undefined });
     setActiveTab('output');
     try {
       const response = await fetch('/api/agents/execute', {
@@ -318,37 +349,43 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
       });
       const data = await response.json();
       if (!response.ok || data.status === 'ERROR' || data.status === 'BLOCKED') {
-        updateLayer(layerId, { 
-          status: 'error', 
-          errorDetails: data.error || data.missingInputs?.join(', ') || 'Evaluation step failed',
-          inputData: data.input,
-          executionTimeMs: data.executionTimeMs
-        });
+        const message = data.error || data.missingInputs?.join(', ') || 'This step failed.';
+        recordCandidateRun(layerId, activeCandidateId || '', { ok: false, error: message, executionTimeMs: data.executionTimeMs, input: data.input });
       } else {
-        updateLayer(layerId, { 
-          status: 'success', 
-          outputData: data.output,
-          inputData: data.input,
+        recordCandidateRun(layerId, activeCandidateId || '', {
+          ok: true,
+          output: data.output,
+          input: data.input,
           executionTimeMs: data.executionTimeMs,
           runId: data.runId,
-          errorDetails: undefined
         });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('candidateChanged'));
+        }
       }
     } catch (err: any) {
-      updateLayer(layerId, { status: 'error', errorDetails: err.message });
+      recordCandidateRun(layerId, activeCandidateId || '', { ok: false, error: err.message || 'This step failed.' });
     }
   };
 
   // Safe to return null if no node is inspected
   if (!layerId || !layer) return null;
 
-  const executionOutput = (layer as any).outputData || (layer as any).executionOutput;
+  const executionOutput = outputForCandidate(
+    layer as { agentRole?: string; outputData?: unknown },
+    isSharedStep((layer as { agentRole?: string }).agentRole) ? undefined : activeCandidateId,
+  );
+  const stepRole = (layer as { agentRole?: string }).agentRole;
+  const forThisPerson = !!stepRole?.startsWith("agent-") && !isSharedStep(stepRole);
+  const scopedError = forThisPerson
+    ? ((layer as { config?: { errorsByCandidate?: Record<string, string> } }).config?.errorsByCandidate?.[activeCandidateId || ""] || "")
+    : (layer.status === "error" ? ((layer as { errorDetails?: string }).errorDetails || "Something went wrong. Check the person, the resume, and the steps connected in front of this one.") : "");
   const executionTimeSec = (layer as any).executionTimeMs ? ((layer as any).executionTimeMs / 1000).toFixed(2) + 's' : null;
 
   return (
     <div 
-      className="absolute right-4 top-20 bottom-4 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-[0_12px_50px_rgba(0,0,0,0.18)] border border-slate-200/80 overflow-hidden z-40 flex flex-col font-sans transition-all duration-150"
-      style={{ width: `${width}px` }}
+      className="absolute right-2 top-16 bottom-4 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-[0_12px_50px_rgba(0,0,0,0.18)] border border-slate-200/80 overflow-hidden z-40 flex flex-col font-sans transition-all duration-150 sm:right-4 sm:top-20"
+      style={{ width: `${width}px`, maxWidth: 'calc(100vw - 1rem)' }}
     >
       {/* Drag handle */}
       <div 
@@ -376,27 +413,29 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                 {nodeSpec.category}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 line-clamp-1">{nodeSpec.subtitle}</p>
+            <p className="text-[11px] text-slate-500 line-clamp-2">{plainLanguage((layer as { agentRole?: string }).agentRole)}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {layer.agentRole?.startsWith('agent-') && (
             <button
+              type="button"
+              aria-label="Run this step"
               onClick={handleRunAgent}
               disabled={layer.status === 'running'}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white text-xs font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
-              title="Evaluate active candidate with current step"
+              title="Run this step for the selected person"
             >
               {layer.status === 'running' ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Evaluating...
+                  Running…
                 </>
               ) : (
                 <>
                   <Play className="w-3.5 h-3.5 fill-current" />
-                  Evaluate Candidate
+                  Run this step
                 </>
               )}
             </button>
@@ -414,6 +453,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
       {/* Recruiter 3-Tab Navigator */}
       <div className="flex items-center border-b border-slate-200/70 bg-white px-5 gap-6 text-[13px] font-semibold">
         <button
+          type="button"
+          aria-selected={activeTab === 'input'}
           onClick={() => setActiveTab('input')}
           className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
             activeTab === 'input'
@@ -429,6 +470,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
         </button>
 
         <button
+          type="button"
+          aria-selected={activeTab === 'parameters'}
           onClick={() => setActiveTab('parameters')}
           className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
             activeTab === 'parameters'
@@ -441,6 +484,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
         </button>
 
         <button
+          type="button"
+          aria-selected={activeTab === 'output'}
           onClick={() => setActiveTab('output')}
           className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
             activeTab === 'output'
@@ -532,6 +577,28 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
             {inputViewMode === 'formatted' ? (
               <div className="flex flex-col gap-3">
+                {layerId && <AgentIoCard agentRole={layer.agentRole} layerId={layerId} mode="input" />}
+                {layerId && (layer as { agentRole?: string }).agentRole === 'input-transcript' && (
+                  <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-800">Interview transcript</label>
+                    <p className="text-[11px] text-slate-500">Paste what was said. Connect this step to Interview Analysis. Agents do not read sticky notes.</p>
+                    <textarea
+                      value={(layer as { config?: { transcriptText?: string }; outputData?: unknown }).config?.transcriptText || (typeof (layer as { outputData?: unknown }).outputData === 'string' ? (layer as { outputData?: string }).outputData : '')}
+                      onChange={(e) => {
+                        const transcriptText = e.target.value;
+                        const current = layer as { config?: Record<string, unknown> };
+                        updateLayer(layerId, {
+                          config: { ...(current.config || {}), transcriptText },
+                          outputData: transcriptText.trim() ? transcriptText : undefined,
+                          status: transcriptText.trim() ? 'success' : 'idle',
+                          errorDetails: undefined,
+                        });
+                      }}
+                      placeholder="Paste the interview transcript here."
+                      className="min-h-[140px] w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                )}
                 {/* Job Requisition Block with Inline JD Editing */}
                 <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">
@@ -697,6 +764,22 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                       {selectedCandidate.resumeText}
                     </div>
                   )}
+
+                  {Object.entries(layers).some(([, item]) => (item as any).fileSrc) && (
+                    <div className="flex flex-col gap-1.5">
+                      <p className="text-[11px] font-bold text-slate-700">Or use a document already on this role</p>
+                      {Object.entries(layers).filter(([, item]) => (item as any).fileSrc).map(([id, item]) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => attachBoardDocument((item as any).fileSrc, (item as any).fileName || (item as any).value || "document")}
+                          className="text-left text-[11px] font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-2.5 py-1.5 hover:bg-indigo-100"
+                        >
+                          Attach {(item as any).fileName || (item as any).value || "document"} to {selectedCandidate ? `${selectedCandidate.firstName}` : "the selected candidate"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Upstream Artifacts */}
@@ -707,7 +790,7 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                   </span>
                   {Object.keys(clientUpstreamOutputs).length === 0 ? (
                     <div className="text-xs text-slate-400 py-3 text-center border border-dashed border-slate-200 rounded-lg">
-                      No previous step outputs yet. Run upstream nodes to pass data here.
+                      Nothing from earlier steps for this person yet. Run the previous step, then come back.
                     </div>
                   ) : (
                     Object.entries(clientUpstreamOutputs).map(([key, val]) => (
@@ -729,14 +812,21 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                   </span>
                   <div className="flex flex-col gap-1.5 mt-1">
                     {nodeSpec.inputs.map((input, idx) => {
-                      const isSatisfied = 
-                        (input.name === 'candidate' && !!selectedCandidate) ||
-                        (input.name === 'resumeText' && !!selectedCandidate?.resumeText) ||
-                        (input.name === 'role' && !!effectiveRole) ||
-                        (!!clientUpstreamOutputs[input.name]);
+                      const artifactKey = input.artifactType || input.type;
+                      const wired = !!clientUpstreamOutputs[artifactKey]
+                        || !!clientUpstreamOutputs[input.type]
+                        || !!clientUpstreamOutputs[input.name]
+                        || incomingEdges.some((edge) => {
+                          const source = layers[edge.fromNodeId] as { agentRole?: string } | undefined;
+                          return getNodeSpec(source?.agentRole).outputs.some((output) => portsCompatible(output.type, input.type));
+                        });
+                      const onRole = input.source === "board" && !!effectiveRole?.jobDescription;
+                      const resumeReady = input.type === "Resume" && !!selectedCandidate?.resumeText;
+                      const candidateReady = input.source === "candidate" && !!selectedCandidate && input.type !== "Resume";
+                      const isSatisfied = wired || onRole || resumeReady || candidateReady;
                       return (
                         <div key={idx} className="flex items-center justify-between text-xs py-1 px-2 rounded-md bg-slate-50 border border-slate-100">
-                          <span className="font-semibold text-slate-700">{input.name} <span className="text-slate-400 text-[10px]">({input.type})</span></span>
+                          <span className="font-semibold text-slate-700">{input.name} <span className="text-slate-400 text-[10px]">({dataTypeLabel(input.type)})</span></span>
                           {isSatisfied ? (
                             <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
                               <CheckCircle2 className="w-3 h-3" /> Ready
@@ -846,6 +936,7 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
         {/* ─────────── TAB 3: EVALUATION RESULTS ─────────── */}
         {activeTab === 'output' && (
           <div className="flex flex-col gap-4">
+            {layerId && <AgentIoCard agentRole={layer.agentRole} layerId={layerId} mode="output" />}
             {/* Status Bar */}
             <div className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
               <div className="flex items-center gap-2.5">
@@ -855,9 +946,9 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                   layer.status === 'error' ? 'bg-rose-500' : 'bg-slate-300'
                 }`} />
                 <span className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                  {layer.status === 'success' ? 'Evaluation Complete' :
-                   layer.status === 'running' ? 'Evaluating Step...' :
-                   layer.status === 'error' ? 'Evaluation Failed' : 'Idle / Ready'}
+                  {layer.status === 'success' ? 'Result ready' :
+                   layer.status === 'running' ? 'Running this step…' :
+                   layer.status === 'error' ? 'Needs a fix' : 'Ready'}
                 </span>
                 {executionTimeSec && (
                   <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -896,20 +987,23 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
             </div>
 
             {/* Error Display */}
-            {layer.status === 'error' && (
+            {scopedError && (
               <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-rose-800 font-bold text-xs">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                  Evaluation Incomplete
+                  This step needs a fix
                 </div>
-                <p className="text-xs text-rose-700 font-sans leading-relaxed bg-white/70 p-3 rounded-lg border border-rose-100">
-                  {(layer as any).errorDetails || 'An error occurred during evaluation.'}
+                <p className="text-sm text-rose-800 font-sans leading-relaxed bg-white/70 p-3 rounded-lg border border-rose-100">
+                  {scopedError}
                 </p>
+                {executionOutput && (
+                  <p className="text-xs text-slate-600">Last result: {summarizeAgentOutput((layer as { agentRole?: string }).agentRole, executionOutput)}</p>
+                )}
                 <button
                   onClick={handleRunAgent}
                   className="self-start mt-1 text-xs font-bold text-rose-800 hover:text-rose-950 flex items-center gap-1"
                 >
-                  <RefreshCw className="w-3 h-3" /> Retry Evaluation
+                  <RefreshCw className="w-3 h-3" /> Run this step again
                 </button>
               </div>
             )}
@@ -1012,15 +1106,15 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                       {/* Overall recommendation badge */}
                       <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                         <div>
-                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Interviewer Recommendation</p>
-                          <p className="text-xl font-black text-slate-800">{executionOutput.recommendation || 'ADVANCE'}</p>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Interview signal</p>
+                          <p className="text-xl font-black text-slate-800">{(executionOutput.overallRecommendation || executionOutput.recommendation) ? recommendationPresentation(executionOutput.overallRecommendation || executionOutput.recommendation).title : 'No signal yet'}</p>
                         </div>
                         <span className={`px-3 py-1.5 rounded-xl font-bold text-xs ${
-                          executionOutput.recommendation === 'REJECT' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                          executionOutput.recommendation === 'HOLD' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                          recommendationPresentation(executionOutput.overallRecommendation || executionOutput.recommendation).tone === 'no' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          recommendationPresentation(executionOutput.overallRecommendation || executionOutput.recommendation).tone === 'maybe' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
                           'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         }`}>
-                          {executionOutput.recommendation || 'ADVANCE TO NEXT ROUND'}
+                          {(executionOutput.overallRecommendation || executionOutput.recommendation) ? recommendationPresentation(executionOutput.overallRecommendation || executionOutput.recommendation).title : 'No signal yet'}
                         </span>
                       </div>
 
@@ -1073,29 +1167,29 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                       <div className="p-5 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hiring Committee Verdict</p>
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hiring recommendation</p>
                             <h3 className="text-2xl font-black text-slate-900 mt-0.5">
-                              {executionOutput.decision || executionOutput.finalDecision || 'HIRE'}
+                              {recommendationPresentation(executionOutput.recommendation).title}
                             </h3>
                           </div>
-                          <div className="text-right">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Confidence</p>
-                            <p className="text-xl font-black text-indigo-600">{executionOutput.confidence || '92'}%</p>
-                          </div>
+                          {typeof executionOutput.confidence === 'number' && (
+                            <div className="text-right">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase">Confidence</p>
+                              <p className="text-xl font-black text-indigo-600">{executionOutput.confidence}%</p>
+                            </div>
+                          )}
                         </div>
 
-                        {executionOutput.justification && (
+                        {(executionOutput.rationale || executionOutput.justification) && (
                           <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed">
-                            {executionOutput.justification}
+                            {executionOutput.rationale || executionOutput.justification}
                           </div>
                         )}
 
-                        {executionOutput.nextSteps && (
-                          <div className="flex flex-col gap-1">
-                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Recommended Next Action</p>
-                            <p className="text-xs font-semibold text-slate-800">{executionOutput.nextSteps}</p>
-                          </div>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Next step</p>
+                          <p className="text-xs font-semibold text-slate-800">{executionOutput.nextSteps || recommendationPresentation(executionOutput.recommendation).nextStep}</p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1134,24 +1228,48 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                     </div>
                   )}
 
-                  {/* Fallback structured display */}
-                  {!['agent-resume', 'agent-interview-plan', 'agent-interview-analysis', 'agent-decision', 'agent-concierge'].includes(layer.agentRole || '') && (
-                    <div className="bg-slate-900 rounded-xl p-4 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner max-h-[500px]">
-                      <pre>{JSON.stringify(executionOutput, null, 2)}</pre>
-                    </div>
-                  )}
+                  {(() => {
+                    const kind = artifactKind((layer as { agentRole?: string }).agentRole, executionOutput);
+                    const hasCustomVisual = ['agent-resume', 'agent-interview-plan', 'agent-interview-analysis', 'agent-decision', 'agent-concierge'].includes(layer.agentRole || '');
+                    if (kind && !hasCustomVisual) {
+                      return (
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
+                          <p className="text-sm font-medium text-slate-800">{summarizeAgentOutput((layer as { agentRole?: string }).agentRole, executionOutput)}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-slate-500">Open the full result. An outreach draft can be edited and copied before you mark it done. Nothing is sent.</p>
+                          <button
+                            type="button"
+                            aria-label={`View ${artifactTitle(kind)}`}
+                            onClick={() => setResultOpen(true)}
+                            className="mt-3 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
+                          >
+                            View {artifactTitle(kind)}
+                          </button>
+                        </div>
+                      );
+                    }
+                    if (!hasCustomVisual) {
+                      return (
+                        <div className="bg-slate-900 rounded-xl p-4 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner max-h-[500px]">
+                          <pre>{JSON.stringify(executionOutput, null, 2)}</pre>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               ) : (
                 <div className="bg-slate-900 rounded-xl p-4 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner max-h-[500px]">
                   <pre>{JSON.stringify(executionOutput, null, 2)}</pre>
                 </div>
               )
-            ) : layer.status !== 'error' && (
+            ) : !scopedError && (
               <div className="p-8 text-center bg-white rounded-xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
                 <Sparkles className="w-8 h-8 text-slate-300" />
-                <p className="text-xs font-bold text-slate-700">No evaluation results yet</p>
-                <p className="text-[11px] text-slate-400 max-w-xs">
-                  Click "Evaluate Candidate" to run this AI screening step and view structured recruiter results.
+                <p className="text-xs font-bold text-slate-700">No result on this step yet</p>
+                <p className="text-[11px] text-slate-600 max-w-xs">
+                  {activeCandidateId
+                    ? 'No result for the selected person yet. Run this step for them. Another person’s result stays on their row in This role.'
+                    : 'Select a person in This role, then run this step.'}
                 </p>
               </div>
             )}
@@ -1162,7 +1280,9 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
       {/* Footer Actions */}
       <div className="p-4 border-t border-slate-200/70 bg-white flex items-center justify-between">
-        <button 
+        <button
+          type="button"
+          aria-label="Delete this step"
           onClick={() => {
             deleteLayers([layerId]);
             setInspectedNodeId(null);
@@ -1173,10 +1293,24 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
           Delete Step
         </button>
 
-        <span className="text-[10px] font-mono text-slate-400">
-          Step ID: {layerId}
-        </span>
       </div>
+      {resultOpen && artifactKind((layer as { agentRole?: string }).agentRole, executionOutput) && (
+        <ArtifactSheet
+          key={layerId}
+          kind={artifactKind((layer as { agentRole?: string }).agentRole, executionOutput)!}
+          data={executionOutput}
+          candidateSelected={typeof window !== "undefined" && !!window.localStorage.getItem("activeCandidateId")}
+          onSelectCandidate={() => {
+            const id = window.localStorage.getItem("activeCandidateId");
+            if (!id) return;
+            window.dispatchEvent(new CustomEvent("candidateChanged", { detail: { candidate: { id } } }));
+          }}
+          onClose={() => setResultOpen(false)}
+          onSaveOutreach={(next) => saveResultEdit("outreach", window.localStorage.getItem("activeCandidateId"), next)}
+          onSaveShortlist={(next) => saveResultEdit("shortlist", window.localStorage.getItem("activeCandidateId"), next)}
+          onSaveSchedule={(next) => saveResultEdit("schedule", window.localStorage.getItem("activeCandidateId"), next)}
+        />
+      )}
     </div>
   );
 };

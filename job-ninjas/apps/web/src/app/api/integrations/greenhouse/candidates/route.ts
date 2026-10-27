@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { greenhouseAuthMessage } from '@/lib/integrations/greenhouse-message';
 
 export async function POST(req: Request) {
   try {
@@ -84,8 +85,7 @@ export async function POST(req: Request) {
     });
 
     if (!appRes.ok) {
-      const errText = await appRes.text();
-      return NextResponse.json({ success: false, error: `Failed to fetch applications: ${errText}` }, { status: appRes.status });
+      return NextResponse.json({ success: false, error: greenhouseAuthMessage(appRes.status, 'list candidates') }, { status: appRes.status });
     }
 
     const applications = await appRes.json();

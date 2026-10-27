@@ -118,6 +118,8 @@ export type Edge = {
   fromNodeId: string
   toNodeId: string
   label?: string
+  /** Human-readable data this connection carries, such as Resume or Scorecard. */
+  carries?: string[]
 }
 
 export type Point = {

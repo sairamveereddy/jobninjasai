@@ -4,8 +4,32 @@ import { InterviewPlanningAgent } from './implementations/interview-planning';
 import { InterviewAnalysisAgent } from './implementations/interview-analysis';
 import { CandidateDecisionAgent } from './implementations/candidate-decision';
 import { CandidateConciergeAgent } from './implementations/candidate-concierge';
+import { JdParserAgent } from './implementations/jd-parser';
+import { ResumeParserAgent } from './implementations/resume-parser';
+import { ScreenScoreAgent } from './implementations/screen-score';
+import { OutreachDraftAgent } from './implementations/outreach-draft';
+import { InterviewScheduleAgent } from './implementations/interview-schedule';
+import { ShortlistAgent } from './implementations/shortlist';
 
 export const AgentRegistry: Record<string, AgentDefinition> = {
+  'agent-jd-parser': JdParserAgent,
+  'jd-parser': JdParserAgent,
+
+  'agent-resume-parser': ResumeParserAgent,
+  'resume-parser': ResumeParserAgent,
+
+  'agent-screen': ScreenScoreAgent,
+  'screen-score': ScreenScoreAgent,
+
+  'agent-outreach': OutreachDraftAgent,
+  'outreach-draft': OutreachDraftAgent,
+
+  'agent-schedule': InterviewScheduleAgent,
+  'interview-schedule': InterviewScheduleAgent,
+
+  'agent-shortlist': ShortlistAgent,
+  'shortlist': ShortlistAgent,
+
   'agent-resume': ResumeIntelligenceAgent,
   'agent-resume-intel': ResumeIntelligenceAgent,
   'resume-intelligence': ResumeIntelligenceAgent,

@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { CanvasMode, CanvasState, Color, Layer, LayerType, Point, XYWH, Side, Edge } from '@/types/canvas';
 import { getNodeSpec } from '@/lib/agents/node-specs';
+import { BoardIntake, MUST_ASK_NOTE, composeJobDescription, isMustAskNote, scaffoldFromIntake, validateConnection } from '@/lib/agents/contracts';
+
+export interface ConnectionNotice {
+  tone: 'error' | 'ok';
+  message: string;
+}
+
+export interface BoardActivityEntry {
+  at: number;
+  text: string;
+}
 
 interface BoardState {
   layerIds: string[];
@@ -27,6 +38,12 @@ interface BoardState {
   
   inspectedNodeId: string | null;
   setInspectedNodeId: (id: string | null) => void;
+  connectionNotice: ConnectionNotice | null;
+  setConnectionNotice: (notice: ConnectionNotice | null) => void;
+  activity: Record<string, BoardActivityEntry[]>;
+  setActivity: (activity: Record<string, BoardActivityEntry[]>) => void;
+  pushActivity: (candidateId: string, text: string) => void;
+  loadScaffold: (intake: BoardIntake) => void;
 }
 
 export const useBoardStore = create<BoardState>((set, get) => ({
@@ -40,17 +57,46 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   pencilDraft: null,
   penColor: { r: 0, g: 0, b: 0 },
   inspectedNodeId: null,
+  connectionNotice: null,
+  activity: {},
 
   setLayerIds: (ids) => set({ layerIds: ids }),
   setLayers: (layers) => set({ layers }),
   setEdges: (edges) => set({ edges }),
   setEdgeIds: (ids) => set({ edgeIds: ids }),
   setInspectedNodeId: (id) => set({ inspectedNodeId: id }),
+  setConnectionNotice: (notice) => set({ connectionNotice: notice }),
+  setActivity: (activity) => {
+    if (!activity || typeof activity !== 'object' || Array.isArray(activity)) {
+      set({ activity: {} });
+      return;
+    }
+    const next: Record<string, BoardActivityEntry[]> = {};
+    for (const [id, entries] of Object.entries(activity)) {
+      if (!Array.isArray(entries)) continue;
+      const clean = entries
+        .filter((entry) => entry && typeof entry.text === 'string')
+        .slice(0, 8)
+        .map((entry) => ({ at: Number(entry.at) || Date.now(), text: String(entry.text).slice(0, 180) }));
+      if (clean.length) next[id] = clean;
+    }
+    set({ activity: next });
+  },
+  pushActivity: (candidateId, text) => {
+    const who = candidateId.trim();
+    const line = text.trim();
+    if (!who || !line) return;
+    set((state) => {
+      const prev = state.activity[who] || [];
+      const next = [{ at: Date.now(), text: line.slice(0, 180) }, ...prev].slice(0, 8);
+      return { activity: { ...state.activity, [who]: next } };
+    });
+  },
   
   insertLayer: (layerType, position, color, points?, agentRole?, src?, config?) => {
     const id = Math.random().toString(36).substring(7);
     const width = layerType === LayerType.Agent ? 250 : layerType === LayerType.Slide ? 800 : 100;
-    const height = layerType === LayerType.Agent ? 164 : layerType === LayerType.Slide ? 450 : 100;
+    const height = layerType === LayerType.Agent ? 176 : layerType === LayerType.Slide ? 450 : 100;
     const nodeSpec = agentRole ? getNodeSpec(agentRole) : null;
     const defaultAgentValue = nodeSpec ? nodeSpec.displayName : (agentRole ? agentRole.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Custom Agent');
     
@@ -78,16 +124,168 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
 
   insertEdge: (fromNodeId, toNodeId) => {
+    const state = get();
+    const verdict = validateConnection(state.layers[fromNodeId], state.layers[toNodeId], Object.values(state.edges), {
+      fromId: fromNodeId,
+      toId: toNodeId,
+    });
+    if (!verdict.ok) {
+      set({ connectionNotice: { tone: 'error', message: verdict.message } });
+      return;
+    }
     const id = Math.random().toString(36).substring(7);
     const newEdge: Edge = {
       id,
       fromNodeId,
       toNodeId,
+      carries: verdict.carries,
+      label: verdict.carries.join(' · '),
     };
-    set((state) => ({
-      edgeIds: [...state.edgeIds, id],
-      edges: { ...state.edges, [id]: newEdge }
+    set((current) => ({
+      edgeIds: [...current.edgeIds, id],
+      edges: { ...current.edges, [id]: newEdge },
+      connectionNotice: { tone: 'ok', message: verdict.message },
     }));
+  },
+
+  loadScaffold: (intake) => {
+    const plan = scaffoldFromIntake(intake);
+    const jdText = composeJobDescription(intake);
+    const state = get();
+    const tagged = state.layerIds.some((id) => (state.layers[id] as { config?: { fromIntake?: boolean } })?.config?.fromIntake);
+    const remove = new Set<string>();
+    for (const id of state.layerIds) {
+      const layer = state.layers[id] as { type?: LayerType; value?: string; config?: { fromIntake?: boolean; pinned?: boolean } } | undefined;
+      if (!layer) continue;
+      if (layer.config?.fromIntake) {
+        remove.add(id);
+        continue;
+      }
+      if (layer.config?.pinned) continue;
+      if (tagged) continue;
+      if (layer.type === LayerType.Agent) remove.add(id);
+      else if (layer.type === LayerType.Note && String(layer.value || '').includes('Pipeline:')) remove.add(id);
+    }
+
+    const layers: Record<string, Layer> = { ...state.layers };
+    const layerIds = state.layerIds.filter((id) => !remove.has(id));
+    for (const id of remove) delete layers[id];
+
+    let shiftX = 0;
+    for (const id of layerIds) {
+      const layer = layers[id];
+      if (!layer) continue;
+      shiftX = Math.max(shiftX, (layer.x || 0) + (layer.width || 240) + 48);
+    }
+    const keptCount = layerIds.length;
+
+    const idByKey: Record<string, string> = {};
+    for (const node of plan.nodes) {
+      const id = Math.random().toString(36).substring(2, 9);
+      idByKey[node.key] = id;
+      layerIds.push(id);
+      const config = { fromIntake: true, scaffoldKey: node.key };
+      if (node.kind === 'note') {
+        layers[id] = {
+          type: LayerType.Note,
+          x: node.x + shiftX,
+          y: node.y,
+          width: 280,
+          height: 320,
+          fill: { r: 94, g: 106, b: 210 },
+          value: node.text || '',
+          config,
+        } as Layer;
+      } else {
+        const spec = getNodeSpec(node.role);
+        const carriesJd = node.role === 'input-job-details' && !!jdText;
+        layers[id] = {
+          type: LayerType.Agent,
+          x: node.x + shiftX,
+          y: node.y,
+          width: 260,
+          height: 176,
+          fill: { r: 255, g: 255, b: 255 },
+          value: spec.displayName,
+          agentRole: node.role,
+          status: carriesJd ? 'success' : 'idle',
+          outputData: carriesJd ? jdText : undefined,
+          config,
+        };
+      }
+    }
+
+    if (jdText) {
+      const jdId = Math.random().toString(36).substring(2, 9);
+      layerIds.push(jdId);
+      layers[jdId] = {
+        type: LayerType.Text,
+        x: 70 + shiftX,
+        y: 440,
+        width: 280,
+        height: 220,
+        fill: { r: 255, g: 255, b: 255 },
+        value: jdText,
+        fileName: `${intake.roleTitle || 'Role'} job description`,
+        docKind: 'jd',
+        fontSize: 13,
+        config: { fromIntake: true, scaffoldKey: 'jd-doc' },
+      } as Layer;
+    }
+
+    const hasMustAsk = layerIds.some((id) => layers[id]?.type === LayerType.Note && isMustAskNote((layers[id] as { value?: string }).value));
+    if (!hasMustAsk) {
+      const noteId = Math.random().toString(36).substring(2, 9);
+      layerIds.push(noteId);
+      layers[noteId] = {
+        type: LayerType.Note,
+        x: 70 + shiftX,
+        y: 700,
+        width: 280,
+        height: 240,
+        fill: { r: 94, g: 106, b: 210 },
+        value: MUST_ASK_NOTE,
+        config: { pinned: true, scaffoldKey: 'must-ask' },
+      } as Layer;
+    }
+
+    const edges: Record<string, Edge> = {};
+    const edgeIds: string[] = [];
+    for (const id of state.edgeIds) {
+      const edge = state.edges[id];
+      if (!edge || remove.has(edge.fromNodeId) || remove.has(edge.toNodeId)) continue;
+      edgeIds.push(id);
+      edges[id] = edge;
+    }
+    for (const link of plan.edges) {
+      const fromNodeId = idByKey[link.from];
+      const toNodeId = idByKey[link.to];
+      const verdict = validateConnection(layers[fromNodeId], layers[toNodeId]);
+      if (!verdict.ok) continue;
+      const id = Math.random().toString(36).substring(2, 9);
+      edgeIds.push(id);
+      edges[id] = {
+        id,
+        fromNodeId,
+        toNodeId,
+        carries: verdict.carries,
+        label: verdict.carries.join(' · '),
+      };
+    }
+
+    const summary = keptCount > 0
+      ? `${plan.summary} Documents and team notes already on this board were kept.`
+      : plan.summary;
+
+    set({
+      layerIds,
+      layers,
+      edgeIds,
+      edges,
+      selections: { 'local-user': [] },
+      inspectedNodeId: null,
+      connectionNotice: { tone: 'ok', message: summary },
+    });
   },
 
   insertTemplate: (templateId, startPos) => {
@@ -112,9 +310,14 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       };
 
       const addEdge = (fromId: string, toId: string) => {
+        const verdict = validateConnection(newLayers[fromId], newLayers[toId], Object.values(newEdges), {
+          fromId,
+          toId,
+        });
+        if (!verdict.ok) return;
         const id = Math.random().toString(36).substring(7);
         newEdgeIds.push(id);
-        newEdges[id] = { id, fromNodeId: fromId, toNodeId: toId };
+        newEdges[id] = { id, fromNodeId: fromId, toNodeId: toId, carries: verdict.carries, label: verdict.carries.join(' · ') };
       };
 
       if (templateId === 'ultimate-recruiter' || templateId === 'standard') {

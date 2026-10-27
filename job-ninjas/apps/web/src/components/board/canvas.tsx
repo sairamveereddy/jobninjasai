@@ -9,8 +9,9 @@ import { ZoomControls } from './zoom-controls';
 import { LibraryModal } from './library-modal';
 import { getStroke } from 'perfect-freehand';
 import Link from 'next/link';
-import { Play, Loader2, Plus, X, Bot, LayoutTemplate, Trash2, Upload, Plug, Mail, Calendar, MessageSquare, Database, Workflow, CheckCircle, FileText, ChevronRight, ArrowLeft, Presentation, Maximize, ChevronLeft, Sparkles } from 'lucide-react';
+import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles, Square } from 'lucide-react';
 import { getNodeSpec } from '@/lib/agents/node-specs';
+import { collectUpstreamOutputs, dataTypeLabel, documentKind, isSharedStep, jobDescriptionText, localRunBlockers, outputForCandidate, plainLanguage, stepHealth, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
 import { SelectionBox } from './selection-box';
 import { resizeBounds } from '@/lib/geometry';
 import { Side, XYWH } from '@/types/canvas';
@@ -20,17 +21,56 @@ import { EdgeToolbar } from './edge-toolbar';
 import { PresentationViewer } from './presentation-viewer';
 import { CandidateConciergeNode } from './candidate-concierge-node';
 import { CandidateNodeBlock } from './candidate-node-block';
+import { BoardHelp } from './board-help';
+import { ArtifactSheet, artifactKind, artifactTitle } from './artifact-sheet';
+import { markCandidateRun, recordCandidateRun, saveResultEdit, settleStoppedRun } from './result-edits';
+
+type BoardPerson = { id: string; firstName?: string; lastName?: string; resumeText?: string | null };
+
+function personHasResume(people: BoardPerson[], candidateId: string | null, unknownFallback: boolean | null) {
+  if (!candidateId) return unknownFallback !== false;
+  const person = people.find((item) => item.id === candidateId);
+  if (person && Object.prototype.hasOwnProperty.call(person, 'resumeText')) return !!person.resumeText;
+  return unknownFallback !== false;
+}
+
+function personLabel(people: BoardPerson[], candidateId: string | null) {
+  const person = people.find((item) => item.id === candidateId);
+  const name = person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : '';
+  return name || 'the selected person';
+}
+
+function formatActivityTime(at: number) {
+  try {
+    return new Date(at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
+let jdPersistTimer: ReturnType<typeof setTimeout> | undefined;
+function persistJobDescription(roleId: string | undefined, text: string) {
+  if (!roleId || roleId === 'new-workflow') return;
+  window.clearTimeout(jdPersistTimer);
+  jdPersistTimer = setTimeout(() => {
+    fetch('/api/roles', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: roleId, jobDescription: text }),
+    }).catch(() => undefined);
+  }, 500);
+}
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // MCP Connector definitions
-const MCP_CONNECTORS = [
-  { icon: Mail, label: 'Gmail', desc: 'Send emails to candidates automatically', color: 'text-red-500', bg: 'bg-red-50', agentRole: 'gmail-connector' },
-  { icon: Calendar, label: 'Google Calendar', desc: 'Schedule interviews automatically', color: 'text-blue-500', bg: 'bg-blue-50', agentRole: 'gcalendar-connector' },
-  { icon: MessageSquare, label: 'Slack', desc: 'Notify hiring managers in real-time', color: 'text-purple-500', bg: 'bg-purple-50', agentRole: 'slack-connector' },
-  { icon: Database, label: 'Greenhouse ATS', desc: 'Sync candidates to your ATS', color: 'text-green-600', bg: 'bg-green-50', agentRole: 'greenhouse-connector' },
-  { icon: Workflow, label: 'Workday', desc: 'Push hired candidates to Workday', color: 'text-indigo-600', bg: 'bg-indigo-50', agentRole: 'workday-connector' },
-  { icon: FileText, label: 'DocuSign', desc: 'Send offer letters for e-signature', color: 'text-yellow-600', bg: 'bg-yellow-50', agentRole: 'docusign-connector' },
+const CONNECTOR_NOTES = [
+  { label: 'Gmail', detail: 'Not live. Does not send email.' },
+  { label: 'Google Calendar', detail: 'Not live. Does not book interviews.' },
+  { label: 'Slack', detail: 'Not live. Does not notify anyone.' },
+  { label: 'Greenhouse', detail: 'Not a live sync. Import people from This role.' },
+  { label: 'Workday', detail: 'Not live. Does not push hires.' },
+  { label: 'DocuSign', detail: 'Not live. Does not send offers.' },
 ];
 
 // Helper to convert freehand stroke points to SVG path data
@@ -78,6 +118,48 @@ function getBoxIntersection(
   };
 }
 
+const NOTE_COLORS = [
+  { name: 'Indigo', fill: { r: 94, g: 106, b: 210 } },
+  { name: 'Amber', fill: { r: 176, g: 132, b: 48 } },
+  { name: 'Slate', fill: { r: 71, g: 78, b: 94 } },
+  { name: 'Rose', fill: { r: 168, g: 72, b: 90 } },
+];
+
+function orderedAgentIds(layerIds: string[], layers: Record<string, { type?: LayerType; x?: number }>, edges: Record<string, { fromNodeId: string; toNodeId: string }>) {
+  const ids = layerIds.filter((id) => layers[id]?.type === LayerType.Agent);
+  const indegree: Record<string, number> = {};
+  const outgoing: Record<string, string[]> = {};
+  ids.forEach((id) => {
+    indegree[id] = 0;
+    outgoing[id] = [];
+  });
+  Object.values(edges).forEach((edge) => {
+    if (indegree[edge.toNodeId] === undefined || outgoing[edge.fromNodeId] === undefined) return;
+    indegree[edge.toNodeId] += 1;
+    outgoing[edge.fromNodeId].push(edge.toNodeId);
+  });
+  const ready = ids.filter((id) => indegree[id] === 0).sort((a, b) => (layers[a]?.x || 0) - (layers[b]?.x || 0));
+  const order: string[] = [];
+  const seen = new Set<string>();
+  while (ready.length > 0) {
+    const id = ready.shift()!;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    order.push(id);
+    for (const next of outgoing[id] || []) {
+      indegree[next] -= 1;
+      if (indegree[next] <= 0 && !seen.has(next)) {
+        ready.push(next);
+        ready.sort((a, b) => (layers[a]?.x || 0) - (layers[b]?.x || 0));
+      }
+    }
+  }
+  ids.forEach((id) => {
+    if (!seen.has(id)) order.push(id);
+  });
+  return order;
+}
+
 export const Canvas = ({ boardId }: { boardId: string }) => {
   const layerIds = useBoardStore(state => state.layerIds);
   const layers = useBoardStore(state => state.layers);
@@ -92,6 +174,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   const deleteLayers = useBoardStore(state => state.deleteLayers);
   const deleteEdge = useBoardStore(state => state.deleteEdge);
   const setInspectedNodeId = useBoardStore(state => state.setInspectedNodeId);
+  const activityLog = useBoardStore((state) => state.activity);
+  const pushActivity = useBoardStore((state) => state.pushActivity);
   const insertTemplate = useBoardStore(state => state.insertTemplate);
   
   const roles = useDemoStore(state => state.roles);
@@ -126,6 +210,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 });
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const stopPipelineRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const notePeopleRef = useRef<BoardPerson[]>([]);
   const [quickAddMenuFor, setQuickAddMenuFor] = useState<string | null>(null);
   const [presentationMode, setPresentationMode] = useState<{ active: boolean, layerId?: string }>({ active: false });
 
@@ -137,55 +224,100 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   }, []);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [activeHasResume, setActiveHasResume] = useState<boolean | null>(null);
+  const [activeCandidateId, setActiveCandidateId] = useState<string | null>(null);
   const [isMcpPanelOpen, setIsMcpPanelOpen] = useState(false);
-  const [showNewBoardDialog, setShowNewBoardDialog] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleRunSingleAgent = async (layerId: string): Promise<boolean> => {
+  const handleRunSingleAgent = async (layerId: string, lockedCandidateId?: string): Promise<boolean> => {
+    const store = useBoardStore.getState();
+    const layers = store.layers;
+    const edges = store.edges;
+    const updateLayer = store.updateLayer;
+    const setConnectionNotice = store.setConnectionNotice;
     const layer = layers[layerId];
     if (!layer || layer.type !== LayerType.Agent) return false;
     
-    // Non-agent nodes (e.g. input nodes, human gates) succeed immediately
+    if (layer.agentRole === 'input-job-details') {
+      const fromDoc = jobDescriptionText(layers);
+      const fromNode = typeof layer.outputData === 'string' ? layer.outputData.trim() : '';
+      const fromRole = String(currentRole?.jobDescription || '').trim();
+      const nodeIsFileName = /\.(pdf|docx?|pptx?|txt)$/i.test(fromNode);
+      const text = fromDoc || fromRole || (nodeIsFileName ? '' : fromNode);
+      if (!text) {
+        updateLayer(layerId, {
+          status: 'error',
+          outputData: undefined,
+          errorDetails: 'Add a job description on the job card, or in role setup.',
+        });
+        return false;
+      }
+      updateLayer(layerId, {
+        status: 'success',
+        outputData: text,
+        errorDetails: undefined,
+      });
+      persistJobDescription(boardId, text);
+      return true;
+    }
+
+    if (layer.agentRole === 'input-transcript') {
+      const text = String(layer.config?.transcriptText || layer.outputData || '').trim();
+      if (!text) {
+        updateLayer(layerId, {
+          status: 'error',
+          errorDetails: 'Paste the interview transcript on this step. Agents only score a transcript you provide.',
+        });
+        return false;
+      }
+      updateLayer(layerId, { status: 'success', outputData: text, errorDetails: undefined });
+      return true;
+    }
+
+    // Other input nodes and human gates succeed immediately
     if (!layer.agentRole?.startsWith('agent-')) {
-       updateLayer(layerId, { status: 'success' });
+       updateLayer(layerId, { status: 'success', errorDetails: undefined });
        return true;
     }
 
-    updateLayer(layerId, { status: 'running', errorDetails: undefined });
-    
-    // Find incoming edges
-    const incomingEdges = Object.values(edges).filter(e => e.toNodeId === layerId);
-    const upstreamNodeIds = incomingEdges.map(e => e.fromNodeId);
+    const activeCandIdEarly = lockedCandidateId !== undefined
+      ? lockedCandidateId
+      : (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') || '' : '');
+    const collected = collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandIdEarly);
+    const upstreamNodeIds = collected.upstreamNodeIds;
+    const clientUpstreamOutputs = collected.outputs;
 
-    let activeCandId = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') || '' : '';
-    if (!activeCandId) {
-      for (const upId of upstreamNodeIds) {
-        const upLayer = layers[upId] as any;
-        if (upLayer?.config?.candidateId) {
-          activeCandId = upLayer.config.candidateId;
-          break;
-        }
-      }
+    const activeCandId = activeCandIdEarly;
+
+    if (!activeCandId && layer.agentRole !== 'agent-jd-parser') {
+      const message = 'Pick a candidate on this role first. Use This role to add someone and attach a resume.';
+      setConnectionNotice({ tone: 'error', message });
+      return false;
     }
 
-    // Collect latest client outputs from upstream layers
-    const clientUpstreamOutputs: Record<string, any> = {};
-    for (const upId of upstreamNodeIds) {
-      const upLayer = layers[upId] as any;
-      if (upLayer?.outputData) {
-        if (upLayer.agentRole === 'agent-resume') clientUpstreamOutputs['ResumeAnalysis'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-interview-plan') clientUpstreamOutputs['InterviewPlan'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-interview-analysis') clientUpstreamOutputs['InterviewAnalysis'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-decision') clientUpstreamOutputs['CandidateDecision'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-concierge') clientUpstreamOutputs['ConciergeItinerary'] = upLayer.outputData;
-      }
+    const blockers = localRunBlockers(layer.agentRole, clientUpstreamOutputs, {
+      hasCandidate: !!activeCandId,
+      hasResume: personHasResume(notePeopleRef.current, activeCandId, activeHasResume),
+      hasJobDescription: !!currentRole?.jobDescription,
+    });
+    if (blockers.length) {
+      const message = blockers.join(' ');
+      if (activeCandId) recordCandidateRun(layerId, activeCandId, { ok: false, error: message });
+      else updateLayer(layerId, { status: 'error', errorDetails: message });
+      setConnectionNotice({ tone: 'error', message });
+      return false;
     }
 
+    if (activeCandId) markCandidateRun(layerId, activeCandId);
+    else updateLayer(layerId, { status: 'running', errorDetails: undefined });
+
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const response = await fetch('/api/agents/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           nodeId: layerId,
           agentType: layer.agentRole,
@@ -197,38 +329,90 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       });
 
       const data = await response.json();
+      if (stopPipelineRef.current) {
+        settleStoppedRun(layerId, activeCandId);
+        return false;
+      }
       
       if (response.ok && data.status !== 'ERROR' && data.status !== 'BLOCKED') {
-        updateLayer(layerId, { 
-          status: 'success', 
-          outputData: data.output,
-          inputData: data.input,
+        recordCandidateRun(layerId, activeCandId, {
+          ok: true,
+          output: data.output,
           executionTimeMs: data.executionTimeMs,
+          input: data.input,
           runId: data.runId,
-          errorDetails: undefined
         });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('candidateChanged'));
+        }
         return true;
       } else {
-        updateLayer(layerId, { 
-          status: 'error', 
-          errorDetails: data.error || data.missingInputs?.join(', ') || 'Execution failed',
-          inputData: data.input,
-          executionTimeMs: data.executionTimeMs
+        const message = data.error || (Array.isArray(data.missingInputs) ? data.missingInputs.join(', ') : '') || 'Execution failed';
+        recordCandidateRun(layerId, activeCandId, {
+          ok: false,
+          error: message,
+          executionTimeMs: data.executionTimeMs,
+          input: data.input,
         });
+        setConnectionNotice({ tone: 'error', message });
         return false;
       }
     } catch (e: any) {
-      updateLayer(layerId, { status: 'error', errorDetails: e.message });
+      if (e?.name === 'AbortError' || stopPipelineRef.current) {
+        settleStoppedRun(layerId, activeCandId);
+        return false;
+      }
+      recordCandidateRun(layerId, activeCandId, { ok: false, error: e.message || 'This step failed.' });
       return false;
+    } finally {
+      if (abortRef.current === controller) abortRef.current = null;
     }
   };
 
+  const connectionNotice = useBoardStore(state => state.connectionNotice);
+  const setConnectionNotice = useBoardStore(state => state.setConnectionNotice);
+
   useEffect(() => {
-    // Show new board setup dialog when canvas is empty (freshly created)
-    if (layerIds.length === 0) {
-      setShowNewBoardDialog(true);
-    }
-  }, []);
+    if (!connectionNotice) return;
+    const timer = setTimeout(() => setConnectionNotice(null), connectionNotice.tone === 'error' ? 14000 : 7000);
+    return () => clearTimeout(timer);
+  }, [connectionNotice, setConnectionNotice]);
+
+  useEffect(() => {
+    const syncResume = (event?: Event) => {
+      const candidate = (event as CustomEvent | undefined)?.detail?.candidate;
+      if (candidate?.id) setActiveCandidateId(candidate.id);
+      const id = candidate?.id || (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '');
+      const listed = id ? notePeopleRef.current.find((item) => item.id === id) : undefined;
+      if (candidate && 'resumeText' in candidate) {
+        setActiveHasResume(!!candidate.resumeText);
+        if (candidate.firstName || candidate.lastName) return;
+      } else if (listed && Object.prototype.hasOwnProperty.call(listed, 'resumeText')) {
+        setActiveHasResume(!!listed.resumeText);
+      }
+      if (id) setActiveCandidateId(id);
+      if (!id || !boardId || boardId === 'new-workflow') {
+        if (!id) {
+          setActiveCandidateId(null);
+          setActiveHasResume(null);
+        }
+        return;
+      }
+      fetch(`/api/candidates?candidateId=${id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const next = data.candidate || data.candidates?.[0];
+          setActiveHasResume(next ? !!next.resumeText : null);
+          if (next?.id && (next.firstName || next.lastName)) {
+            setNotePeople((people) => people.some((item) => item.id === next.id) ? people : [...people, next]);
+          }
+        })
+        .catch(() => setActiveHasResume(null));
+    };
+    syncResume();
+    window.addEventListener('candidateChanged', syncResume);
+    return () => window.removeEventListener('candidateChanged', syncResume);
+  }, [boardId]);
 
   // Handle file drag-and-drop onto canvas
   const handleFileDrop = useCallback(async (e: React.DragEvent) => {
@@ -246,17 +430,43 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       const file = files[i];
       const isResume = file.name.match(/\.(pdf|docx|doc|txt)$/i);
 
-      // Auto-ingest resumes directly into candidate pipeline
+      const placeOnBoard = (kind: string) => {
+        const nodeX = dropPoint.x + (i % 3) * 300;
+        const nodeY = dropPoint.y + Math.floor(i / 3) * 200;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target?.result as string;
+          if (file.type.startsWith('image/')) {
+            insertLayer(LayerType.Image, { x: nodeX, y: nodeY }, { r: 255, g: 255, b: 255 }, undefined, undefined, base64);
+            return;
+          }
+          const id = insertLayer(LayerType.Slide, { x: nodeX, y: nodeY }, { r: 255, g: 255, b: 255 });
+          updateLayer(id, {
+            width: 280,
+            height: 180,
+            fileSrc: base64,
+            value: file.name,
+            fileName: file.name,
+            docKind: kind,
+          } as any);
+        };
+        reader.readAsDataURL(file);
+      };
+
+      // Attach resumes to the selected person, and keep the file on the board.
       if (isResume && boardId && boardId !== 'new-workflow') {
+        const kind = documentKind(file.name) === 'JD' ? 'jd' : 'resume';
         try {
           let targetCandId = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : null;
+          let createdName = '';
 
-          if (!targetCandId) {
+          if (!targetCandId && kind === 'resume') {
             const cleanName = file.name.replace(/\.(pdf|docx|doc|txt)$/i, '').replace(/[-_]/g, ' ').replace(/\s+resume\b/i, '').trim();
             const parts = cleanName.split(/\s+/);
             const fName = parts[0] || 'Applicant';
             const lName = parts.slice(1).join(' ') || 'Candidate';
-            
+            createdName = `${fName} ${lName}`;
+
             const createRes = await fetch('/api/candidates', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -264,7 +474,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                 roleId: currentRole?.id || boardId,
                 firstName: fName,
                 lastName: lName,
-                email: `${fName.toLowerCase()}.${lName.toLowerCase()}@candidate.com`,
+                email: `${fName.toLowerCase()}.${lName.toLowerCase().replace(/\s+/g, '.')}@candidate.com`,
               })
             });
             const createData = await createRes.json();
@@ -273,171 +483,132 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             }
           }
 
-          if (targetCandId) {
+          if (kind === 'jd') {
+            setConnectionNotice({ tone: 'ok', message: `${file.name} is on this role as a job description. Agents read the job description saved in role setup.` });
+          } else if (targetCandId) {
             const formData = new FormData();
             formData.append('candidateId', targetCandId);
             formData.append('file', file);
-            const uploadRes = await fetch('/api/resumes/upload', {
-              method: 'POST',
-              body: formData
-            });
+            const uploadRes = await fetch('/api/resumes/upload', { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
             if (uploadData.success && uploadData.candidate) {
-              if (typeof window !== 'undefined') {
-                window.localStorage.setItem('activeCandidateId', uploadData.candidate.id);
-                window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: uploadData.candidate } }));
-              }
+              const person = `${uploadData.candidate.firstName || ''} ${uploadData.candidate.lastName || ''}`.trim() || createdName || 'the selected person';
+              window.localStorage.setItem('activeCandidateId', uploadData.candidate.id);
+              window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: uploadData.candidate } }));
+              setActiveHasResume(true);
+              pushActivity(uploadData.candidate.id, `Resume attached · ${file.name}`);
+              const emailNote = createdName ? ' Add a real email on This role before you draft outreach.' : '';
+              setConnectionNotice({ tone: 'ok', message: `Attached ${file.name} to ${person}. The file is also on this role as a resume.${emailNote}` });
+            } else {
+              setConnectionNotice({ tone: 'error', message: uploadData.error || `Could not attach ${file.name}. It is on the board. Select a person in This role and use Attach resume.` });
             }
+          } else {
+            setConnectionNotice({ tone: 'error', message: `Could not attach ${file.name}. It is on the board. Select a person in This role and use Attach resume.` });
           }
-        } catch (uploadErr) {
-          console.error('Failed to auto-ingest resume from canvas drop:', uploadErr);
+        } catch {
+          setConnectionNotice({ tone: 'error', message: `Could not attach ${file.name}. It is on the board. Select a person in This role and use Attach resume.` });
         }
+        placeOnBoard(kind);
         continue;
       }
 
-      const isOfficeDoc = file.name.match(/\.(ppt|pptx)$/i);
-      
-      if (isOfficeDoc) {
-        // Mock extraction: generate 10 slides horizontally
-        for (let s = 1; s <= 10; s++) {
-          const slideX = dropPoint.x + (s - 1) * 800;
-          const slideY = dropPoint.y;
-          const slideId = insertLayer(LayerType.Slide, { x: slideX, y: slideY }, { r: 255, g: 255, b: 255 });
-          updateLayer(slideId, { 
-            fileName: `${file.name} - Slide ${s}`,
-            value: `${file.name} - Slide ${s}`,
-            fileSrc: `/extracted_slides/slide_${s}.png`
-          } as any);
-        }
-      } else {
-        const nodeX = dropPoint.x + (i % 3) * 300;
-        const nodeY = dropPoint.y + Math.floor(i / 3) * 200;
-        
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = event.target?.result as string;
-          if (file.type.startsWith('image/')) {
-            insertLayer(LayerType.Image, { x: nodeX, y: nodeY }, { r: 255, g: 255, b: 255 }, undefined, undefined, base64);
-          } else {
-            const id = insertLayer(LayerType.Slide, { x: nodeX, y: nodeY }, { r: 255, g: 255, b: 255 });
-            updateLayer(id, { fileSrc: base64, value: file.name, fileName: file.name } as any);
-          }
-        };
-        reader.readAsDataURL(file);
+      placeOnBoard(documentKind(file.name).toLowerCase());
+    }
+  }, [camera, insertLayer, updateLayer, boardId, currentRole, pushActivity]);
+
+  const [runQueue, setRunQueue] = useState<{ active: string; next: string[]; who: string } | null>(null);
+  const [openResultId, setOpenResultId] = useState<string | null>(null);
+  const [notePeople, setNotePeople] = useState<BoardPerson[]>([]);
+  notePeopleRef.current = notePeople;
+
+  useEffect(() => {
+    if (!boardId || boardId === 'new-workflow') return;
+    const applyPeople = (data: { candidates?: BoardPerson[] } | BoardPerson[]) => {
+      const people = Array.isArray(data) ? data : data?.candidates || [];
+      setNotePeople(people);
+      notePeopleRef.current = people;
+      const id = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '';
+      const person = people.find((item) => item.id === id);
+      if (person && Object.prototype.hasOwnProperty.call(person, 'resumeText')) {
+        setActiveHasResume(!!person.resumeText);
       }
-    }
-  }, [camera, insertLayer, updateLayer, boardId, currentRole]);
+    };
+    fetch(`/api/candidates?roleId=${boardId}`)
+      .then((res) => res.json())
+      .then(applyPeople)
+      .catch(() => setNotePeople([]));
+    const refreshPeople = () => {
+      fetch(`/api/candidates?roleId=${boardId}`)
+        .then((res) => res.json())
+        .then(applyPeople)
+        .catch(() => undefined);
+    };
+    window.addEventListener('candidateChanged', refreshPeople);
+    return () => window.removeEventListener('candidateChanged', refreshPeople);
+  }, [boardId]);
 
-  // Handle template selection on new board dialog
-  const handleTemplateSetup = useCallback((templateId: string | null) => {
-    setShowNewBoardDialog(false);
-    if (!templateId) return; // User chose blank canvas
-
-    const cx = 200;
-    const cy = 200;
-    const gap = 340;
-
-    if (templateId === 'standard') {
-      const n1 = insertLayer(LayerType.Agent, { x: cx, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'input-job-details', undefined, getInitialConfig('entry-node'));
-      const n2 = insertLayer(LayerType.Agent, { x: cx + gap, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-resume', undefined, getInitialConfig('agent-resume'));
-      const n3 = insertLayer(LayerType.Agent, { x: cx + gap * 2, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-interview-plan', undefined, getInitialConfig('agent-interview-plan'));
-      const n4 = insertLayer(LayerType.Agent, { x: cx + gap * 3, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-interview-analysis', undefined, getInitialConfig('agent-interview-analysis'));
-      const n5 = insertLayer(LayerType.Agent, { x: cx + gap * 4, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-decision', undefined, getInitialConfig('agent-decision'));
-      const n6 = insertLayer(LayerType.Agent, { x: cx + gap * 5, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-concierge', undefined, getInitialConfig('agent-concierge'));
-      insertEdge(n1, n2); insertEdge(n2, n3); insertEdge(n3, n4); insertEdge(n4, n5); insertEdge(n5, n6);
-    } else if (templateId === 'tech') {
-      const n1 = insertLayer(LayerType.Agent, { x: cx, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'input-job-details', undefined, getInitialConfig('entry-node'));
-      const n2 = insertLayer(LayerType.Agent, { x: cx + gap, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-resume', undefined, getInitialConfig('agent-resume'));
-      const n3 = insertLayer(LayerType.Agent, { x: cx + gap * 2, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-interview-plan', undefined, getInitialConfig('agent-interview-plan'));
-      const n4 = insertLayer(LayerType.Agent, { x: cx + gap * 3, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-interview-analysis', undefined, getInitialConfig('agent-interview-analysis'));
-      const n5 = insertLayer(LayerType.Agent, { x: cx + gap * 4, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-decision', undefined, getInitialConfig('agent-decision'));
-      insertEdge(n1, n2); insertEdge(n2, n3); insertEdge(n3, n4); insertEdge(n4, n5);
-    } else if (templateId === 'highvolume') {
-      const n1 = insertLayer(LayerType.Agent, { x: cx, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'input-candidate', undefined, getInitialConfig('input-candidate'));
-      const n2 = insertLayer(LayerType.Agent, { x: cx + gap, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-resume', undefined, getInitialConfig('agent-resume'));
-      const n3 = insertLayer(LayerType.Agent, { x: cx + gap * 2, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'gate-shortlist', undefined, getInitialConfig('gate-shortlist'));
-      const n4 = insertLayer(LayerType.Agent, { x: cx + gap * 3, y: cy }, { r: 255, g: 255, b: 255 }, undefined, 'agent-decision', undefined, getInitialConfig('agent-decision'));
-      insertEdge(n1, n2); insertEdge(n2, n3); insertEdge(n3, n4);
-    }
-  }, [insertLayer, insertEdge, currentRole]);
-
-  // Workflow orchestration engine - True DAG Topological Execution (n8n paradigm)
   const runWorkflow = async () => {
-    if (isRunning) return;
-    setIsRunning(true);
-    
-    const agentIds = layerIds.filter(id => layers[id]?.type === LayerType.Agent);
-    if (agentIds.length === 0) {
-      setIsRunning(false);
+    if (isRunning) {
+      stopPipelineRef.current = true;
+      abortRef.current?.abort();
       return;
     }
-
-    // Reset status of all nodes
-    agentIds.forEach(id => updateLayer(id, { status: 'idle', errorDetails: undefined }));
-
-    // Build DAG adjacency and in-degree map
-    const inDegree: Record<string, number> = {};
-    const adj: Record<string, string[]> = {};
-    
-    agentIds.forEach(id => {
-      inDegree[id] = 0;
-      adj[id] = [];
-    });
-
-    Object.values(edges).forEach(edge => {
-      if (inDegree[edge.toNodeId] !== undefined && adj[edge.fromNodeId] !== undefined) {
-        inDegree[edge.toNodeId]++;
-        adj[edge.fromNodeId].push(edge.toNodeId);
-      }
-    });
-
-    // Nodes with in-degree 0 are ready to execute first
-    const readyQueue: string[] = agentIds.filter(id => inDegree[id] === 0);
-    
-    // Fallback: If no node has in-degree 0 (e.g. cycles), sort by x coordinate
-    if (readyQueue.length === 0) {
-      readyQueue.push(...[...agentIds].sort((a, b) => (layers[a]?.x || 0) - (layers[b]?.x || 0)));
+    const state = useBoardStore.getState();
+    const order = orderedAgentIds(state.layerIds, state.layers, state.edges);
+    const stepName = (id: string) => {
+      const layer = useBoardStore.getState().layers[id] as { value?: string; agentRole?: string } | undefined;
+      return layer?.value || getNodeSpec(layer?.agentRole).displayName;
+    };
+    if (order.length === 0) {
+      state.setConnectionNotice({ tone: 'error', message: 'There is no pipeline on this role yet. Pick a template in role setup, then run it for one person.' });
+      return;
     }
-
-    const executed = new Set<string>();
+    const candId = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '';
+    if (!candId) {
+      state.setConnectionNotice({ tone: 'error', message: 'Select a person on this role, then run the pipeline. Every step scores whoever is selected.' });
+      return;
+    }
+    const startedName = personLabel(notePeopleRef.current, candId);
+    stopPipelineRef.current = false;
+    setIsRunning(true);
     const failed = new Set<string>();
-
-    while (readyQueue.length > 0) {
-      const currentId = readyQueue.shift()!;
-      if (executed.has(currentId)) continue;
-
-      // Check if any upstream node failed
-      const upstreamEdges = Object.values(edges).filter(e => e.toNodeId === currentId);
-      const hasFailedUpstream = upstreamEdges.some(e => failed.has(e.fromNodeId));
-
-      if (hasFailedUpstream) {
-        updateLayer(currentId, { 
-          status: 'error', 
-          errorDetails: 'Blocked: Upstream node execution failed.' 
-        });
+    let stopped = false;
+    for (let index = 0; index < order.length; index += 1) {
+      if (stopPipelineRef.current) {
+        stopped = true;
+        break;
+      }
+      const currentId = order[index];
+      const upcoming = order.slice(index + 1, index + 4).map(stepName);
+      setRunQueue({ active: stepName(currentId), next: upcoming, who: startedName });
+      const freshEdges = Object.values(useBoardStore.getState().edges);
+      const blockerId = freshEdges.find((edge) => edge.toNodeId === currentId && failed.has(edge.fromNodeId))?.fromNodeId;
+      if (blockerId) {
+        const message = `Stopped because ${stepName(blockerId)} did not finish. Fix that step, then run the pipeline again.`;
+        recordCandidateRun(currentId, candId, { ok: false, error: message });
         failed.add(currentId);
-        executed.add(currentId);
         continue;
       }
-
-      // Execute current node
-      const success = await handleRunSingleAgent(currentId);
-      executed.add(currentId);
-
-      if (!success) {
-        failed.add(currentId);
-      } else {
-        // Decrement in-degree of downstream neighbors
-        for (const neighborId of adj[currentId] || []) {
-          inDegree[neighborId]--;
-          if (inDegree[neighborId] <= 0 && !executed.has(neighborId)) {
-            readyQueue.push(neighborId);
-          }
-        }
+      const success = await handleRunSingleAgent(currentId, candId);
+      if (stopPipelineRef.current) {
+        stopped = true;
+        break;
       }
+      if (!success) failed.add(currentId);
     }
-
     setIsRunning(false);
+    setRunQueue(null);
+    stopPipelineRef.current = false;
+    const notice = useBoardStore.getState().setConnectionNotice;
+    if (stopped) {
+      pushActivity(candId, 'Pipeline stopped');
+      notice({ tone: 'ok', message: `Pipeline stopped for ${startedName}. Earlier results stay on the steps.` });
+    } else if (failed.size) {
+      notice({ tone: 'error', message: `${failed.size} step${failed.size === 1 ? '' : 's'} need a fix for ${startedName}. Read the message on the step. Earlier results stay where they are.` });
+    } else {
+      notice({ tone: 'ok', message: `Pipeline finished for ${startedName}. Their results stay on the steps when you switch people.` });
+    }
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('candidateChanged'));
   };
   
   // Track pencil drawing state locally before committing
@@ -470,11 +641,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             if (cmd.action === 'add_agent') {
               insertLayer(
                 LayerType.Agent,
-                cmd.x || 100,
-                cmd.y || 100,
-                '',
-                cmd.title || 'AI Agent',
-                undefined,
+                { x: Number(cmd.x) || 100, y: Number(cmd.y) || 100 },
+                { r: 255, g: 255, b: 255 },
                 undefined,
                 cmd.agentRole
               );
@@ -492,7 +660,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+      const active = document.activeElement;
+      if (presentationMode.active || active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.closest('[role="dialog"]') || document.querySelector('[role="dialog"]')) return;
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const selected = selections['local-user'];
         if (selected && selected.length > 0) {
@@ -512,7 +681,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selections, deleteLayers, deleteEdge, setSelection, layerIds, edgeIds]);
+  }, [selections, deleteLayers, deleteEdge, setSelection, layerIds, edgeIds, presentationMode.active]);
 
   const onWheel = useCallback((e: React.WheelEvent) => {
     e.stopPropagation();
@@ -551,10 +720,16 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       const newLayerId = insertLayer(canvasState.layerType, point, { r: 255, g: 255, b: 255 }, undefined, canvasState.agentRole, (canvasState as any).src, getInitialConfig(canvasState.agentRole));
       
       if (canvasState.layerType === LayerType.Slide && (canvasState as any).fileSrc) {
-        updateLayer(newLayerId, { 
-          fileSrc: (canvasState as any).fileSrc, 
-          value: (canvasState as any).fileName 
-        });
+        const fileName = (canvasState as any).fileName as string | undefined;
+        const kind = documentKind(fileName);
+        updateLayer(newLayerId, {
+          fileSrc: (canvasState as any).fileSrc,
+          value: fileName,
+          fileName,
+          docKind: kind === 'JD' ? 'jd' : kind === 'Resume' ? 'resume' : kind === 'Deck' ? 'deck' : 'other',
+          width: 280,
+          height: 180,
+        } as any);
       }
       
       setCanvasState({ mode: CanvasMode.None });
@@ -751,7 +926,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                                 <FileText className="w-10 h-10 text-blue-300 drop-shadow-md" />
                               </div>
                               <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-md bg-gradient-to-br from-white to-blue-200 bg-clip-text text-transparent">{(layer as any).fileName?.replace(/\.[^/.]+$/, "") || 'Presentation'}</h2>
-                              <p className="text-blue-200/80 text-lg mb-8 font-medium max-w-lg">Job Ninjas Interactive Presentation</p>
+                              <p className="text-blue-200/80 text-lg mb-8 font-medium max-w-lg">JobNinjas presentation</p>
                             </div>
                          </div>
                     )}
@@ -875,7 +1050,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
               {/* Left Input Port Connector (n8n port dot) */}
               <div
                 className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border-2 border-slate-300 hover:border-indigo-600 flex items-center justify-center cursor-crosshair z-30 transition-transform hover:scale-110 shadow-xs group/inport pointer-events-auto"
-                title="Input Port (Connect upstream node)"
+                title={`Receives ${nodeSpec.inputs.map((port) => dataTypeLabel(port.type)).join(", ") || "no typed input"}`}
                 onPointerDown={(e) => {
                   e.stopPropagation();
                   if (canvasState.mode === CanvasMode.Connecting && canvasState.fromNodeId && canvasState.fromNodeId !== layerId) {
@@ -890,7 +1065,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
               {/* Right Output Port Connector (n8n port dot) */}
               <div
                 className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border-2 border-indigo-500 hover:border-indigo-700 flex items-center justify-center cursor-crosshair z-30 transition-transform hover:scale-110 shadow-xs group/outport pointer-events-auto"
-                title="Output Port (Drag or click to connect downstream node)"
+                title={`Sends ${nodeSpec.outputs.map((port) => dataTypeLabel(port.type)).join(", ") || "no typed output"}`}
                 onPointerDown={(e) => {
                   e.stopPropagation();
                   setCanvasState({
@@ -916,27 +1091,38 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
                 {/* Status Indicator Pill */}
                 <div className="flex items-center gap-1.5">
-                  {layer.status === 'running' && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200 animate-pulse">
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      Running
-                    </span>
-                  )}
-                  {layer.status === 'success' && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                      ✓ {layer.executionTimeMs ? `${(layer.executionTimeMs / 1000).toFixed(1)}s` : 'Done'}
-                    </span>
-                  )}
-                  {layer.status === 'error' && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                      ✕ Error
-                    </span>
-                  )}
-                  {(!layer.status || layer.status === 'idle') && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Idle
-                    </span>
-                  )}
+                  {(() => {
+                    const shared = isSharedStep(layer.agentRole);
+                    const forPerson = !!layer.agentRole?.startsWith('agent-') && !shared;
+                    const scoped = outputForCandidate(layer, forPerson ? activeCandidateId : undefined);
+                    const scopedError = forPerson ? (layer.config?.errorsByCandidate?.[activeCandidateId || ''] as string | undefined) : (layer.status === 'error' ? layer.errorDetails : undefined);
+                    const running = layer.status === 'running' && (!forPerson || !layer.config?.lastRunCandidateId || layer.config.lastRunCandidateId === activeCandidateId);
+                    const upstream = forPerson ? collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandidateId).outputs : {};
+                    const blockers = forPerson ? localRunBlockers(layer.agentRole, upstream, {
+                      hasCandidate: !!activeCandidateId,
+                      hasResume: personHasResume(notePeople, activeCandidateId, activeHasResume),
+                      hasJobDescription: !!(currentRole?.jobDescription || outputForCandidate(Object.values(layers).find((item) => (item as { agentRole?: string }).agentRole === 'input-job-details') as { agentRole?: string; outputData?: unknown } | undefined, null)),
+                    }) : [];
+                    const health = stepHealth({
+                      running,
+                      hasResult: scoped != null && scoped !== '',
+                      hasError: !!scopedError && !running,
+                      blocked: forPerson ? (!activeCandidateId || blockers.length > 0) : layer.status === 'error',
+                    });
+                    const tone = health === 'done'
+                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                      : health === 'blocked'
+                      ? 'text-amber-800 bg-amber-50 border-amber-200'
+                      : health === 'running'
+                      ? 'text-indigo-700 bg-indigo-50 border-indigo-200'
+                      : 'text-slate-500 bg-slate-50 border-slate-200';
+                    const label = health === 'running' ? 'Running' : health === 'done' ? 'Done' : health === 'blocked' ? 'Blocked' : 'Ready';
+                    return (
+                      <span title={scopedError || blockers[0] || label} className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${tone} ${health === 'running' ? 'animate-pulse' : ''}`}>
+                        {label}
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -946,22 +1132,53 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                   <h4 className="font-bold text-slate-900 text-[14px] leading-tight mb-1">
                     {layer.value || nodeSpec.displayName}
                   </h4>
-                  <p className="text-[11px] text-slate-500 line-clamp-2 leading-snug">
-                    {layer.outputData ? (
-                      layer.agentRole === 'agent-resume' 
-                        ? `Score: ${layer.outputData.overallMatch}% • ${layer.outputData.skills?.length || 0} skills verified`
-                        : layer.agentRole === 'agent-interview-plan'
-                        ? `${layer.outputData.sections?.length || 0} stages • ${layer.outputData.durationMinutes || 60}m`
-                        : 'Structured output ready'
-                    ) : (
-                      nodeSpec.subtitle
-                    )}
+                  {layer.agentRole?.startsWith('agent-') && !isSharedStep(layer.agentRole) && (
+                    <p className="mb-1 text-[10px] font-medium text-indigo-700">
+                      {activeCandidateId
+                        ? `For ${(notePeople.find((item) => item.id === activeCandidateId) ? `${notePeople.find((item) => item.id === activeCandidateId)?.firstName || ''} ${notePeople.find((item) => item.id === activeCandidateId)?.lastName || ''}`.trim() : 'the selected person')}`
+                        : 'Select a person'}
+                    </p>
+                  )}
+                  <p className={`text-[11px] leading-snug ${layer.config?.errorsByCandidate?.[activeCandidateId || ''] ? 'line-clamp-3 text-rose-700' : 'line-clamp-2 text-slate-500'}`}>
+                    {(() => {
+                      const shared = isSharedStep(layer.agentRole);
+                      const forPerson = !!layer.agentRole?.startsWith('agent-') && !shared;
+                      const scoped = outputForCandidate(layer, forPerson ? activeCandidateId : undefined);
+                      const scopedError = forPerson ? layer.config?.errorsByCandidate?.[activeCandidateId || ''] : (layer.status === 'error' ? layer.errorDetails : undefined);
+                      const running = layer.status === 'running' && (!forPerson || !layer.config?.lastRunCandidateId || layer.config.lastRunCandidateId === activeCandidateId);
+                      const person = notePeople.find((item) => item.id === activeCandidateId);
+                      const personName = person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : 'the selected person';
+                      if (running) return `Running this step for ${personName}…`;
+                      if (!forPerson) {
+                        if (scopedError) return scopedError;
+                        if (scoped != null && scoped !== '') return summarizeAgentOutput(layer.agentRole, scoped);
+                        return plainLanguage(layer.agentRole);
+                      }
+                      if (!activeCandidateId) return 'Select a person in This role. This step will not show someone else’s result.';
+                      if (scopedError) return scopedError;
+                      if (scoped != null && scoped !== '') return summarizeAgentOutput(layer.agentRole, scoped);
+                      return `No result yet for ${personName}.`;
+                    })()}
                   </p>
+                  {!!layer.agentRole?.startsWith('agent-') && !isSharedStep(layer.agentRole) && layer.config?.errorsByCandidate?.[activeCandidateId || ''] && outputForCandidate(layer, activeCandidateId) != null && (
+                    <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-slate-500">
+                      Last result: {summarizeAgentOutput(layer.agentRole, outputForCandidate(layer, activeCandidateId))}
+                    </p>
+                  )}
+                  {isSelected && (
+                    <p className="mt-1 truncate text-[10px] text-slate-500">
+                      In {nodeSpec.inputs.length ? nodeSpec.inputs.map((port) => dataTypeLabel(port.type)).join(" · ") : "—"}
+                      {" → "}
+                      Out {nodeSpec.outputs.length ? nodeSpec.outputs.map((port) => dataTypeLabel(port.type)).join(" · ") : "—"}
+                    </p>
+                  )}
                 </div>
 
                 {/* Node Action Footer */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
                   <button
+                    type="button"
+                    aria-label="Open inspector"
                     onClick={(e) => {
                       e.stopPropagation();
                       setInspectedNodeId(layerId);
@@ -993,20 +1210,40 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                       </button>
                     )}
 
-                    {layer.agentRole?.startsWith('agent-') && (
+                    {artifactKind(layer.agentRole, outputForCandidate(layer, isSharedStep(layer.agentRole) ? undefined : activeCandidateId)) && (
+                      <button
+                        type="button"
+                        aria-label={`View ${artifactTitle(artifactKind(layer.agentRole, outputForCandidate(layer, isSharedStep(layer.agentRole) ? undefined : activeCandidateId))!)} for ${activeCandidateId ? 'the selected person' : 'this step'}`}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenResultId(layerId);
+                        }}
+                        className="px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-50 rounded-lg pointer-events-auto cursor-pointer"
+                      >
+                        View
+                      </button>
+                    )}
+
+                    {layer.agentRole?.startsWith('agent-') && (() => {
+                      const runningHere = layer.status === 'running' && (isSharedStep(layer.agentRole) || !layer.config?.lastRunCandidateId || layer.config.lastRunCandidateId === activeCandidateId);
+                      return (
                       <button 
+                        type="button"
+                        aria-label="Run this step for the selected person"
                         onClick={(e) => { 
                           e.stopPropagation(); 
                           handleRunSingleAgent(layerId); 
                         }}
-                        disabled={layer.status === 'running'}
+                        disabled={runningHere}
                         className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 pointer-events-auto cursor-pointer"
-                        title="Test step"
+                        title="Run this step for the selected person"
                       >
-                        {layer.status === 'running' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />}
-                        Test step
+                        {runningHere ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />}
+                        Run step
                       </button>
-                    )}
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1037,11 +1274,63 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                 className="h-2 w-full shrink-0"
                 style={{ backgroundColor: layer.fill ? `rgb(${layer.fill.r}, ${layer.fill.g}, ${layer.fill.b})` : '#fef08a' }}
               />
-              <div className="p-5 flex-1 flex flex-col bg-slate-50/30">
+              <div className="flex items-center justify-between gap-2 px-3 pt-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Team note</span>
+                <span className="text-[10px] text-slate-400">Agents do not read this.</span>
+              </div>
+              {isSelected && (
+                <div className="flex flex-wrap items-center gap-1 px-3 pt-2" onPointerDown={(e) => e.stopPropagation()}>
+                  {NOTE_COLORS.map((color) => (
+                    <button
+                      key={color.name}
+                      type="button"
+                      title={color.name}
+                      aria-label={`${color.name} note color`}
+                      onClick={() => updateLayer(layerId, { fill: color.fill })}
+                      className="h-4 w-4 rounded-full border border-white/80"
+                      style={{ backgroundColor: `rgb(${color.fill.r}, ${color.fill.g}, ${color.fill.b})` }}
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    aria-pressed={!!(layer as any).config?.pinned}
+                    aria-label={(layer as any).config?.pinned ? 'Unpin note' : 'Pin note'}
+                    onClick={() => updateLayer(layerId, { config: { ...((layer as any).config || {}), pinned: !(layer as any).config?.pinned } } as any)}
+                    className={`rounded-md px-1.5 py-0.5 text-[10px] ${(layer as any).config?.pinned ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
+                  >
+                    {(layer as any).config?.pinned ? 'Pinned' : 'Pin'}
+                  </button>
+                  <select
+                    value={(layer as any).config?.candidateId || ''}
+                    onChange={(event) => {
+                      const person = notePeople.find((item) => item.id === event.target.value);
+                      updateLayer(layerId, {
+                        config: {
+                          ...((layer as any).config || {}),
+                          candidateId: person?.id || '',
+                          candidateName: person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : '',
+                        },
+                      } as any);
+                    }}
+                    aria-label="Link this note to a person"
+                    className="max-w-[140px] rounded-md border border-slate-200 bg-white px-1 py-0.5 text-[10px] text-slate-700"
+                    title="Link this note to a person. Agents still do not read it."
+                  >
+                    <option value="">Not about one person</option>
+                    {notePeople.map((person) => (
+                      <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {(layer as any).config?.candidateName && (
+                <p className="px-3 pt-1 text-[10px] text-slate-500">About {(layer as any).config.candidateName}. Agents do not read this.</p>
+              )}
+              <div className="px-5 pb-4 pt-1 flex-1 flex flex-col bg-slate-50/30">
                 <textarea
                   value={layer.value || ""}
                   onChange={(e) => updateLayer(layerId, { value: e.target.value })}
-                  placeholder={isSelected ? "Type note here..." : ""}
+                  placeholder={isSelected ? "Write a note for your team. Agents do not read this." : ""}
                   className={`w-full h-full bg-transparent border-none outline-none resize-none placeholder:text-slate-400 font-medium text-slate-700 text-[13px] leading-relaxed ${!isSelected && 'pointer-events-none'}`}
                   onPointerDown={(e) => isSelected ? e.stopPropagation() : undefined}
                   onKeyDown={(e) => e.stopPropagation()}
@@ -1075,7 +1364,40 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           />
         )}
 
-        {layer.type === LayerType.Text && (
+        {layer.type === LayerType.Text && (layer as any).docKind === 'jd' && (
+          <foreignObject
+            x={0}
+            y={0}
+            width={layer.width || 280}
+            height={layer.height || 220}
+          >
+            <div className={`flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white shadow-sm ${isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-200'}`}>
+              <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-700">Job description</span>
+                <span className="text-[10px] text-slate-400">Read by JD Parser</span>
+              </div>
+              <textarea
+                value={layer.value || ""}
+                aria-label="Job description"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  updateLayer(layerId, { value });
+                  const jobId = useBoardStore.getState().layerIds.find((id) => (useBoardStore.getState().layers[id] as { agentRole?: string } | undefined)?.agentRole === 'input-job-details');
+                  if (jobId) {
+                    updateLayer(jobId, { outputData: value, status: value.trim() ? 'success' : 'idle', errorDetails: undefined });
+                  }
+                  persistJobDescription(boardId, value);
+                }}
+                placeholder="Job description for this role"
+                className={`w-full flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-relaxed text-slate-700 outline-none ${!isSelected && 'pointer-events-none'}`}
+                onPointerDown={(e) => isSelected ? e.stopPropagation() : undefined}
+                onKeyDown={(e) => e.stopPropagation()}
+              />
+            </div>
+          </foreignObject>
+        )}
+
+        {layer.type === LayerType.Text && (layer as any).docKind !== 'jd' && (
           <foreignObject
             x={0}
             y={0}
@@ -1192,6 +1514,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                           onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
+                            const verdict = validateConnection(layer, { type: LayerType.Agent, agentRole: agent.role });
+                            if (!verdict.ok) {
+                              setConnectionNotice({ tone: 'error', message: verdict.message });
+                              return;
+                            }
                             const newId = insertLayer(
                               LayerType.Agent,
                               { x: layer.x + (layer.width || 100) + 100, y: layer.y },
@@ -1205,6 +1532,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                             setSelection([newId]);
                             setQuickAddMenuFor(null);
                           }}
+                          title={plainLanguage(agent.role)}
                           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors group/agent text-left"
                         >
                           <div className={`p-1.5 rounded-md ${agent.bg} ${agent.color}`}>
@@ -1228,7 +1556,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
   return (
     <main 
-      className="h-full w-full relative touch-none overflow-hidden bg-background" 
+      className="h-full w-full relative touch-none overflow-hidden bg-[#08090a]" 
       style={{ 
         cursor: canvasState.mode === CanvasMode.Pressing ? 'grabbing' : 
                 canvasState.mode === CanvasMode.Inserting ? 'crosshair' : 
@@ -1240,25 +1568,23 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       >
       
       {/* === FEATURE 1.5: Blank Canvas Onboarding === */}
-      {layerIds.length === 0 && !isDragOver && (
+      {boardId === 'new-workflow' && layerIds.length === 0 && !isDragOver && (
         <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-4 text-slate-400">
-            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center">
-              <Plus className="w-8 h-8 text-slate-300" />
-            </div>
-            <p className="text-xl font-bold text-slate-300">Your canvas is empty</p>
-            <p className="text-sm">Drag an agent from the toolbar below to start building your pipeline.</p>
+          <div className="flex max-w-sm flex-col items-center gap-3 rounded-lg border border-white/10 bg-[#111214] px-6 py-5 text-center shadow-xl">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">JobNinjas</p>
+            <p className="text-base font-medium text-white">No hiring pipeline yet</p>
+            <p className="text-sm text-[#b1b3b8]">Add a hiring step from the left, or open a role and start from a template.</p>
           </div>
         </div>
       )}
 
       {/* === FEATURE 1: Drag & Drop overlay === */}
       {isDragOver && (
-        <div className="absolute inset-0 z-[200] bg-indigo-500/10 border-4 border-dashed border-indigo-400 flex flex-col items-center justify-center pointer-events-none">
-          <div className="bg-white rounded-2xl shadow-2xl px-10 py-8 flex flex-col items-center gap-3">
-            <Upload className="w-12 h-12 text-indigo-600 animate-bounce" />
-            <p className="text-xl font-bold text-slate-800">Drop Resumes Here</p>
-            <p className="text-sm text-slate-500">PDF, Word, or TXT files will be parsed into candidate profiles automatically</p>
+        <div className="absolute inset-0 z-[200] flex flex-col items-center justify-center border-2 border-dashed border-[#5e6ad2] bg-black/40 pointer-events-none">
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-white/10 bg-[#111214] px-10 py-8 shadow-2xl">
+            <Upload className="h-10 w-10 text-[#c7c9ff]" />
+            <p className="text-lg font-medium text-white">Drop a resume or a job file</p>
+            <p className="max-w-sm text-center text-sm text-[#b1b3b8]">A resume attaches to the selected person. A job description stays on this role as a document.</p>
           </div>
         </div>
       )}
@@ -1276,118 +1602,44 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         }}
       />
 
-      {/* === FEATURE 3: New Board Setup Dialog === */}
-      {showNewBoardDialog && (
-        <div className="absolute inset-0 z-[300] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-[24px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] w-full max-w-2xl overflow-hidden border border-slate-100 transform transition-all">
-            {/* Minimal Header */}
-            <div className="px-8 pt-10 pb-6 text-center">
-              <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                <Workflow className="w-8 h-8 text-slate-900" />
-              </div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Create New Pipeline</h2>
-              <p className="text-slate-500 text-[15px]">Select an AI agent template or start with a blank canvas.</p>
-            </div>
-
-            <div className="px-8 pb-4 space-y-3">
-              {[
-                { id: 'standard', label: 'Standard Hiring Pipeline', desc: 'Job Details → Resume Verifier → Interview → Offer → Onboarding', tags: ['5 agents', 'All roles'], icon: '🎯' },
-                { id: 'tech', label: 'Tech Engineering Pipeline', desc: 'Resume → Tech Assessment → Transcript Analyzer → Candidate Ranker', tags: ['5 agents', 'Engineering'], icon: '💻' },
-                { id: 'highvolume', label: 'High-Volume Hiring', desc: 'Sourcing → Parallel screening → Ranking → Offer', tags: ['4 agents', 'Retail / Sales'], icon: '⚡' },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => { setSelectedTemplate(t.id); }}
-                  className={`w-full text-left rounded-2xl p-5 transition-all duration-200 border relative overflow-hidden group ${
-                    selectedTemplate === t.id 
-                      ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' 
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="text-2xl bg-white w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 shrink-0">
-                      {t.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-bold text-slate-900 text-[15px]">{t.label}</p>
-                        <div className="flex gap-2">
-                          {t.tags.map(tag => (
-                            <span key={tag} className="text-[11px] font-semibold bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full whitespace-nowrap shadow-sm">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-[13px] text-slate-500 truncate pr-4">{t.desc}</p>
-                    </div>
-                  </div>
-                  {/* Subtle active indicator */}
-                  {selectedTemplate === t.id && (
-                    <div className="absolute right-5 top-1/2 -translate-y-1/2">
-                      <CheckCircle className="w-5 h-5 text-slate-900" />
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="p-8 pt-4 flex gap-4 bg-white">
-              <button
-                onClick={() => handleTemplateSetup(null)}
-                className="flex-1 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-[15px] hover:bg-slate-50 hover:text-slate-900 transition-colors"
-              >
-                Start Blank
-              </button>
-              <button
-                onClick={() => handleTemplateSetup(selectedTemplate)}
-                disabled={!selectedTemplate}
-                className="flex-[2] py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 text-white font-bold text-[15px] transition-all flex items-center justify-center gap-2 shadow-sm"
-              >
-                Build Pipeline <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+      {connectionNotice && (
+        <div className={`absolute bottom-8 left-1/2 z-[80] flex w-[min(520px,calc(100%-2rem))] -translate-x-1/2 items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-xl ${
+          connectionNotice.tone === 'error'
+            ? 'border-red-400/40 bg-[#1a1214] text-red-100'
+            : 'border-white/10 bg-[#111214] text-white'
+        }`}>
+          <p className="flex-1 leading-relaxed">{connectionNotice.message}</p>
+          <button type="button" onClick={() => setConnectionNotice(null)} className="shrink-0 text-xs opacity-70 hover:opacity-100">
+            Dismiss
+          </button>
         </div>
       )}
 
-      {/* === FEATURE 2: MCP Connector Side Panel === */}
+      {/* MCP connectors */}
       {isMcpPanelOpen && (
-        <div className="absolute top-0 right-0 h-full w-80 z-[100] bg-white border-l border-slate-200 shadow-2xl flex flex-col">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50">
+        <div className="absolute top-0 right-0 h-full w-80 z-[100] bg-[#111214] border-l border-white/10 shadow-2xl flex flex-col text-white">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
             <div className="flex items-center gap-2">
-              <Plug className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-slate-800">MCP Connectors</h3>
+              <Plug className="w-5 h-5 text-[#c7c9ff]" />
+              <h3 className="font-medium text-white">Connectors</h3>
             </div>
-            <button onClick={() => setIsMcpPanelOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+            <button type="button" aria-label="Close connectors" onClick={() => setIsMcpPanelOpen(false)} className="text-[#8b8fa8] hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-2">Click to add a connector to the canvas</p>
-            {MCP_CONNECTORS.map((conn) => (
-              <button
-                key={conn.agentRole}
-                onClick={() => {
-                  const cx = (window.innerWidth / 2 - camera.x) / camera.zoom;
-                  const cy = (window.innerHeight / 2 - camera.y) / camera.zoom;
-                  insertLayer(LayerType.Agent, { x: cx, y: cy }, { r: 255, g: 255, b: 255 }, undefined, conn.agentRole);
-                  setIsMcpPanelOpen(false);
-                }}
-                className="w-full text-left flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all group"
-              >
-                <div className={`p-2 rounded-lg ${conn.bg} ${conn.color} shrink-0 group-hover:scale-110 transition-transform`}>
-                  <conn.icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-800 text-sm">{conn.label}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{conn.desc}</p>
-                </div>
-              </button>
-            ))}
+            <p className="text-xs leading-relaxed text-[#b1b3b8]">Nothing in this list sends, books, or writes to an ATS. Greenhouse import in This role is the live way to bring people in.</p>
+            <ul className="space-y-2">
+              {CONNECTOR_NOTES.map((conn) => (
+                <li key={conn.label} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+                  <p className="text-sm font-medium text-white">{conn.label}</p>
+                  <p className="mt-0.5 text-xs text-[#b1b3b8]">{conn.detail}</p>
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="p-4 border-t border-slate-200 bg-slate-50">
-            <p className="text-xs text-slate-400 text-center">More connectors coming soon. Connect via custom MCP API.</p>
+          <div className="p-4 border-t border-white/10">
+            <p className="text-center text-xs text-[#8b8fa8]">These rows do not add a step and do not sign in.</p>
           </div>
         </div>
       )}
@@ -1401,7 +1653,14 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         />
       )}
 
-      <Toolbar canvasState={canvasState} setCanvasState={setCanvasState} onOpenTemplates={() => setIsTemplatesOpen(true)} />
+      <BoardHelp />
+      <Toolbar canvasState={canvasState} setCanvasState={setCanvasState} onOpenTemplates={() => {
+        if (boardId && boardId !== 'new-workflow') {
+          window.dispatchEvent(new CustomEvent('openRoleSetup'));
+          return;
+        }
+        setIsTemplatesOpen(true);
+      }} />
       <LibraryModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} camera={camera} />
       <ZoomControls camera={camera} setCamera={setCamera} />
       <InspectorPanel boardId={boardId} />
@@ -1411,67 +1670,94 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         <div className="absolute top-4 left-4 z-50 flex items-center gap-3">
           <Link 
             href="/roles"
-            className="flex items-center justify-center w-10 h-10 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm text-slate-600 hover:text-indigo-600"
+            className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/10 bg-[#111214] text-[#b1b3b8] shadow-sm transition-colors hover:text-white"
             title="Back to Roles"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2">
-            <Workflow className="w-4 h-4 text-indigo-500" />
-            <h1 className="font-semibold text-slate-800 text-sm">
-              New AI Workflow
+          <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#111214] px-4 py-2.5 shadow-sm">
+            <Workflow className="w-4 h-4 text-[#c7c9ff]" />
+            <h1 className="text-sm font-medium text-white">
+              New hiring pipeline
             </h1>
           </div>
         </div>
       )}
       
-      {/* Top Bar Actions: Upload Resumes + Integrations */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+      {/* Top Bar Actions: Upload Resumes + Integrations + Run */}
+      <div className="absolute top-16 left-1/2 z-30 flex w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 flex-col items-center gap-2 sm:top-4">
+        <div className="flex max-w-full flex-wrap items-center justify-center gap-2">
         <button
+          type="button"
+          aria-label="Upload a resume for the selected person"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-3 py-2 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 hover:bg-white shadow-xs hover:shadow-sm transition-all cursor-pointer"
-          title="Upload candidate resumes (PDF, Word, TXT)"
+          className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs font-medium text-white shadow-xs transition-colors hover:border-[#5e6ad2]"
+          title="Upload a resume for the selected person"
         >
-          <Upload className="w-3.5 h-3.5 text-indigo-600" />
-          Upload Resumes
+          <Upload className="w-3.5 h-3.5 text-[#c7c9ff]" />
+          Upload resume
         </button>
         <button
+          type="button"
+          aria-label="Open connectors. Nothing here sends."
+          aria-pressed={isMcpPanelOpen}
           onClick={() => setIsMcpPanelOpen(v => !v)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer ${isMcpPanelOpen ? 'bg-indigo-600 text-white border border-indigo-600' : 'bg-white/95 backdrop-blur-md border border-slate-200/80 text-slate-700 hover:bg-white hover:shadow-sm'}`}
-          title="Connect Greenhouse, Workday, Gmail, Calendar..."
+          className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium shadow-xs transition-colors ${isMcpPanelOpen ? 'border border-[#5e6ad2] bg-[#5e6ad2] text-white' : 'border border-white/10 bg-[#111214] text-white hover:border-[#5e6ad2]'}`}
+          title="Nothing here sends. Greenhouse import is in This role."
         >
-          <Plug className="w-3.5 h-3.5 text-emerald-600" />
-          Integrations
+          <Plug className="w-3.5 h-3.5 text-[#c7c9ff]" />
+          Connectors
         </button>
-      </div>
-      
-      {/* Run Full Pipeline Button */}
-      <div className="absolute top-4 right-6 z-50">
         <button
+          type="button"
+          aria-label={isRunning ? 'Stop pipeline' : 'Run pipeline for the selected person'}
           onClick={runWorkflow}
-          disabled={isRunning}
-          className={`
-            flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer
-            ${isRunning 
-              ? 'bg-indigo-300 text-white cursor-not-allowed' 
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow-lg hover:-translate-y-0.5'}
-          `}
-          title="Execute all pipeline evaluation steps sequentially"
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-white shadow-md transition-colors ${isRunning ? 'border border-white/10 bg-[#111214] hover:border-[#5e6ad2]' : 'bg-[#5e6ad2] hover:bg-[#6d77d8]'}`}
+          title={isRunning ? 'Stop this run. Earlier results stay on the steps.' : 'Run each step in order for the selected person. Earlier results stay on the steps.'}
         >
-          {isRunning ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Play className="w-3.5 h-3.5 fill-current" />
-          )}
-          {isRunning ? 'Evaluating Pipeline...' : 'Run Full Pipeline'}
+          {isRunning ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+          {isRunning ? 'Stop' : 'Run pipeline'}
         </button>
+        </div>
+        {runQueue && (
+          <div className="w-full rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs text-white shadow-xl">
+            <p>Running <span className="font-medium">{runQueue.active}</span> for {runQueue.who}.</p>
+            <p className="mt-1 text-[#b1b3b8]">{runQueue.next.length ? `Next: ${runQueue.next.join(' → ')}` : 'This is the last step.'}</p>
+          </div>
+        )}
+        {activeCandidateId && (
+          <p className="pointer-events-none text-[11px] text-[#b1b3b8]">
+            Showing {personLabel(notePeople, activeCandidateId)}. Done, ready, and blocked are for this person.
+          </p>
+        )}
+        {activeCandidateId && (
+          <div className="w-full rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs text-[#b1b3b8] shadow-xl">
+            <p className="font-medium text-white">Recent for {personLabel(notePeople, activeCandidateId)}</p>
+            {(activityLog[activeCandidateId] || []).length === 0 ? (
+              <p className="mt-1">No actions yet for this person.</p>
+            ) : (
+              <ul className="mt-1 space-y-1">
+                {(activityLog[activeCandidateId] || []).slice(0, 4).map((entry, index) => (
+                  <li key={`${entry.at}-${index}`} className="truncate">
+                    <span className="text-[#8a8f98]">{formatActivityTime(entry.at)}</span>
+                    <span className="text-[#5e6ad2]"> · </span>
+                    {entry.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+        {!activeCandidateId && !runQueue && (
+          <p className="pointer-events-none text-[11px] text-[#b1b3b8]">Select a person in This role. Steps stay blank until you do.</p>
+        )}
       </div>
 
       {/* Grid Pattern and Arrowhead */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
         <defs>
           <pattern id="grid-pattern" x={camera.x % (24 * camera.zoom)} y={camera.y % (24 * camera.zoom)} width={24 * camera.zoom} height={24 * camera.zoom} patternUnits="userSpaceOnUse">
-            <circle cx={1 * camera.zoom} cy={1 * camera.zoom} r={1} fill="#cbd5e1" />
+            <circle cx={1 * camera.zoom} cy={1 * camera.zoom} r={0.6} fill="#2c2e33" />
           </pattern>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
             <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
@@ -1504,17 +1790,29 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             const p2 = getBoxIntersection(startCenter.x, startCenter.y, toLayer.x, toLayer.y, toLayer.width || 100, toLayer.height || 100, 16);
             
             const isSelected = selections['local-user']?.includes(edgeId);
+            const verdict = validateConnection(fromLayer, toLayer, [], { ignoreDuplicate: true });
+            const carries = edge.carries?.length ? edge.carries : verdict.carries;
+            const incompatible = !verdict.ok;
+            const edgeLabel = incompatible
+              ? "Incompatible"
+              : carries.length > 2
+                ? `${carries.slice(0, 2).join(" · ")} +${carries.length - 2}`
+                : carries.join(" · ");
+            const edgeTitle = incompatible ? verdict.message : `This connection carries ${carries.join(", ")}.`;
+            const midX = (p1.x + p2.x) / 2;
+            const midY = (p1.y + p2.y) / 2;
             
             const isNoteOrDoc = (l: any) => l.type === LayerType.Note || l.agentRole === 'word-doc' || l.agentRole === 'excel-doc';
             let pathD = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
 
             return (
               <g key={edgeId}>
+                <title>{edgeTitle}</title>
                 <path
                   d={pathD}
-                  stroke={isSelected ? "#3b82f6" : "#64748b"}
+                  stroke={incompatible ? "#e11d48" : isSelected ? "#5e6ad2" : "#64748b"}
                   strokeWidth={isSelected ? "4" : "3"}
-                  strokeDasharray="6,6"
+                  strokeDasharray={incompatible ? "2,6" : "6,6"}
                   fill="none"
                   markerEnd="url(#arrowhead)"
                   pointerEvents="auto"
@@ -1524,6 +1822,15 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                     setSelection([edgeId]);
                   }}
                 />
+                {(carries.length > 0 || incompatible) && (
+                  <foreignObject x={midX - 80} y={midY - 22} width={160} height={28} className="overflow-visible pointer-events-none">
+                    <div className={`mx-auto w-fit max-w-[160px] truncate rounded-full border px-2 py-0.5 text-center text-[10px] font-semibold ${
+                      incompatible ? "border-red-200 bg-red-50 text-red-700" : "border-slate-200 bg-white text-slate-600"
+                    }`}>
+                      {edgeLabel}
+                    </div>
+                  </foreignObject>
+                )}
                 {isSelected && (
                   <EdgeToolbar edgeId={edgeId} zoom={camera.zoom} />
                 )}
@@ -1654,6 +1961,16 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
+                                    const middle = { type: LayerType.Agent, agentRole: agent.role };
+                                    const intoMiddle = validateConnection(fromLayer, middle);
+                                    const outOfMiddle = validateConnection(middle, toLayer);
+                                    if (!intoMiddle.ok || !outOfMiddle.ok) {
+                                      setConnectionNotice({
+                                        tone: 'error',
+                                        message: !intoMiddle.ok ? intoMiddle.message : outOfMiddle.message,
+                                      });
+                                      return;
+                                    }
                                     const newId = insertLayer(
                                       LayerType.Agent,
                                       { x: midX - 125, y: midY - 60 },
@@ -1724,6 +2041,28 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           )}
         </g>
       </svg>
+      {openResultId && layers[openResultId] && artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, outputForCandidate(layers[openResultId] as { agentRole?: string; outputData?: unknown }, isSharedStep((layers[openResultId] as { agentRole?: string }).agentRole) ? undefined : activeCandidateId)) && (
+        <ArtifactSheet
+          key={`${openResultId}-${activeCandidateId || 'role'}`}
+          kind={artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, outputForCandidate(layers[openResultId] as { agentRole?: string; outputData?: unknown }, isSharedStep((layers[openResultId] as { agentRole?: string }).agentRole) ? undefined : activeCandidateId))!}
+          data={outputForCandidate(layers[openResultId] as { agentRole?: string; outputData?: unknown }, isSharedStep((layers[openResultId] as { agentRole?: string }).agentRole) ? undefined : activeCandidateId)}
+          candidateName={(() => {
+            const person = notePeople.find((item) => item.id === activeCandidateId);
+            return person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : undefined;
+          })()}
+          candidateSelected={!!activeCandidateId}
+          onSelectCandidate={() => {
+            const id = window.localStorage.getItem('activeCandidateId');
+            if (!id) return;
+            const person = notePeople.find((item) => item.id === id);
+            window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: person || { id } } }));
+          }}
+          onClose={() => setOpenResultId(null)}
+          onSaveOutreach={(next) => saveResultEdit('outreach', window.localStorage.getItem('activeCandidateId'), next)}
+          onSaveShortlist={(next) => saveResultEdit('shortlist', window.localStorage.getItem('activeCandidateId'), next)}
+          onSaveSchedule={(next) => saveResultEdit('schedule', window.localStorage.getItem('activeCandidateId'), next)}
+        />
+      )}
     </main>
   );
 };

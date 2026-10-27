@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { greenhouseAuthMessage } from '@/lib/integrations/greenhouse-message';
 
 export async function POST(req: Request) {
   try {
@@ -29,11 +30,10 @@ export async function POST(req: Request) {
     });
 
     if (!ghRes.ok) {
-      const errBody = await ghRes.text();
-      return NextResponse.json({ 
-        success: false, 
-        error: `Greenhouse authentication failed (${ghRes.status}): ${errBody || 'Invalid Harvest API Key or permissions.'}` 
-      }, { status: 401 });
+      return NextResponse.json({
+        success: false,
+        error: greenhouseAuthMessage(ghRes.status, 'confirm this key'),
+      }, { status: ghRes.status === 401 || ghRes.status === 403 ? 401 : ghRes.status });
     }
 
     const userData = await ghRes.json();

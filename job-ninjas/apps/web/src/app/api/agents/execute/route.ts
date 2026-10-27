@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { AgentRegistry } from '@/lib/agents/registry';
 import { AgentContext } from '@/lib/agents/types';
+import { applyArtifactAliases, explainMissingInputs } from '@/lib/agents/contracts';
 
 export async function POST(request: Request) {
   const startTime = Date.now();
@@ -9,9 +10,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { agentType, nodeId, roleId, candidateId, upstreamNodeIds, clientUpstreamOutputs } = body;
 
-    if (!agentType || !roleId || !candidateId || candidateId === 'MVP-CANDIDATE') {
+    if (!agentType || !roleId) {
       return NextResponse.json(
-        { error: 'Candidate required. Connect a candidate or select one before running this agent.' },
+        { error: 'Role and agent are required.' },
         { status: 400 }
       );
     }
@@ -24,16 +25,24 @@ export async function POST(request: Request) {
       );
     }
 
+    const candidateRequired = agentDef.needsCandidate !== false;
+    if (candidateRequired && (!candidateId || candidateId === 'MVP-CANDIDATE')) {
+      return NextResponse.json(
+        { error: 'Candidate required. Pick a candidate on this role, then run the step.' },
+        { status: 400 }
+      );
+    }
+
     // Load Context
     const role = await prisma.role.findUnique({ 
       where: { id: roleId } 
     });
     
-    const candidate = await prisma.candidate.findUnique({
-      where: { id: candidateId },
-    });
+    const candidate = candidateId && candidateId !== 'MVP-CANDIDATE'
+      ? await prisma.candidate.findUnique({ where: { id: candidateId } })
+      : null;
 
-    if (!role || !candidate) {
+    if (!role || (candidateRequired && !candidate)) {
       return NextResponse.json(
         { error: 'Role or Candidate not found in Database' },
         { status: 404 }
@@ -41,7 +50,7 @@ export async function POST(request: Request) {
     }
     
     const resolvedRoleId = role.id;
-    const resolvedCandidateId = candidate.id;
+    const resolvedCandidateId = candidate?.id || '';
 
     // Resolve Upstream Dependencies
     const upstreamOutputs: Record<string, any> = {};
@@ -49,7 +58,7 @@ export async function POST(request: Request) {
       Object.assign(upstreamOutputs, clientUpstreamOutputs);
     }
 
-    if (upstreamNodeIds && Array.isArray(upstreamNodeIds) && upstreamNodeIds.length > 0) {
+    if (candidate && upstreamNodeIds && Array.isArray(upstreamNodeIds) && upstreamNodeIds.length > 0) {
       // Find the latest successful runs for these nodes
       const upstreamRuns = await prisma.agentRun.findMany({
         where: {
@@ -70,7 +79,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Prepare unified input data representation for Inspector & Contract inspection
+    applyArtifactAliases(upstreamOutputs);
+
     const inputData = {
       role: {
         id: role.id,
@@ -80,7 +90,7 @@ export async function POST(request: Request) {
         jobDescription: role.jobDescription,
         description: role.jobDescription,
       },
-      candidate: {
+      candidate: candidate ? {
         id: candidate.id,
         firstName: candidate.firstName,
         lastName: candidate.lastName,
@@ -90,22 +100,24 @@ export async function POST(request: Request) {
         currentStage: candidate.stage,
         hasResume: !!candidate.resumeText,
         resumePreview: candidate.resumeText ? (candidate.resumeText.slice(0, 300) + '...') : null,
-      },
+      } : null,
       upstreamOutputs,
     };
 
-    // Create AgentRun (RUNNING)
-    const run = await prisma.agentRun.create({
-      data: {
-        organizationId: role.organizationId,
-        roleId: resolvedRoleId,
-        candidateId: resolvedCandidateId,
-        nodeId,
-        agentType,
-        status: 'RUNNING',
-        startedAt: new Date(),
-      },
-    });
+    let run: { id: string } | null = null;
+    if (candidate) {
+      run = await prisma.agentRun.create({
+        data: {
+          organizationId: role.organizationId,
+          roleId: resolvedRoleId,
+          candidateId: candidate.id,
+          nodeId,
+          agentType,
+          status: 'RUNNING',
+          startedAt: new Date(),
+        },
+      });
+    }
 
     // Validate Required Inputs
     const missingInputs = agentDef.requiredInputs.filter(
@@ -113,40 +125,44 @@ export async function POST(request: Request) {
     );
 
     if (missingInputs.length > 0) {
-      await prisma.agentRun.update({
-        where: { id: run.id },
-        data: {
-          status: 'ERROR',
-          errorDetails: `Missing required inputs: ${missingInputs.join(', ')}`,
-          completedAt: new Date(),
-        },
-      });
+      if (run) {
+        await prisma.agentRun.update({
+          where: { id: run.id },
+          data: {
+            status: 'ERROR',
+            errorDetails: explainMissingInputs(missingInputs),
+            completedAt: new Date(),
+          },
+        });
+      }
       return NextResponse.json(
         { 
           status: 'BLOCKED', 
           missingInputs, 
           input: inputData,
           executionTimeMs: Date.now() - startTime,
-          error: `Missing required inputs: ${missingInputs.join(', ')}` 
+          error: explainMissingInputs(missingInputs), 
         },
         { status: 400 }
       );
     }
 
-    // Special check for Resume Intelligence
-    if (agentType === 'agent-resume' && (!candidate.resumeText || candidate.resumeText.trim() === '')) {
-      await prisma.agentRun.update({
-        where: { id: run.id },
-        data: {
-          status: 'ERROR',
-          errorDetails: 'Missing Resume. Upload a resume first.',
-          completedAt: new Date(),
-        },
-      });
+    const resumeAgents = new Set(['agent-resume', 'agent-resume-parser', 'resume-intelligence']);
+    if (resumeAgents.has(agentType) && (!candidate?.resumeText || candidate.resumeText.trim() === '')) {
+      if (run) {
+        await prisma.agentRun.update({
+          where: { id: run.id },
+          data: {
+            status: 'ERROR',
+            errorDetails: 'Missing Resume. Upload a resume first.',
+            completedAt: new Date(),
+          },
+        });
+      }
       return NextResponse.json(
         { 
           status: 'MISSING_INPUT', 
-          error: 'Resume required. Upload a resume first.',
+          error: 'Resume required. Upload a file, pick a candidate who has one, or use a document already on this board.',
           input: inputData,
           executionTimeMs: Date.now() - startTime
         },
@@ -155,9 +171,9 @@ export async function POST(request: Request) {
     }
 
     const context: AgentContext = {
-      runId: run.id,
+      runId: run?.id || 'unsaved',
       roleId: resolvedRoleId,
-      candidateId: resolvedCandidateId,
+      candidateId: candidate?.id || '',
       organizationId: role.organizationId,
       nodeId,
       upstreamOutputs,
@@ -169,45 +185,44 @@ export async function POST(request: Request) {
     try {
       const result = await agentDef.execute(context);
 
-      // Persist Artifacts
-      if (result.artifacts && result.artifacts.length > 0) {
+      if (run && candidate && result.artifacts && result.artifacts.length > 0) {
         await prisma.agentArtifact.createMany({
           data: result.artifacts.map((a) => ({
             agentRunId: run.id,
-            candidateId: resolvedCandidateId,
+            candidateId: candidate.id,
             artifactType: a.type,
             data: a.data,
           })),
         });
       }
 
-      // Persist Events
-      if (result.events && result.events.length > 0) {
+      if (run && candidate && result.events && result.events.length > 0) {
         await prisma.agentEvent.createMany({
           data: result.events.map((e) => ({
             eventType: e.type,
             roleId: resolvedRoleId,
-            candidateId: resolvedCandidateId,
+            candidateId: candidate.id,
             agentRunId: run.id,
             payload: e.payload,
           })),
         });
       }
 
-      // Mark Success
-      await prisma.agentRun.update({
-        where: { id: run.id },
-        data: {
-          status: 'SUCCESS',
-          outputPayload: result.outputPayload,
-          completedAt: new Date(),
-        },
-      });
+      if (run) {
+        await prisma.agentRun.update({
+          where: { id: run.id },
+          data: {
+            status: 'SUCCESS',
+            outputPayload: result.outputPayload,
+            completedAt: new Date(),
+          },
+        });
+      }
 
       const executionTimeMs = Date.now() - startTime;
 
       return NextResponse.json({
-        runId: run.id,
+        runId: run?.id || null,
         status: 'SUCCESS',
         output: result.outputPayload,
         input: inputData,
@@ -215,15 +230,16 @@ export async function POST(request: Request) {
         events: result.events,
       });
     } catch (agentError: any) {
-      // Mark Error
-      await prisma.agentRun.update({
-        where: { id: run.id },
-        data: {
-          status: 'ERROR',
-          errorDetails: agentError.message || String(agentError),
-          completedAt: new Date(),
-        },
-      });
+      if (run) {
+        await prisma.agentRun.update({
+          where: { id: run.id },
+          data: {
+            status: 'ERROR',
+            errorDetails: agentError.message || String(agentError),
+            completedAt: new Date(),
+          },
+        });
+      }
       return NextResponse.json(
         { 
           status: 'ERROR', 

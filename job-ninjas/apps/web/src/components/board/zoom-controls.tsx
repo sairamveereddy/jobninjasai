@@ -24,22 +24,22 @@ export const ZoomControls = ({ camera, setCamera }: ZoomControlsProps) => {
   const zoomPercent = Math.round(camera.zoom * 100);
 
   return (
-    <div className="absolute bottom-4 right-4 z-40 bg-card shadow-md border border-border rounded-lg flex items-center p-1 gap-1 text-foreground">
+    <div className="absolute bottom-4 right-4 z-40 flex items-center gap-1 rounded-lg border border-white/10 bg-[#111214] p-1 text-[#b1b3b8] shadow-md">
       <button
         onClick={handleZoomOut}
-        className="p-1 hover:bg-muted/50 rounded transition-colors"
+        className="rounded p-1 text-[#b1b3b8] transition-colors hover:bg-white/5 hover:text-white"
         title="Zoom Out"
       >
         <Minus className="w-4 h-4" />
       </button>
       
-      <div className="w-12 text-center text-xs font-medium cursor-pointer hover:text-blue-600 transition-colors select-none" onClick={handleFit} title="Fit to Screen">
+      <div className="w-12 cursor-pointer select-none text-center text-xs font-medium text-white transition-colors hover:text-[#c7c9ff]" onClick={handleFit} title="Fit to screen">
         {zoomPercent}%
       </div>
       
       <button
         onClick={handleZoomIn}
-        className="p-1 hover:bg-muted/50 rounded transition-colors"
+        className="rounded p-1 text-[#b1b3b8] transition-colors hover:bg-white/5 hover:text-white"
         title="Zoom In"
       >
         <Plus className="w-4 h-4" />

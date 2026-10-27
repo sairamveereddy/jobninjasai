@@ -3,6 +3,10 @@ export interface NodePortSpec {
   type: string;
   description: string;
   required?: boolean;
+  /** Key stored on agent runs. Defaults to `type`. */
+  artifactType?: string;
+  /** Where an HR is expected to supply this input. */
+  source?: 'edge' | 'board' | 'candidate';
 }
 
 export interface NodeDescription {
@@ -32,12 +36,12 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-indigo-600',
     bg: 'bg-indigo-50 border-indigo-200',
     inputs: [
-      { name: 'candidate', type: 'Candidate', description: 'Active candidate record (name, email, location)', required: true },
-      { name: 'resumeText', type: 'string', description: 'Extracted text of candidate resume', required: true },
-      { name: 'role', type: 'Role', description: 'Job requisition title, requirements, and description', required: true },
+      { name: 'Resume', type: 'Resume', artifactType: 'Resume', description: 'The candidate resume. Upload it, pick a candidate who has one, or connect a Resume step.', required: true, source: 'candidate' },
+      { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'The open role. Comes from this board’s job description.', required: true, source: 'board' },
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Who the resume belongs to.', required: false, source: 'candidate' },
     ],
     outputs: [
-      { name: 'ResumeAnalysis', type: 'object', description: 'Structured verification analysis with match score, verified skills, gaps, and focus areas' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'ResumeAnalysis', description: 'Match score, verified skills, gaps, and what to probe in an interview.' },
     ],
     defaultModel: 'openai/gpt-oss-120b',
     defaultPrompt: 'You are an expert technical recruiter. Analyze the candidate resume against job requirements. Extract verified skills, flag discrepancies, and suggest interview probe questions.',
@@ -64,11 +68,11 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-violet-600',
     bg: 'bg-violet-50 border-violet-200',
     inputs: [
-      { name: 'ResumeAnalysis', type: 'ResumeAnalysis', description: 'Upstream resume verification output and focus areas', required: true },
-      { name: 'role', type: 'Role', description: 'Job requirements and role competencies', required: true },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'ResumeAnalysis', description: 'Screening scorecard or resume analysis. Connect Screen & Score or Resume Intelligence.', required: true, source: 'edge' },
+      { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'Role the interview is hiring for.', required: true, source: 'board' },
     ],
     outputs: [
-      { name: 'InterviewPlan', type: 'object', description: 'Comprehensive interview agenda, section breakdown, and question sets with evaluation rubrics' },
+      { name: 'Interview plan', type: 'InterviewPlan', artifactType: 'InterviewPlan', description: 'Agenda, questions, and what a good answer looks like.' },
     ],
     defaultModel: 'openai/gpt-oss-120b',
     defaultPrompt: 'Design a targeted 60-minute technical interview plan. Base your questions specifically on the candidate gaps and focus areas identified by Resume Intelligence.',
@@ -99,11 +103,12 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-purple-600',
     bg: 'bg-purple-50 border-purple-200',
     inputs: [
-      { name: 'InterviewPlan', type: 'InterviewPlan', description: 'The planned interview questions and signals', required: true },
-      { name: 'transcript', type: 'string', description: 'Verbatim dialogue or recorded transcript of the interview', required: true },
+      { name: 'Interview plan', type: 'InterviewPlan', artifactType: 'InterviewPlan', description: 'The guide this conversation should be scored against.', required: true, source: 'edge' },
+      { name: 'Transcript', type: 'Transcript', artifactType: 'Transcript', description: 'What was said in the interview. Paste it on the Transcript step.', required: true, source: 'edge' },
     ],
     outputs: [
-      { name: 'InterviewAnalysis', type: 'object', description: 'Technical score, communication score, strengths demonstrated, red flags, and hiring rating' },
+      { name: 'Interview analysis', type: 'InterviewAnalysis', artifactType: 'InterviewAnalysis', description: 'Scores, quotes, red flags, and a hire / no-hire signal for this conversation.' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'The screening scorecard, forwarded so the hiring recommendation still has it.' },
     ],
     defaultModel: 'openai/gpt-oss-120b',
     defaultPrompt: 'Evaluate this interview transcript against the planned interview guide. Provide objective scores for technical depth and communication, citing exact quotes.',
@@ -122,18 +127,18 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
 
   'agent-decision': {
     role: 'agent-decision',
-    displayName: 'Candidate Decision',
-    subtitle: 'Synthesizes holistic evidence into final recommendation',
-    description: 'Combines resume intelligence and interview analysis artifacts into an executive recommendation with compensation guidelines and confidence ratings.',
+    displayName: 'Hiring Recommendation',
+    subtitle: 'Hire or no-hire advice from the scorecard and the interview',
+    description: 'Combines the scorecard and the interview analysis into advice for the recruiter. A person still makes the decision.',
     category: 'agent',
     color: 'text-amber-600',
     bg: 'bg-amber-50 border-amber-200',
     inputs: [
-      { name: 'ResumeAnalysis', type: 'ResumeAnalysis', description: 'Initial resume verification artifact', required: true },
-      { name: 'InterviewAnalysis', type: 'InterviewAnalysis', description: 'Post-interview evaluation artifact', required: true },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'ResumeAnalysis', description: 'Screening scorecard for this candidate.', required: true, source: 'edge' },
+      { name: 'Interview analysis', type: 'InterviewAnalysis', artifactType: 'InterviewAnalysis', description: 'How the interview went.', required: true, source: 'edge' },
     ],
     outputs: [
-      { name: 'CandidateDecision', type: 'object', description: 'Final recommendation, holistic score (0-100), compensation bracket, and hiring rationale' },
+      { name: 'Hiring recommendation', type: 'CandidateDecision', artifactType: 'CandidateDecision', description: 'Advisory hire / no-hire, rationale, and compensation notes. A person still decides.' },
     ],
     defaultModel: 'openai/gpt-oss-120b',
     defaultPrompt: 'Synthesize all evidence from resume screening and interview evaluation into a decisive hiring recommendation with compensation guidance.',
@@ -163,11 +168,11 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-emerald-600',
     bg: 'bg-emerald-50 border-emerald-200',
     inputs: [
-      { name: 'CandidateDecision', type: 'CandidateDecision', description: 'Approved hiring or onsite interview decision', required: true },
-      { name: 'candidate', type: 'Candidate', description: 'Candidate origin location and travel preferences', required: true },
+      { name: 'Hiring recommendation', type: 'CandidateDecision', artifactType: 'CandidateDecision', description: 'Advance this person to onsite travel only after a hiring recommendation.', required: true, source: 'edge' },
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Where the candidate is traveling from.', required: true, source: 'candidate' },
     ],
     outputs: [
-      { name: 'ConciergeItinerary', type: 'object', description: 'Complete itinerary with confirmed hotel, flight details, dinner reservation, and budget utilization' },
+      { name: 'Travel itinerary', type: 'Itinerary', artifactType: 'ConciergeItinerary', description: 'Hotel, travel, and a welcome note.' },
     ],
     defaultModel: 'openai/gpt-oss-120b',
     defaultPrompt: 'Plan candidate travel, luxury hotel stay, and welcome dining within the allocated travel budget.',
@@ -194,6 +199,116 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     }
   },
 
+  'agent-jd-parser': {
+    role: 'agent-jd-parser',
+    displayName: 'JD Parser',
+    subtitle: 'Turns the job description into must-haves',
+    description: 'Reads the role’s job description and returns a parsed job: seniority, must-have skills, locations, and a short summary an HR can scan.',
+    category: 'agent',
+    color: 'text-sky-700',
+    bg: 'bg-sky-50 border-sky-200',
+    inputs: [
+      { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'Paste or upload the JD on this role. This step does not need a resume.', required: true, source: 'board' },
+    ],
+    outputs: [
+      { name: 'Parsed job', type: 'ParsedJD', artifactType: 'ParsedJD', description: 'Structured must-haves, seniority, locations, and a plain-language summary.' },
+    ],
+    defaultPrompt: 'Extract seniority, must-have skills, locations, and a short summary from this job description. Do not invent requirements.',
+  },
+
+  'agent-resume-parser': {
+    role: 'agent-resume-parser',
+    displayName: 'Resume Parser',
+    subtitle: 'Turns a resume into a candidate profile',
+    description: 'Reads one candidate resume and returns a profile: name, skills, years, locations, and a summary. Other agents can take that profile as input.',
+    category: 'agent',
+    color: 'text-cyan-700',
+    bg: 'bg-cyan-50 border-cyan-200',
+    inputs: [
+      { name: 'Resume', type: 'Resume', artifactType: 'Resume', description: 'Upload a resume, pick a candidate who has one, use a file on this board, or connect the Resume step.', required: true, source: 'candidate' },
+    ],
+    outputs: [
+      { name: 'Candidate profile', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Structured profile extracted from the resume.' },
+    ],
+    defaultPrompt: 'Extract a candidate profile from the resume. Use only facts that are in the file.',
+  },
+
+  'agent-screen': {
+    role: 'agent-screen',
+    displayName: 'Screen & Score',
+    subtitle: 'Writes a scorecard for one candidate',
+    description: 'Compares a resume or candidate profile to the parsed job and returns a scorecard: match score, strengths, gaps, and advance / hold / reject.',
+    category: 'agent',
+    color: 'text-indigo-700',
+    bg: 'bg-indigo-50 border-indigo-200',
+    inputs: [
+      { name: 'Resume', type: 'Resume', artifactType: 'Resume', description: 'Resume for the candidate you are scoring.', required: true, source: 'candidate' },
+      { name: 'Parsed job', type: 'ParsedJD', artifactType: 'ParsedJD', description: 'Connect JD Parser. The role’s job description is used if this is not connected.', required: false, source: 'edge' },
+      { name: 'Candidate profile', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Optional profile from Resume Parser.', required: false, source: 'edge' },
+    ],
+    outputs: [
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Match score, recommendation, strengths, gaps, and interview focus.' },
+    ],
+    defaultPrompt: 'Score this candidate against the role. Recommend advance, hold, or reject, and explain the gaps.',
+  },
+
+  'agent-shortlist': {
+    role: 'agent-shortlist',
+    displayName: 'Shortlist',
+    subtitle: 'Recommends who moves forward',
+    description: 'Reads a scorecard and recommends advance, hold, or pass, with the reason and the next recruiter action. The scorecard is forwarded to later steps.',
+    category: 'agent',
+    color: 'text-emerald-700',
+    bg: 'bg-emerald-50 border-emerald-200',
+    inputs: [
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Connect Screen & Score or Resume Intelligence.', required: true, source: 'edge' },
+    ],
+    outputs: [
+      { name: 'Shortlist', type: 'Shortlist', artifactType: 'Shortlist', description: 'Whether this person moves forward, and why.' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'The same scorecard, forwarded so later steps still have it.' },
+    ],
+    defaultPrompt: 'Decide if this candidate should move forward. Explain the reason in plain language.',
+  },
+
+  'agent-outreach': {
+    role: 'agent-outreach',
+    displayName: 'Outreach',
+    subtitle: 'Writes the email you send',
+    description: 'Drafts a recruiting email for the active candidate using the role and, when connected, the scorecard or candidate profile. You send it.',
+    category: 'agent',
+    color: 'text-fuchsia-700',
+    bg: 'bg-fuchsia-50 border-fuchsia-200',
+    inputs: [
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'The person you are writing to. Pick them on this role.', required: true, source: 'candidate' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Optional. Connect Screen or Shortlist so the email can mention a real reason.', required: false, source: 'edge' },
+      { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'The role this email is about.', required: true, source: 'board' },
+    ],
+    outputs: [
+      { name: 'Email draft', type: 'EmailDraft', artifactType: 'EmailDraft', description: 'Subject, body, and the ask. Copy it into your mailbox.' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'The scorecard, forwarded so interview planning still has it.' },
+    ],
+    defaultPrompt: 'Write a short, specific recruiting email. Do not pretend an interview is already booked.',
+  },
+
+  'agent-schedule': {
+    role: 'agent-schedule',
+    displayName: 'Interview Schedule',
+    subtitle: 'Proposes times and a message',
+    description: 'Takes an interview plan and drafts time options plus a message to the candidate. It does not book a calendar by itself.',
+    category: 'agent',
+    color: 'text-violet-700',
+    bg: 'bg-violet-50 border-violet-200',
+    inputs: [
+      { name: 'Interview plan', type: 'InterviewPlan', artifactType: 'InterviewPlan', description: 'Connect Interview Planning and run it first.', required: true, source: 'edge' },
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Who the invite is for.', required: true, source: 'candidate' },
+    ],
+    outputs: [
+      { name: 'Interview slots', type: 'InterviewSlots', artifactType: 'InterviewSlots', description: 'Suggested times, format, and a message you can send.' },
+      { name: 'Interview plan', type: 'InterviewPlan', artifactType: 'InterviewPlan', description: 'The same interview plan, forwarded so the transcript can be scored against it.' },
+    ],
+    defaultPrompt: 'Propose three interview options and a message the recruiter can send. Do not claim the time is booked.',
+  },
+
   // ─── INPUT NODES ───
   'input-job-details': {
     role: 'input-job-details',
@@ -205,7 +320,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     bg: 'bg-blue-50 border-blue-200',
     inputs: [],
     outputs: [
-      { name: 'jobDetails', type: 'object', description: 'Requisition title, requirements, department, and location' }
+      { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'Requisition title, requirements, department, and location' }
     ]
   },
 
@@ -219,7 +334,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     bg: 'bg-blue-50 border-blue-200',
     inputs: [],
     outputs: [
-      { name: 'jobDetails', type: 'object', description: 'Requisition title and requirements' }
+      { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'Requisition title and requirements' }
     ]
   },
 
@@ -233,7 +348,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     bg: 'bg-blue-50 border-blue-200',
     inputs: [],
     outputs: [
-      { name: 'candidate', type: 'Candidate', description: 'Candidate metadata record' }
+      { name: 'Candidate profile', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Candidate metadata record' }
     ]
   },
 
@@ -247,7 +362,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     bg: 'bg-blue-50 border-blue-200',
     inputs: [],
     outputs: [
-      { name: 'candidate', type: 'Candidate', description: 'Candidate profile record' }
+      { name: 'Candidate profile', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Candidate profile record' }
     ]
   },
 
@@ -260,10 +375,10 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-blue-600',
     bg: 'bg-blue-50 border-blue-200',
     inputs: [
-      { name: 'candidate', type: 'Candidate', description: 'Candidate to whom resume belongs', required: true }
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Candidate this resume belongs to. Pick them on the role.', required: false, source: 'candidate' }
     ],
     outputs: [
-      { name: 'resumeText', type: 'string', description: 'Extracted text content of resume' }
+      { name: 'Resume', type: 'Resume', artifactType: 'Resume', description: 'Resume text for downstream screening and parsing.' }
     ]
   },
 
@@ -276,10 +391,10 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-blue-600',
     bg: 'bg-blue-50 border-blue-200',
     inputs: [
-      { name: 'candidate', type: 'Candidate', description: 'Candidate being interviewed', required: true }
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Candidate who interviewed.', required: false, source: 'candidate' }
     ],
     outputs: [
-      { name: 'transcript', type: 'string', description: 'Verbatim transcript text' }
+      { name: 'Transcript', type: 'Transcript', artifactType: 'Transcript', description: 'Verbatim transcript text' }
     ]
   },
 
@@ -311,10 +426,11 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-emerald-600',
     bg: 'bg-emerald-50 border-emerald-200',
     inputs: [
-      { name: 'ResumeAnalysis', type: 'object', description: 'Resume screening result to review', required: true }
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Resume screening result to review', required: true, source: 'edge' }
     ],
     outputs: [
-      { name: 'approved', type: 'boolean', description: 'Human approval flag' }
+      { name: 'Approval', type: 'Approval', artifactType: 'Approval', description: 'Human approval flag' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Forwards the scorecard the recruiter reviewed' }
     ]
   },
 
@@ -327,10 +443,10 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-emerald-600',
     bg: 'bg-emerald-50 border-emerald-200',
     inputs: [
-      { name: 'CandidateDecision', type: 'object', description: 'Synthesized hiring decision', required: true }
+      { name: 'Hiring recommendation', type: 'CandidateDecision', artifactType: 'CandidateDecision', description: 'Synthesized hiring recommendation to approve', required: true, source: 'edge' }
     ],
     outputs: [
-      { name: 'offerApproved', type: 'boolean', description: 'Offer authorization flag' }
+      { name: 'Approval', type: 'Approval', artifactType: 'Approval', description: 'Offer authorization flag' }
     ]
   }
 };
