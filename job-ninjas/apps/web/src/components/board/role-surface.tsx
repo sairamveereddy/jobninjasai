@@ -180,6 +180,7 @@ export function RoleSurface({
       return;
     }
     setFormError("");
+    useBoardStore.getState().pushActivity(candidateId, `Resume attached · ${file.name}`);
     refresh();
     window.dispatchEvent(new CustomEvent("candidateChanged", { detail: { candidate: data.candidate } }));
   };

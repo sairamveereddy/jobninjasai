@@ -174,6 +174,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   const deleteLayers = useBoardStore(state => state.deleteLayers);
   const deleteEdge = useBoardStore(state => state.deleteEdge);
   const setInspectedNodeId = useBoardStore(state => state.setInspectedNodeId);
+  const activityLog = useBoardStore((state) => state.activity);
+  const pushActivity = useBoardStore((state) => state.pushActivity);
   const insertTemplate = useBoardStore(state => state.insertTemplate);
   
   const roles = useDemoStore(state => state.roles);
@@ -491,6 +493,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
               window.localStorage.setItem('activeCandidateId', uploadData.candidate.id);
               window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: uploadData.candidate } }));
               setActiveHasResume(true);
+              pushActivity(uploadData.candidate.id, `Resume attached · ${file.name}`);
               const emailNote = createdName ? ' Add a real email on This role before you draft outreach.' : '';
               setConnectionNotice({ tone: 'ok', message: `Attached ${file.name} to ${person}. The file is also on this role as a resume.${emailNote}` });
             } else {
@@ -537,14 +540,12 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         reader.readAsDataURL(file);
       }
     }
-  }, [camera, insertLayer, updateLayer, boardId, currentRole]);
+  }, [camera, insertLayer, updateLayer, boardId, currentRole, pushActivity]);
 
   const [runQueue, setRunQueue] = useState<{ active: string; next: string[] } | null>(null);
   const [openResultId, setOpenResultId] = useState<string | null>(null);
   const [notePeople, setNotePeople] = useState<BoardPerson[]>([]);
   notePeopleRef.current = notePeople;
-  const activityLog = useBoardStore((state) => state.activity);
-  const pushActivity = useBoardStore((state) => state.pushActivity);
 
   useEffect(() => {
     if (!boardId || boardId === 'new-workflow') return;
@@ -628,7 +629,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       pushActivity(candId, 'Pipeline stopped');
       notice({ tone: 'ok', message: 'Pipeline stopped. Earlier results for this person stay on the steps.' });
     } else if (failed.size) {
-      notice({ tone: 'error', message: `Pipeline stopped on ${failed.size} step${failed.size === 1 ? '' : 's'}. Read the message on the step. Earlier results stay where they are.` });
+      notice({ tone: 'error', message: `${failed.size} step${failed.size === 1 ? '' : 's'} need a fix. Read the message on the step. Earlier results stay where they are.` });
     } else {
       notice({ tone: 'ok', message: 'Pipeline finished for the selected person. Their results stay on the steps when you switch people.' });
     }
