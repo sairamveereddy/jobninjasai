@@ -14,6 +14,8 @@ import {
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDemoStore } from "@/lib/store";
 import { getNodeSpec, NodeDescription } from "@/lib/agents/node-specs";
+import { collectUpstreamOutputs, dataTypeLabel, explainAgent, portsCompatible } from "@/lib/agents/contracts";
+import { AgentIoCard } from "./agent-io-card";
 
 export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   const { inspectedNodeId, setInspectedNodeId, layers, updateLayer, deleteLayers, edges } = useBoardStore();
@@ -216,6 +218,24 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
     }
   };
 
+  const attachBoardDocument = async (fileSrc: string, fileName: string) => {
+    if (!selectedCandidate?.id) {
+      setResumeUploadError("Pick a candidate on this role first. The document will be saved as their resume.");
+      return;
+    }
+    setUploadingResume(true);
+    setResumeUploadError(null);
+    try {
+      const response = await fetch(fileSrc);
+      const blob = await response.blob();
+      const file = new File([blob], fileName || "resume", { type: blob.type || "application/octet-stream" });
+      await handleUploadResumeFile(file);
+    } catch (err: any) {
+      setResumeUploadError(err.message || "Could not read that document");
+      setUploadingResume(false);
+    }
+  };
+
   // UNCONDITIONAL RESOLUTION FOR RULES OF HOOKS
   const layerId = selectedIds.length === 1 ? selectedIds[0] : null;
   const layer = layerId ? layers[layerId] : null;
@@ -230,28 +250,14 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   }, [edges, layerId]);
 
   const upstreamNodeIds = useMemo(() => {
-    return incomingEdges.map(e => e.fromNodeId);
-  }, [incomingEdges]);
+    if (!layerId) return [] as string[];
+    return collectUpstreamOutputs(layers, Object.values(edges), layerId).upstreamNodeIds;
+  }, [edges, layerId, layers]);
 
-  const upstreamLayers = useMemo(() => {
-    return upstreamNodeIds.map(id => layers[id]).filter(Boolean);
-  }, [upstreamNodeIds, layers]);
-
-  // Collect client upstream outputs from layers in state
   const clientUpstreamOutputs = useMemo(() => {
-    const outputs: Record<string, any> = {};
-    for (const upId of upstreamNodeIds) {
-      const upLayer = layers[upId] as any;
-      if (upLayer?.outputData) {
-        if (upLayer.agentRole === 'agent-resume') outputs['ResumeAnalysis'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-interview-plan') outputs['InterviewPlan'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-interview-analysis') outputs['InterviewAnalysis'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-decision') outputs['CandidateDecision'] = upLayer.outputData;
-        if (upLayer.agentRole === 'agent-concierge') outputs['ConciergeItinerary'] = upLayer.outputData;
-      }
-    }
-    return outputs;
-  }, [upstreamNodeIds, layers]);
+    if (!layerId) return {} as Record<string, any>;
+    return collectUpstreamOutputs(layers, Object.values(edges), layerId).outputs;
+  }, [edges, layerId, layers]);
 
   // Resolved candidate ID
   const activeCandidateId = selectedCandidate?.id || (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : null);
@@ -376,7 +382,7 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                 {nodeSpec.category}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 line-clamp-1">{nodeSpec.subtitle}</p>
+            <p className="text-[11px] text-slate-500 line-clamp-2">{explainAgent(layer.agentRole)}</p>
           </div>
         </div>
 
@@ -532,6 +538,7 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
             {inputViewMode === 'formatted' ? (
               <div className="flex flex-col gap-3">
+                {layerId && <AgentIoCard agentRole={layer.agentRole} layerId={layerId} mode="input" />}
                 {/* Job Requisition Block with Inline JD Editing */}
                 <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">
@@ -697,6 +704,22 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                       {selectedCandidate.resumeText}
                     </div>
                   )}
+
+                  {Object.entries(layers).some(([, item]) => (item as any).fileSrc) && (
+                    <div className="flex flex-col gap-1.5">
+                      <p className="text-[11px] font-bold text-slate-700">Or use a document already on this role</p>
+                      {Object.entries(layers).filter(([, item]) => (item as any).fileSrc).map(([id, item]) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => attachBoardDocument((item as any).fileSrc, (item as any).fileName || (item as any).value || "document")}
+                          className="text-left text-[11px] font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-2.5 py-1.5 hover:bg-indigo-100"
+                        >
+                          Attach {(item as any).fileName || (item as any).value || "document"} to {selectedCandidate ? `${selectedCandidate.firstName}` : "the selected candidate"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Upstream Artifacts */}
@@ -729,14 +752,21 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                   </span>
                   <div className="flex flex-col gap-1.5 mt-1">
                     {nodeSpec.inputs.map((input, idx) => {
-                      const isSatisfied = 
-                        (input.name === 'candidate' && !!selectedCandidate) ||
-                        (input.name === 'resumeText' && !!selectedCandidate?.resumeText) ||
-                        (input.name === 'role' && !!effectiveRole) ||
-                        (!!clientUpstreamOutputs[input.name]);
+                      const artifactKey = input.artifactType || input.type;
+                      const wired = !!clientUpstreamOutputs[artifactKey]
+                        || !!clientUpstreamOutputs[input.type]
+                        || !!clientUpstreamOutputs[input.name]
+                        || incomingEdges.some((edge) => {
+                          const source = layers[edge.fromNodeId] as { agentRole?: string } | undefined;
+                          return getNodeSpec(source?.agentRole).outputs.some((output) => portsCompatible(output.type, input.type));
+                        });
+                      const onRole = input.source === "board" && !!effectiveRole?.jobDescription;
+                      const resumeReady = input.type === "Resume" && !!selectedCandidate?.resumeText;
+                      const candidateReady = input.source === "candidate" && !!selectedCandidate && input.type !== "Resume";
+                      const isSatisfied = wired || onRole || resumeReady || candidateReady;
                       return (
                         <div key={idx} className="flex items-center justify-between text-xs py-1 px-2 rounded-md bg-slate-50 border border-slate-100">
-                          <span className="font-semibold text-slate-700">{input.name} <span className="text-slate-400 text-[10px]">({input.type})</span></span>
+                          <span className="font-semibold text-slate-700">{input.name} <span className="text-slate-400 text-[10px]">({dataTypeLabel(input.type)})</span></span>
                           {isSatisfied ? (
                             <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
                               <CheckCircle2 className="w-3 h-3" /> Ready
@@ -846,6 +876,7 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
         {/* ─────────── TAB 3: EVALUATION RESULTS ─────────── */}
         {activeTab === 'output' && (
           <div className="flex flex-col gap-4">
+            {layerId && <AgentIoCard agentRole={layer.agentRole} layerId={layerId} mode="output" />}
             {/* Status Bar */}
             <div className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
               <div className="flex items-center gap-2.5">

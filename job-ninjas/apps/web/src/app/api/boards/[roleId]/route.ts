@@ -20,14 +20,25 @@ export async function GET(
         layerIds: [],
         edges: {},
         edgeIds: [],
+        intake: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
     }
 
+    const { layers: rawLayers, __intake } = (() => {
+      const parsed = typeof board.layers === 'string' ? JSON.parse(board.layers) : (board.layers || {});
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        return { layers: {}, __intake: null };
+      }
+      const { __intake: intake, ...layers } = parsed as Record<string, any>;
+      return { layers, __intake: intake || null };
+    })();
+
     return NextResponse.json({
       ...board,
-      layers: typeof board.layers === 'string' ? JSON.parse(board.layers) : board.layers,
+      layers: rawLayers,
+      intake: __intake,
       layerIds: typeof board.layerIds === 'string' ? JSON.parse(board.layerIds) : board.layerIds,
       edges: typeof board.edges === 'string' ? JSON.parse(board.edges || '{}') : (board.edges || {}),
       edgeIds: typeof board.edgeIds === 'string' ? JSON.parse(board.edgeIds || '[]') : (board.edgeIds || []),
@@ -48,7 +59,10 @@ export async function POST(
   try {
     const { roleId } = await params;
     const body = await request.json();
-    const { layers, layerIds, edges, edgeIds } = body;
+    const { layers, layerIds, edges, edgeIds, intake } = body;
+    const storedLayers: Record<string, any> = { ...(layers || {}) };
+    delete storedLayers.__intake;
+    if (intake) storedLayers.__intake = intake;
 
     // Resolve organizationId from role or fallback to default organization
     let organizationId: string | null = null;
@@ -74,7 +88,7 @@ export async function POST(
     const board = await prisma.board.upsert({
       where: { roleId },
       update: {
-        layers: JSON.stringify(layers || {}),
+        layers: JSON.stringify(storedLayers),
         layerIds: JSON.stringify(layerIds || []),
         edges: JSON.stringify(edges || {}),
         edgeIds: JSON.stringify(edgeIds || []),
@@ -82,7 +96,7 @@ export async function POST(
       create: {
         roleId,
         organizationId,
-        layers: JSON.stringify(layers || {}),
+        layers: JSON.stringify(storedLayers),
         layerIds: JSON.stringify(layerIds || []),
         edges: JSON.stringify(edges || {}),
         edgeIds: JSON.stringify(edgeIds || []),

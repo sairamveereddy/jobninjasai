@@ -43,6 +43,10 @@ ${candidate.resumeText}
           type: 'ResumeAnalysis',
           data: analysis,
         },
+        {
+          type: 'Scorecard',
+          data: analysis,
+        },
       ],
       events: [
         {

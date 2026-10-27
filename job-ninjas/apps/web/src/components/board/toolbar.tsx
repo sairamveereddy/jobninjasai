@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { 
-  MousePointer2, LayoutTemplate, Square, Circle, Triangle, Type, Bot, Pen, ArrowUpRight, 
-  StickyNote, ChevronRight, Briefcase, MessageSquare, CheckSquare, FileText, Image as ImageIcon,
-  Database, TableProperties, Building2, Building, Plug, Mail, BarChart, Search, ShieldCheck, Code, Users, Handshake, Presentation,
-  PlaneTakeoff, UserCheck
+  MousePointer2, LayoutTemplate, Square, Circle, Type, Bot, Pen, ArrowUpRight, 
+  StickyNote, Briefcase, MessageSquare, FileText, Image as ImageIcon,
+  Database, Building, Plug, ShieldCheck, Presentation,
+  PlaneTakeoff, UserCheck, ScanText, FileSearch, ClipboardCheck, Mail, CalendarClock, ListChecks
 } from "lucide-react";
 import { CanvasMode, LayerType } from "@/types/canvas";
 import { useBoardStore } from "@/store/board";
@@ -29,11 +29,17 @@ export const NODE_CATEGORIES = [
   {
     category: "Real AI Agents",
     items: [
-      { icon: Bot, label: "Resume Intelligence Agent", role: "agent-resume", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
-      { icon: Bot, label: "Interview Planning Agent", role: "agent-interview-plan", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
-      { icon: Bot, label: "Interview Analysis Agent", role: "agent-interview-analysis", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
-      { icon: Bot, label: "Candidate Decision Agent", role: "agent-decision", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
-      { icon: PlaneTakeoff, label: "Candidate Concierge Agent", role: "agent-concierge", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
+      { icon: Bot, label: "Resume Intelligence", role: "agent-resume", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
+      { icon: ScanText, label: "JD Parser", role: "agent-jd-parser", color: "text-sky-700", bg: "bg-sky-100 dark:bg-sky-900/30 dark:text-sky-300" },
+      { icon: FileSearch, label: "Resume Parser", role: "agent-resume-parser", color: "text-cyan-700", bg: "bg-cyan-100 dark:bg-cyan-900/30 dark:text-cyan-300" },
+      { icon: ClipboardCheck, label: "Screen and Score", role: "agent-screen", color: "text-indigo-700", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300" },
+      { icon: ListChecks, label: "Shortlist", role: "agent-shortlist", color: "text-emerald-700", bg: "bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300" },
+      { icon: Mail, label: "Outreach Draft", role: "agent-outreach", color: "text-fuchsia-700", bg: "bg-fuchsia-100 dark:bg-fuchsia-900/30 dark:text-fuchsia-300" },
+      { icon: Bot, label: "Interview Planning", role: "agent-interview-plan", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
+      { icon: CalendarClock, label: "Interview Schedule", role: "agent-schedule", color: "text-violet-700", bg: "bg-violet-100 dark:bg-violet-900/30 dark:text-violet-300" },
+      { icon: Bot, label: "Interview Analysis", role: "agent-interview-analysis", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
+      { icon: Bot, label: "Hiring Recommendation", role: "agent-decision", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
+      { icon: PlaneTakeoff, label: "Candidate Concierge", role: "agent-concierge", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
     ]
   },
   {

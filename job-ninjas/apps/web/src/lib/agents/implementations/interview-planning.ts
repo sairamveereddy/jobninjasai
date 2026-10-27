@@ -21,10 +21,10 @@ JOB DESCRIPTION:
 ${role.jobDescription}
 
 CANDIDATE STRENGTHS:
-${resumeAnalysis.strengths.join('\n')}
+${(resumeAnalysis?.strengths || []).join('\n')}
 
 CANDIDATE GAPS / FOCUS AREAS:
-${resumeAnalysis.interviewFocusAreas.join('\n')}
+${(resumeAnalysis?.interviewFocusAreas || []).join('\n')}
 `;
 
     const input = `Create a detailed interview plan that targets the candidate's gaps and verifies their strengths. Ensure questions are behavioral and technical.`;

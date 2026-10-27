@@ -24,6 +24,9 @@ export interface AgentDefinition {
   
   // Required upstream artifact types
   requiredInputs: string[];
+
+  // JD parsing can run before any candidate exists. Defaults to true.
+  needsCandidate?: boolean;
   
   execute: (context: AgentContext) => Promise<AgentResult>;
 }

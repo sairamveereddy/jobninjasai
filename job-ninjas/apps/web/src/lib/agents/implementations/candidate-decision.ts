@@ -25,8 +25,8 @@ Required Skills: ${(role.requirements as string[])?.join(', ') || 'Not specified
 
 Candidate Context:
 Name: ${candidate.firstName} ${candidate.lastName}
-Resume Score: ${resumeAnalysis.overallScore} / 100
-Interview Score: ${interviewAnalysis.overallScore} / 100
+Resume match: ${(resumeAnalysis as { overallMatch?: number; overallScore?: number } | undefined)?.overallMatch ?? (resumeAnalysis as { overallScore?: number } | undefined)?.overallScore ?? "n/a"} / 100
+Interview signal: ${(interviewAnalysis as { overallRecommendation?: string; overallScore?: number } | undefined)?.overallRecommendation ?? "n/a"}
 
 Resume Analysis:
 ${JSON.stringify(resumeAnalysis, null, 2)}
