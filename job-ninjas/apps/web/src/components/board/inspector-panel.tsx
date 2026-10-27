@@ -14,7 +14,7 @@ import {
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDemoStore } from "@/lib/store";
 import { getNodeSpec, NodeDescription } from "@/lib/agents/node-specs";
-import { collectUpstreamOutputs, dataTypeLabel, explainAgent, plainLanguage, portsCompatible } from "@/lib/agents/contracts";
+import { collectUpstreamOutputs, dataTypeLabel, explainAgent, localRunBlockers, plainLanguage, portsCompatible, summarizeAgentOutput } from "@/lib/agents/contracts";
 import { AgentIoCard } from "./agent-io-card";
 
 export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
@@ -307,6 +307,19 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
   const handleRunAgent = async () => {
     if (!layerId || !layer) return;
+    const agentRole = (layer as { agentRole?: string }).agentRole;
+    if (agentRole?.startsWith('agent-')) {
+      const blockers = localRunBlockers(agentRole, clientUpstreamOutputs, {
+        hasCandidate: !!activeCandidateId,
+        hasResume: selectedCandidate ? !!selectedCandidate.resumeText : true,
+        hasJobDescription: !!effectiveRole?.jobDescription,
+      });
+      if (blockers.length) {
+        updateLayer(layerId, { status: 'error', errorDetails: blockers.join(' ') });
+        setActiveTab('output');
+        return;
+      }
+    }
     updateLayer(layerId, { status: 'running', errorDetails: undefined });
     setActiveTab('output');
     try {
@@ -339,6 +352,9 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
           runId: data.runId,
           errorDetails: undefined
         });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('candidateChanged'));
+        }
       }
     } catch (err: any) {
       updateLayer(layerId, { status: 'error', errorDetails: err.message });
@@ -353,8 +369,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
   return (
     <div 
-      className="absolute right-4 top-20 bottom-4 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-[0_12px_50px_rgba(0,0,0,0.18)] border border-slate-200/80 overflow-hidden z-40 flex flex-col font-sans transition-all duration-150"
-      style={{ width: `${width}px` }}
+      className="absolute right-2 top-16 bottom-4 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-[0_12px_50px_rgba(0,0,0,0.18)] border border-slate-200/80 overflow-hidden z-40 flex flex-col font-sans transition-all duration-150 sm:right-4 sm:top-20"
+      style={{ width: `${width}px`, maxWidth: 'calc(100vw - 1rem)' }}
     >
       {/* Drag handle */}
       <div 
@@ -908,9 +924,9 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                   layer.status === 'error' ? 'bg-rose-500' : 'bg-slate-300'
                 }`} />
                 <span className="text-xs font-extrabold uppercase tracking-wider text-slate-800">
-                  {layer.status === 'success' ? 'Evaluation Complete' :
-                   layer.status === 'running' ? 'Evaluating Step...' :
-                   layer.status === 'error' ? 'Evaluation Failed' : 'Idle / Ready'}
+                  {layer.status === 'success' ? 'Result ready' :
+                   layer.status === 'running' ? 'Running this step…' :
+                   layer.status === 'error' ? 'Needs a fix' : 'Ready'}
                 </span>
                 {executionTimeSec && (
                   <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -953,11 +969,14 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
               <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-rose-800 font-bold text-xs">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                  Evaluation Incomplete
+                  This step needs a fix
                 </div>
-                <p className="text-xs text-rose-700 font-sans leading-relaxed bg-white/70 p-3 rounded-lg border border-rose-100">
-                  {(layer as any).errorDetails || 'An error occurred during evaluation.'}
+                <p className="text-sm text-rose-800 font-sans leading-relaxed bg-white/70 p-3 rounded-lg border border-rose-100">
+                  {(layer as any).errorDetails || 'Something went wrong. Check the person, the resume, and the steps connected in front of this one.'}
                 </p>
+                {executionOutput && (
+                  <p className="text-xs text-slate-600">Last result: {summarizeAgentOutput((layer as { agentRole?: string }).agentRole, executionOutput)}</p>
+                )}
                 <button
                   onClick={handleRunAgent}
                   className="self-start mt-1 text-xs font-bold text-rose-800 hover:text-rose-950 flex items-center gap-1"

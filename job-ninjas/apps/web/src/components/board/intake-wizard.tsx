@@ -87,6 +87,24 @@ export function IntakeWizard({
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
           {step === 0 && (
             <>
+              <Field label="Start from a hiring template">
+                <div className="flex flex-wrap gap-2">
+                  {PIPELINE_TEMPLATES.map((template) => {
+                    const active = template.stages.length === draft.stages.length && template.stages.every((id) => draft.stages.includes(id));
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        title={template.detail}
+                        onClick={() => set({ stages: [...template.stages], candidateVolume: template.id === "high-volume" ? "200+" : draft.candidateVolume })}
+                        className={chipClass(active)}
+                      >
+                        {template.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
               <Field label="Role title">
                 <input className={inputClass} value={draft.roleTitle} placeholder="Senior Product Designer" onChange={(e) => set({ roleTitle: e.target.value })} />
               </Field>

@@ -5,6 +5,7 @@ import { FileText, StickyNote, Users } from "lucide-react";
 import { useBoardStore } from "@/store/board";
 import { LayerType } from "@/types/canvas";
 import { GreenhouseImportModal } from "./greenhouse-import-modal";
+import { documentKind } from "@/lib/agents/contracts";
 
 function latestArtifact(candidate: any, type: string) {
   return (candidate.artifacts || []).find((item: any) => item.artifactType === type)?.data;
@@ -45,6 +46,7 @@ export function RoleSurface({
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "" });
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   const refresh = () => {
     if (!roleId) return;
@@ -87,19 +89,42 @@ export function RoleSurface({
     updateLayer(id, { width: 240, height: 200, value: "" });
   };
 
-  const addDocument = (file: File) => {
+  const addDocument = (file: File, kind?: string) => {
     const reader = new FileReader();
     reader.onload = () => {
       const id = insertLayer(LayerType.Slide, { x: 80, y: 420 }, { r: 255, g: 255, b: 255 });
+      const docKind = kind || documentKind(file.name).toLowerCase();
       updateLayer(id, {
         width: 280,
         height: 180,
         fileSrc: String(reader.result || ""),
         fileName: file.name,
         value: file.name,
+        docKind,
       } as any);
     };
     reader.readAsDataURL(file);
+  };
+
+  const selected = candidates.find((candidate) => candidate.id === activeId);
+
+  const onDropResume = async (event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragOver(false);
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+    const kind = documentKind(file.name) === "JD" ? "jd" : "resume";
+    addDocument(file, kind);
+    if (kind === "jd") {
+      setFormError("");
+      return;
+    }
+    if (!activeId) {
+      setFormError("Select a person, then drop the resume again. The file is already on this role.");
+      return;
+    }
+    await uploadResume(activeId, file);
   };
 
   const selectCandidate = (candidate: any) => {
@@ -113,12 +138,14 @@ export function RoleSurface({
     body.append("candidateId", candidateId);
     body.append("file", file);
     const res = await fetch("/api/resumes/upload", { method: "POST", body });
-    if (!res.ok) {
-      setFormError("Could not attach that resume.");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.candidate) {
+      setFormError(data.error || "Could not attach that resume. The file is still on this role.");
       return;
     }
+    setFormError("");
     refresh();
-    window.dispatchEvent(new CustomEvent("candidateChanged"));
+    window.dispatchEvent(new CustomEvent("candidateChanged", { detail: { candidate: data.candidate } }));
   };
 
   const addCandidate = async () => {
@@ -153,7 +180,12 @@ export function RoleSurface({
   };
 
   return (
-    <div className="absolute bottom-4 left-4 z-40 w-[360px] overflow-hidden rounded-lg border border-white/10 bg-[#111214] text-white shadow-xl">
+    <div
+      className={`absolute bottom-4 left-4 z-40 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-lg border bg-[#111214] text-white shadow-xl ${dragOver ? "border-[#5e6ad2]" : "border-white/10"}`}
+      onDragOver={(event) => { event.preventDefault(); event.stopPropagation(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={onDropResume}
+    >
       <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center justify-between px-3 py-2.5 text-left">
         <span>
           <span className="block text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">This role</span>
@@ -168,10 +200,31 @@ export function RoleSurface({
               <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-[#8b8fa8]">
                 <Users className="h-3.5 w-3.5" /> Candidates ({candidates.length})
               </div>
-              <button type="button" onClick={() => { setAdding((value) => !value); setFormError(""); }} className="text-[11px] text-[#c7c9ff]">
-                {adding ? "Cancel" : "Add person"}
-              </button>
+              <div className="flex items-center gap-2">
+                {selected && (
+                  <label className="cursor-pointer text-[11px] text-[#c7c9ff]">
+                    {selected.resumeText ? "Replace resume" : "Attach resume"}
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt"
+                      className="hidden"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) {
+                          uploadResume(selected.id, file);
+                          addDocument(file, "resume");
+                        }
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+                <button type="button" onClick={() => { setAdding((value) => !value); setFormError(""); }} className="text-[11px] text-[#c7c9ff]">
+                  {adding ? "Cancel" : "Add person"}
+                </button>
+              </div>
             </div>
+            {dragOver && <p className="mb-2 text-[11px] text-[#c7c9ff]">Drop to attach this file to {selected ? `${selected.firstName}` : "the board"}.</p>}
             {adding && (
               <div className="mb-2 space-y-2 rounded-md border border-white/10 bg-black/30 p-2">
                 <input className={fieldClass} placeholder="First name" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
@@ -223,21 +276,22 @@ export function RoleSurface({
                           ))}
                         </div>
                       )}
-                      {!candidate.resumeText && (
-                        <label className="mt-1 inline-block cursor-pointer text-[11px] text-[#c7c9ff]">
-                          Attach resume
-                          <input
-                            type="file"
-                            accept=".pdf,.doc,.docx,.txt"
-                            className="hidden"
-                            onChange={(event) => {
-                              const file = event.target.files?.[0];
-                              if (file) uploadResume(candidate.id, file);
-                              event.target.value = "";
-                            }}
-                          />
-                        </label>
-                      )}
+                      <label className="mt-1 inline-block cursor-pointer text-[11px] text-[#c7c9ff]">
+                        {candidate.resumeText ? "Replace resume" : "Attach resume"}
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt"
+                          className="hidden"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (file) {
+                              uploadResume(candidate.id, file);
+                              addDocument(file, "resume");
+                            }
+                            event.target.value = "";
+                          }}
+                        />
+                      </label>
                     </div>
                   );
                 })}
@@ -252,10 +306,17 @@ export function RoleSurface({
             {documents.length === 0 ? (
               <p className="text-xs text-[#b1b3b8]">Job files live here: the JD, decks, and resumes you want the team to see.</p>
             ) : (
-              <ul className="max-h-20 space-y-1 overflow-y-auto text-xs text-[#b1b3b8]">
-                {documents.map(({ id, layer }) => (
-                  <li key={id} className="truncate">{(layer as any).fileName || (layer as any).value || "Document"}</li>
-                ))}
+              <ul className="max-h-24 space-y-1 overflow-y-auto text-xs text-[#b1b3b8]">
+                {documents.map(({ id, layer }) => {
+                  const name = (layer as any).fileName || (layer as any).value || "Document";
+                  const kind = documentKind(name, (layer as any).docKind);
+                  return (
+                    <li key={id} className="flex items-center gap-2">
+                      <span className="shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[#c7c9ff]">{kind}</span>
+                      <span className="truncate">{name}</span>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

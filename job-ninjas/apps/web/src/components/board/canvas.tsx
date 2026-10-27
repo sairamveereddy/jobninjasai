@@ -11,7 +11,7 @@ import { getStroke } from 'perfect-freehand';
 import Link from 'next/link';
 import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Mail, Calendar, MessageSquare, Database, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles } from 'lucide-react';
 import { getNodeSpec } from '@/lib/agents/node-specs';
-import { collectUpstreamOutputs, dataTypeLabel, localRunBlockers, plainLanguage, validateConnection } from '@/lib/agents/contracts';
+import { collectUpstreamOutputs, dataTypeLabel, documentKind, localRunBlockers, plainLanguage, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
 import { SelectionBox } from './selection-box';
 import { resizeBounds } from '@/lib/geometry';
 import { Side, XYWH } from '@/types/canvas';
@@ -139,6 +139,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   }, []);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [activeHasResume, setActiveHasResume] = useState<boolean | null>(null);
   const [isMcpPanelOpen, setIsMcpPanelOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -181,20 +182,21 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     }
 
     if (!activeCandId && layer.agentRole !== 'agent-jd-parser') {
-      updateLayer(layerId, {
-        status: 'error',
-        errorDetails: 'Pick a candidate on this role first. Use This role to add someone and attach a resume.',
-      });
+      const message = 'Pick a candidate on this role first. Use This role to add someone and attach a resume.';
+      updateLayer(layerId, { status: 'error', errorDetails: message });
+      setConnectionNotice({ tone: 'error', message });
       return false;
     }
 
     const blockers = localRunBlockers(layer.agentRole, clientUpstreamOutputs, {
       hasCandidate: !!activeCandId,
-      hasResume: true,
+      hasResume: activeHasResume !== false,
       hasJobDescription: !!currentRole?.jobDescription,
     });
     if (blockers.length) {
-      updateLayer(layerId, { status: 'error', errorDetails: blockers.join(' ') });
+      const message = blockers.join(' ');
+      updateLayer(layerId, { status: 'error', errorDetails: message });
+      setConnectionNotice({ tone: 'error', message });
       return false;
     }
 
@@ -225,14 +227,19 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           runId: data.runId,
           errorDetails: undefined
         });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('candidateChanged'));
+        }
         return true;
       } else {
+        const message = data.error || (Array.isArray(data.missingInputs) ? data.missingInputs.join(', ') : '') || 'Execution failed';
         updateLayer(layerId, { 
           status: 'error', 
-          errorDetails: data.error || data.missingInputs?.join(', ') || 'Execution failed',
+          errorDetails: message,
           inputData: data.input,
           executionTimeMs: data.executionTimeMs
         });
+        setConnectionNotice({ tone: 'error', message });
         return false;
       }
     } catch (e: any) {
@@ -246,9 +253,34 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
   useEffect(() => {
     if (!connectionNotice) return;
-    const timer = setTimeout(() => setConnectionNotice(null), 7000);
+    const timer = setTimeout(() => setConnectionNotice(null), connectionNotice.tone === 'error' ? 14000 : 7000);
     return () => clearTimeout(timer);
   }, [connectionNotice, setConnectionNotice]);
+
+  useEffect(() => {
+    const syncResume = (event?: Event) => {
+      const candidate = (event as CustomEvent | undefined)?.detail?.candidate;
+      if (candidate) {
+        setActiveHasResume(!!candidate.resumeText);
+        return;
+      }
+      const id = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '';
+      if (!id || !boardId || boardId === 'new-workflow') {
+        setActiveHasResume(null);
+        return;
+      }
+      fetch(`/api/candidates?candidateId=${id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const next = data.candidate || data.candidates?.[0];
+          setActiveHasResume(next ? !!next.resumeText : null);
+        })
+        .catch(() => setActiveHasResume(null));
+    };
+    syncResume();
+    window.addEventListener('candidateChanged', syncResume);
+    return () => window.removeEventListener('candidateChanged', syncResume);
+  }, [boardId]);
 
   // Handle file drag-and-drop onto canvas
   const handleFileDrop = useCallback(async (e: React.DragEvent) => {
@@ -266,17 +298,43 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       const file = files[i];
       const isResume = file.name.match(/\.(pdf|docx|doc|txt)$/i);
 
-      // Auto-ingest resumes directly into candidate pipeline
+      const placeOnBoard = (kind: string) => {
+        const nodeX = dropPoint.x + (i % 3) * 300;
+        const nodeY = dropPoint.y + Math.floor(i / 3) * 200;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target?.result as string;
+          if (file.type.startsWith('image/')) {
+            insertLayer(LayerType.Image, { x: nodeX, y: nodeY }, { r: 255, g: 255, b: 255 }, undefined, undefined, base64);
+            return;
+          }
+          const id = insertLayer(LayerType.Slide, { x: nodeX, y: nodeY }, { r: 255, g: 255, b: 255 });
+          updateLayer(id, {
+            width: 280,
+            height: 180,
+            fileSrc: base64,
+            value: file.name,
+            fileName: file.name,
+            docKind: kind,
+          } as any);
+        };
+        reader.readAsDataURL(file);
+      };
+
+      // Attach resumes to the selected person, and keep the file on the board.
       if (isResume && boardId && boardId !== 'new-workflow') {
+        const kind = documentKind(file.name) === 'JD' ? 'jd' : 'resume';
         try {
           let targetCandId = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : null;
+          let createdName = '';
 
-          if (!targetCandId) {
+          if (!targetCandId && kind === 'resume') {
             const cleanName = file.name.replace(/\.(pdf|docx|doc|txt)$/i, '').replace(/[-_]/g, ' ').replace(/\s+resume\b/i, '').trim();
             const parts = cleanName.split(/\s+/);
             const fName = parts[0] || 'Applicant';
             const lName = parts.slice(1).join(' ') || 'Candidate';
-            
+            createdName = `${fName} ${lName}`;
+
             const createRes = await fetch('/api/candidates', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -284,7 +342,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                 roleId: currentRole?.id || boardId,
                 firstName: fName,
                 lastName: lName,
-                email: `${fName.toLowerCase()}.${lName.toLowerCase()}@candidate.com`,
+                email: `${fName.toLowerCase()}.${lName.toLowerCase().replace(/\s+/g, '.')}@candidate.com`,
               })
             });
             const createData = await createRes.json();
@@ -293,25 +351,30 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             }
           }
 
-          if (targetCandId) {
+          if (kind === 'jd') {
+            setConnectionNotice({ tone: 'ok', message: `${file.name} is on this role as a job description. Agents read the job description saved in role setup.` });
+          } else if (targetCandId) {
             const formData = new FormData();
             formData.append('candidateId', targetCandId);
             formData.append('file', file);
-            const uploadRes = await fetch('/api/resumes/upload', {
-              method: 'POST',
-              body: formData
-            });
+            const uploadRes = await fetch('/api/resumes/upload', { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
             if (uploadData.success && uploadData.candidate) {
-              if (typeof window !== 'undefined') {
-                window.localStorage.setItem('activeCandidateId', uploadData.candidate.id);
-                window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: uploadData.candidate } }));
-              }
+              const person = `${uploadData.candidate.firstName || ''} ${uploadData.candidate.lastName || ''}`.trim() || createdName || 'the selected person';
+              window.localStorage.setItem('activeCandidateId', uploadData.candidate.id);
+              window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: uploadData.candidate } }));
+              setActiveHasResume(true);
+              setConnectionNotice({ tone: 'ok', message: `Attached ${file.name} to ${person}. The file is also on this role as a resume.` });
+            } else {
+              setConnectionNotice({ tone: 'error', message: uploadData.error || `Could not attach ${file.name}. It is on the board. Select a person in This role and use Attach resume.` });
             }
+          } else {
+            setConnectionNotice({ tone: 'error', message: `Could not attach ${file.name}. It is on the board. Select a person in This role and use Attach resume.` });
           }
-        } catch (uploadErr) {
-          console.error('Failed to auto-ingest resume from canvas drop:', uploadErr);
+        } catch {
+          setConnectionNotice({ tone: 'error', message: `Could not attach ${file.name}. It is on the board. Select a person in This role and use Attach resume.` });
         }
+        placeOnBoard(kind);
         continue;
       }
 
@@ -931,21 +994,13 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                     {layer.value || nodeSpec.displayName}
                   </h4>
                   <p className={`text-[11px] leading-snug ${layer.status === 'error' ? 'line-clamp-3 text-rose-700' : 'line-clamp-2 text-slate-500'}`}>
-                    {layer.status === 'error' && layer.errorDetails
+                    {layer.status === 'running'
+                      ? 'Running this step for the selected person…'
+                      : layer.status === 'error' && layer.errorDetails
                       ? layer.errorDetails
-                      : layer.outputData ? (
-                      layer.agentRole === 'agent-resume' || layer.agentRole === 'agent-screen'
-                        ? `Score: ${layer.outputData.overallMatch ?? layer.outputData.overallScore ?? "—"}`
-                        : layer.agentRole === 'agent-interview-plan'
-                        ? `${layer.outputData.sections?.length || 0} stages • ${layer.outputData.durationMinutes || 60}m`
-                        : layer.agentRole === 'agent-outreach'
-                        ? layer.outputData.subject || 'Email draft ready'
-                        : layer.agentRole === 'agent-decision'
-                        ? layer.outputData.recommendation || 'Recommendation ready'
-                        : 'Output ready'
-                    ) : (
-                      plainLanguage(layer.agentRole)
-                    )}
+                      : layer.outputData
+                      ? summarizeAgentOutput(layer.agentRole, layer.outputData)
+                      : plainLanguage(layer.agentRole)}
                   </p>
                   <p className="mt-1 truncate text-[10px] text-slate-500">
                     In {nodeSpec.inputs.length ? nodeSpec.inputs.map((port) => dataTypeLabel(port.type)).join(" · ") : "—"}
@@ -1252,7 +1307,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
               <Plus className="w-8 h-8 text-slate-300" />
             </div>
             <p className="text-xl font-bold text-slate-300">No pipeline on this role yet</p>
-            <p className="text-sm max-w-sm text-center">Open role setup and pick a hiring template. JobNinjas places the steps for this job. Add people from This role. Sticky notes stay with your team.</p>
+            <p className="text-sm max-w-sm text-center px-4">Pick a hiring template for this job. Add people from This role, then run the steps. Sticky notes stay with your team.</p>
           </div>
         </div>
       )}
@@ -1262,8 +1317,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         <div className="absolute inset-0 z-[200] bg-indigo-500/10 border-4 border-dashed border-indigo-400 flex flex-col items-center justify-center pointer-events-none">
           <div className="bg-white rounded-2xl shadow-2xl px-10 py-8 flex flex-col items-center gap-3">
             <Upload className="w-12 h-12 text-indigo-600 animate-bounce" />
-            <p className="text-xl font-bold text-slate-800">Drop Resumes Here</p>
-            <p className="text-sm text-slate-500">PDF, Word, or TXT files will be parsed into candidate profiles automatically</p>
+            <p className="text-xl font-bold text-slate-800">Drop a resume or a job file</p>
+            <p className="text-sm text-slate-500 max-w-sm text-center">A resume attaches to the selected person. A job description stays on this role as a document.</p>
           </div>
         </div>
       )}

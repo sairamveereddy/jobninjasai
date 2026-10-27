@@ -284,7 +284,7 @@ export function validateConnection(
     return {
       ok: false,
       carries: [],
-      message: `${fromName} sends ${outputs.map(portLabel).join(', ')}. ${toName} needs ${inputs.map(portLabel).join(', ')}. Nothing was connected. ${suggestConnection(toSpec?.role, inputs.map(portLabel))}`,
+      message: `${fromName} sends ${outputs.map(portLabel).join(', ')}. ${toName} needs ${inputs.map(portLabel).join(', ')}. Nothing was connected. To fix this: ${suggestConnection(toSpec?.role, inputs.map(portLabel))}`,
     };
   }
 
@@ -420,6 +420,18 @@ export const PIPELINE_TEMPLATES: { id: string; label: string; detail: string; st
     stages: ['parse-jd', 'parse-resume', 'screen', 'shortlist', 'outreach'],
   },
   {
+    id: 'high-volume',
+    label: 'High-volume screening',
+    detail: 'Score a large pile of resumes and keep a short list. Interviews come later.',
+    stages: ['parse-jd', 'parse-resume', 'screen', 'shortlist'],
+  },
+  {
+    id: 'executive',
+    label: 'Executive hire',
+    detail: 'Shortlist, plan a structured interview, propose times, score the transcript, and recommend.',
+    stages: ['parse-jd', 'parse-resume', 'screen', 'shortlist', 'interview-plan', 'schedule', 'interview-analysis', 'decision'],
+  },
+  {
     id: 'interview-loop',
     label: 'Interview loop',
     detail: 'Plan the interview, propose times, score the transcript, and recommend.',
@@ -465,6 +477,51 @@ const MISSING_INPUT_HELP: Record<string, string> = {
   InterviewSlots: 'Connect Interview Schedule and run it first.',
   Shortlist: 'Connect Shortlist and run it first.',
 };
+
+export type DocumentKind = 'JD' | 'Resume' | 'Deck' | 'Other';
+
+export function documentKind(name?: string, stored?: string): DocumentKind {
+  const hint = (stored || '').toLowerCase();
+  if (hint === 'jd') return 'JD';
+  if (hint === 'resume') return 'Resume';
+  if (hint === 'deck') return 'Deck';
+  if (hint === 'other') return 'Other';
+  const label = (name || '').toLowerCase();
+  if (/(job[-_ ]?description|(^|[^a-z])jd([^a-z]|$)|requisition)/.test(label)) return 'JD';
+  if (/(resume|\bcv\b)/.test(label)) return 'Resume';
+  if (/\.(ppt|pptx)$/.test(label)) return 'Deck';
+  return 'Other';
+}
+
+export function summarizeAgentOutput(agentRole: string | undefined, output: any): string {
+  if (output == null) return 'Result ready';
+  if (typeof output === 'string') return output.trim() ? 'Transcript ready' : 'Result ready';
+  if (typeof output !== 'object') return 'Result ready';
+  const words = (value: unknown) => String(value || '').replace(/_/g, ' ');
+  switch (agentRole) {
+    case 'agent-screen':
+    case 'agent-resume':
+      return `Scorecard ${output.overallMatch ?? output.overallScore ?? '—'}${output.recommendation ? ` · ${words(output.recommendation)}` : ''}`;
+    case 'agent-shortlist':
+      return output.rankLabel ? `Shortlist · ${output.rankLabel}` : output.advance ? 'Shortlist · Advance' : 'Shortlist · Pass';
+    case 'agent-outreach':
+      return output.subject ? `Email · ${output.subject}` : 'Email draft ready';
+    case 'agent-schedule':
+      return Array.isArray(output.slots) && output.slots.length ? `${output.slots.length} time options` : 'Times drafted';
+    case 'agent-interview-analysis':
+      return output.overallRecommendation ? `Interview · ${words(output.overallRecommendation)}` : 'Interview scored';
+    case 'agent-decision':
+      return output.recommendation ? `Recommendation · ${words(output.recommendation)}` : 'Recommendation ready';
+    case 'agent-jd-parser':
+      return output.seniority ? `Parsed job · ${output.seniority}` : 'Job description parsed';
+    case 'agent-resume-parser':
+      return output.fullName ? `Profile · ${output.fullName}` : 'Candidate profile ready';
+    case 'agent-interview-plan':
+      return `${output.sections?.length || 0} sections · ${output.durationMinutes || 60}m`;
+    default:
+      return 'Result ready';
+  }
+}
 
 export function explainMissingInputs(missing: string[]): string {
   if (!missing.length) return '';

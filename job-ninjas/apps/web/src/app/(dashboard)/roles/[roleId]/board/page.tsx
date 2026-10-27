@@ -7,7 +7,8 @@ import CandidateManager from "@/components/board/CandidateManager";
 import { IntakeWizard } from "@/components/board/intake-wizard";
 import { RoleSurface } from "@/components/board/role-surface";
 import { useBoardStore } from "@/store/board";
-import { BoardIntake, composeJobDescription } from "@/lib/agents/contracts";
+import { BoardIntake, PIPELINE_TEMPLATES, composeJobDescription } from "@/lib/agents/contracts";
+import { LayerType } from "@/types/canvas";
 import { Loader2 } from "lucide-react";
 
 export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: string }> | { roleId: string } }) {
@@ -177,7 +178,39 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
       {saving && (
         <div className="absolute bottom-6 right-6 z-50 bg-card/80 backdrop-blur px-3 py-1.5 rounded-full shadow-sm text-xs font-medium text-muted-foreground flex items-center gap-2 border border-border/50">
           <Loader2 className="w-3 h-3 animate-spin" />
-          Saving...
+          Saving this role…
+        </div>
+      )}
+      {roleId && !wizardOpen && !layerIds.some((id) => layers[id]?.type === LayerType.Agent) && (
+        <div className="absolute left-1/2 top-[34%] z-30 w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-white/10 bg-[#111214]/95 p-4 text-white shadow-xl">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">Start this role</p>
+          <p className="mt-1 text-sm text-[#b1b3b8]">Pick a hiring template. You still name the job before the steps are placed.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {PIPELINE_TEMPLATES.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                title={template.detail}
+                onClick={() => {
+                  setIntake((current) => ({
+                    roleTitle: current?.roleTitle || "",
+                    jobDescription: current?.jobDescription || "",
+                    mustHaveSkills: current?.mustHaveSkills || "",
+                    seniority: current?.seniority || "Senior",
+                    locations: current?.locations || "",
+                    candidateVolume: current?.candidateVolume || (template.id === "high-volume" ? "200+" : "11-50"),
+                    ats: current?.ats || "None yet",
+                    stages: [...template.stages],
+                    dismissed: false,
+                  }));
+                  setWizardOpen(true);
+                }}
+                className="rounded-md border border-white/10 px-2.5 py-1.5 text-xs hover:border-[#5e6ad2] hover:bg-[#5e6ad2]/20"
+              >
+                {template.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       <Canvas boardId={roleId} />

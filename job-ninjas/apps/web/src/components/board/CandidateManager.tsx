@@ -54,9 +54,14 @@ export default function CandidateManager({ roleId, roleTitle }: { roleId: string
 
   useEffect(() => {
     const handleCandidateChanged = (e: any) => {
-      if (e.detail?.candidate?.id) {
-        setActiveId(e.detail.candidate.id);
-      }
+      const candidate = e.detail?.candidate;
+      if (!candidate?.id) return;
+      setActiveId(candidate.id);
+      setCandidates((prev) => {
+        const exists = prev.some((item) => item.id === candidate.id);
+        if (!exists) return [candidate, ...prev];
+        return prev.map((item) => (item.id === candidate.id ? { ...item, ...candidate } : item));
+      });
     };
     window.addEventListener('candidateChanged', handleCandidateChanged);
     return () => window.removeEventListener('candidateChanged', handleCandidateChanged);
@@ -120,10 +125,10 @@ export default function CandidateManager({ roleId, roleTitle }: { roleId: string
   return (
     <>
       {/* Positioned on top-left beside JobNinjas logo (left-52) so it NEVER collides with Inspector */}
-      <div className="absolute top-6 left-52 z-40 flex flex-col font-sans transition-all duration-200">
+      <div className="absolute left-4 top-20 z-40 flex max-w-[calc(100vw-2rem)] flex-col font-sans transition-all duration-200 sm:left-52 sm:top-6">
         
         {/* Compact Pill Bar */}
-        <div className="bg-white/95 backdrop-blur-md shadow-md hover:shadow-lg rounded-2xl border border-slate-200/80 px-3.5 py-2 flex items-center gap-3 transition-all">
+        <div className="bg-white/95 backdrop-blur-md shadow-md hover:shadow-lg rounded-2xl border border-slate-200/80 px-3.5 py-2 flex items-center gap-3 transition-all max-w-full">
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-2.5 text-left group cursor-pointer"

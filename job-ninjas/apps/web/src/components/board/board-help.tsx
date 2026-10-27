@@ -8,15 +8,15 @@ export function BoardHelp() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="absolute right-6 top-6 z-50">
+    <div className="absolute right-3 top-16 z-50 sm:right-6 sm:top-6">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs font-medium text-white shadow-lg hover:border-[#5e6ad2]"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#111214] px-2.5 py-2 text-xs font-medium text-white shadow-lg hover:border-[#5e6ad2]"
         title="How this role board works"
       >
         <HelpCircle className="h-3.5 w-3.5 text-[#c7c9ff]" />
-        How this board works
+        <span className="hidden sm:inline">How this board works</span>
       </button>
       {open && (
         <div className="mt-2 max-h-[min(72vh,640px)] w-[min(400px,calc(100vw-3rem))] overflow-y-auto rounded-lg border border-white/10 bg-[#111214] p-4 text-sm text-[#b1b3b8] shadow-2xl">

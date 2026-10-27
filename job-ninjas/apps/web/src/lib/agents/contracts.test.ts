@@ -3,10 +3,13 @@ import { LayerType } from '../../types/canvas';
 import {
   applyArtifactAliases,
   collectUpstreamOutputs,
+  documentKind,
   explainMissingInputs,
   localRunBlockers,
   normalizeStages,
+  PIPELINE_TEMPLATES,
   scaffoldFromIntake,
+  summarizeAgentOutput,
   validateConnection,
 } from './contracts';
 
@@ -104,5 +107,56 @@ assert.match(noCandidate[0], /Pick a candidate/);
 const missingPlan = localRunBlockers('agent-interview-analysis', {}, { hasCandidate: true, hasResume: true, hasJobDescription: true });
 assert.match(missingPlan.join(' '), /interview plan/i);
 assert.equal(missingPlan.some((message) => /transcript/i.test(message)), false);
+
+const volumeStages = PIPELINE_TEMPLATES.find((template) => template.id === 'high-volume')!.stages;
+const volume = scaffoldFromIntake({
+  roleTitle: 'Support advocate',
+  jobDescription: 'Help customers.',
+  mustHaveSkills: 'writing',
+  seniority: 'Junior',
+  locations: 'Remote',
+  candidateVolume: '200+',
+  ats: 'Greenhouse',
+  stages: volumeStages,
+});
+assert.ok(volume.edges.some((edge) => edge.from === 'screen' && edge.to === 'shortlist'));
+assert.equal(volume.edges.some((edge) => edge.to === 'analysis'), false);
+for (const edge of volume.edges) {
+  const verdict = validateConnection(
+    agent(volume.nodes.find((node) => node.key === edge.from)?.role || ''),
+    agent(volume.nodes.find((node) => node.key === edge.to)?.role || '')
+  );
+  assert.equal(verdict.ok, true, `volume ${edge.from} → ${edge.to}: ${verdict.message}`);
+}
+
+const executiveStages = PIPELINE_TEMPLATES.find((template) => template.id === 'executive')!.stages;
+const executive = scaffoldFromIntake({
+  roleTitle: 'VP Sales',
+  jobDescription: 'Lead the team.',
+  mustHaveSkills: 'enterprise sales',
+  seniority: 'Director',
+  locations: 'New York',
+  candidateVolume: '1-10',
+  ats: 'Ashby',
+  stages: executiveStages,
+});
+assert.ok(executive.edges.some((edge) => edge.from === 'schedule' && edge.to === 'analysis'));
+assert.equal(executive.edges.some((edge) => edge.from === 'outreach' || edge.to === 'outreach'), false);
+for (const edge of executive.edges) {
+  const from = executive.nodes.find((node) => node.key === edge.from);
+  const to = executive.nodes.find((node) => node.key === edge.to);
+  const verdict = validateConnection(
+    from?.kind === 'note' ? note() : agent(from?.role || ''),
+    to?.kind === 'note' ? note() : agent(to?.role || '')
+  );
+  assert.equal(verdict.ok, true, `executive ${edge.from} → ${edge.to}: ${verdict.message}`);
+}
+
+assert.equal(summarizeAgentOutput('agent-screen', { overallMatch: 82, recommendation: 'ADVANCE' }), 'Scorecard 82 · ADVANCE');
+assert.equal(summarizeAgentOutput('agent-shortlist', { rankLabel: 'Advance', advance: true }), 'Shortlist · Advance');
+assert.equal(documentKind('Senior_JD.pdf'), 'JD');
+assert.equal(documentKind('Ada-resume.pdf'), 'Resume');
+assert.equal(documentKind('deck.pptx'), 'Deck');
+assert.match(conciergeToParser.message, /To fix this/);
 
 console.log(`contracts ok (${plan.edges.length} scaffold edges, ${full.edges.length} full-loop edges)`);
