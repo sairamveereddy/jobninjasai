@@ -9,9 +9,9 @@ import { ZoomControls } from './zoom-controls';
 import { LibraryModal } from './library-modal';
 import { getStroke } from 'perfect-freehand';
 import Link from 'next/link';
-import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Mail, Calendar, MessageSquare, Database, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles, Square } from 'lucide-react';
+import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles, Square } from 'lucide-react';
 import { getNodeSpec } from '@/lib/agents/node-specs';
-import { collectUpstreamOutputs, dataTypeLabel, documentKind, isSharedStep, localRunBlockers, outputForCandidate, plainLanguage, stepHealth, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
+import { collectUpstreamOutputs, dataTypeLabel, documentKind, isSharedStep, jobDescriptionText, localRunBlockers, outputForCandidate, plainLanguage, stepHealth, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
 import { SelectionBox } from './selection-box';
 import { resizeBounds } from '@/lib/geometry';
 import { Side, XYWH } from '@/types/canvas';
@@ -64,13 +64,13 @@ function persistJobDescription(roleId: string | undefined, text: string) {
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // MCP Connector definitions
-const MCP_CONNECTORS = [
-  { icon: Mail, label: 'Gmail', desc: 'Send emails to candidates automatically', color: 'text-red-500', bg: 'bg-red-50', agentRole: 'gmail-connector' },
-  { icon: Calendar, label: 'Google Calendar', desc: 'Schedule interviews automatically', color: 'text-blue-500', bg: 'bg-blue-50', agentRole: 'gcalendar-connector' },
-  { icon: MessageSquare, label: 'Slack', desc: 'Notify hiring managers in real-time', color: 'text-purple-500', bg: 'bg-purple-50', agentRole: 'slack-connector' },
-  { icon: Database, label: 'Greenhouse ATS', desc: 'Sync candidates to your ATS', color: 'text-green-600', bg: 'bg-green-50', agentRole: 'greenhouse-connector' },
-  { icon: Workflow, label: 'Workday', desc: 'Push hired candidates to Workday', color: 'text-indigo-600', bg: 'bg-indigo-50', agentRole: 'workday-connector' },
-  { icon: FileText, label: 'DocuSign', desc: 'Send offer letters for e-signature', color: 'text-yellow-600', bg: 'bg-yellow-50', agentRole: 'docusign-connector' },
+const CONNECTOR_NOTES = [
+  { label: 'Gmail', detail: 'Not live. Does not send email.' },
+  { label: 'Google Calendar', detail: 'Not live. Does not book interviews.' },
+  { label: 'Slack', detail: 'Not live. Does not notify anyone.' },
+  { label: 'Greenhouse', detail: 'Not a live sync. Import people from This role.' },
+  { label: 'Workday', detail: 'Not live. Does not push hires.' },
+  { label: 'DocuSign', detail: 'Not live. Does not send offers.' },
 ];
 
 // Helper to convert freehand stroke points to SVG path data
@@ -239,24 +239,25 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     if (!layer || layer.type !== LayerType.Agent) return false;
     
     if (layer.agentRole === 'input-job-details') {
-      const doc = Object.values(layers).find((item) => (item as { docKind?: string }).docKind === 'jd') as { value?: string } | undefined;
+      const fromDoc = jobDescriptionText(layers);
       const fromNode = typeof layer.outputData === 'string' ? layer.outputData.trim() : '';
-      const text = doc ? String(doc.value || '').trim() : fromNode;
-      if (doc && !text) {
+      const fromRole = String(currentRole?.jobDescription || '').trim();
+      const nodeIsFileName = /\.(pdf|docx?|pptx?|txt)$/i.test(fromNode);
+      const text = fromDoc || fromRole || (nodeIsFileName ? '' : fromNode);
+      if (!text) {
         updateLayer(layerId, {
           status: 'error',
           outputData: undefined,
           errorDetails: 'Add a job description on the job card, or in role setup.',
         });
-        persistJobDescription(boardId, '');
         return false;
       }
       updateLayer(layerId, {
-        status: text ? 'success' : 'idle',
-        outputData: text || undefined,
+        status: 'success',
+        outputData: text,
         errorDetails: undefined,
       });
-      if (text) persistJobDescription(boardId, text);
+      persistJobDescription(boardId, text);
       return true;
     }
 
@@ -511,40 +512,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         continue;
       }
 
-      const isOfficeDoc = file.name.match(/\.(ppt|pptx)$/i);
-      
-      if (isOfficeDoc) {
-        // Mock extraction: generate 10 slides horizontally
-        for (let s = 1; s <= 10; s++) {
-          const slideX = dropPoint.x + (s - 1) * 800;
-          const slideY = dropPoint.y;
-          const slideId = insertLayer(LayerType.Slide, { x: slideX, y: slideY }, { r: 255, g: 255, b: 255 });
-          updateLayer(slideId, { 
-            fileName: `${file.name} - Slide ${s}`,
-            value: `${file.name} - Slide ${s}`,
-            fileSrc: `/extracted_slides/slide_${s}.png`
-          } as any);
-        }
-      } else {
-        const nodeX = dropPoint.x + (i % 3) * 300;
-        const nodeY = dropPoint.y + Math.floor(i / 3) * 200;
-        
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = event.target?.result as string;
-          if (file.type.startsWith('image/')) {
-            insertLayer(LayerType.Image, { x: nodeX, y: nodeY }, { r: 255, g: 255, b: 255 }, undefined, undefined, base64);
-          } else {
-            const id = insertLayer(LayerType.Slide, { x: nodeX, y: nodeY }, { r: 255, g: 255, b: 255 });
-            updateLayer(id, { fileSrc: base64, value: file.name, fileName: file.name } as any);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+      placeOnBoard(documentKind(file.name).toLowerCase());
     }
   }, [camera, insertLayer, updateLayer, boardId, currentRole, pushActivity]);
 
-  const [runQueue, setRunQueue] = useState<{ active: string; next: string[] } | null>(null);
+  const [runQueue, setRunQueue] = useState<{ active: string; next: string[]; who: string } | null>(null);
   const [openResultId, setOpenResultId] = useState<string | null>(null);
   const [notePeople, setNotePeople] = useState<BoardPerson[]>([]);
   notePeopleRef.current = notePeople;
@@ -608,7 +580,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       }
       const currentId = order[index];
       const upcoming = order.slice(index + 1, index + 4).map(stepName);
-      setRunQueue({ active: stepName(currentId), next: upcoming });
+      setRunQueue({ active: stepName(currentId), next: upcoming, who: startedName });
       const freshEdges = Object.values(useBoardStore.getState().edges);
       const blockerId = freshEdges.find((edge) => edge.toNodeId === currentId && failed.has(edge.fromNodeId))?.fromNodeId;
       if (blockerId) {
@@ -748,10 +720,16 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       const newLayerId = insertLayer(canvasState.layerType, point, { r: 255, g: 255, b: 255 }, undefined, canvasState.agentRole, (canvasState as any).src, getInitialConfig(canvasState.agentRole));
       
       if (canvasState.layerType === LayerType.Slide && (canvasState as any).fileSrc) {
-        updateLayer(newLayerId, { 
-          fileSrc: (canvasState as any).fileSrc, 
-          value: (canvasState as any).fileName 
-        });
+        const fileName = (canvasState as any).fileName as string | undefined;
+        const kind = documentKind(fileName);
+        updateLayer(newLayerId, {
+          fileSrc: (canvasState as any).fileSrc,
+          value: fileName,
+          fileName,
+          docKind: kind === 'JD' ? 'jd' : kind === 'Resume' ? 'resume' : kind === 'Deck' ? 'deck' : 'other',
+          width: 280,
+          height: 180,
+        } as any);
       }
       
       setCanvasState({ mode: CanvasMode.None });
@@ -1578,7 +1556,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
   return (
     <main 
-      className="h-full w-full relative touch-none overflow-hidden bg-background" 
+      className="h-full w-full relative touch-none overflow-hidden bg-[#08090a]" 
       style={{ 
         cursor: canvasState.mode === CanvasMode.Pressing ? 'grabbing' : 
                 canvasState.mode === CanvasMode.Inserting ? 'crosshair' : 
@@ -1602,11 +1580,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
       {/* === FEATURE 1: Drag & Drop overlay === */}
       {isDragOver && (
-        <div className="absolute inset-0 z-[200] bg-indigo-500/10 border-4 border-dashed border-indigo-400 flex flex-col items-center justify-center pointer-events-none">
-          <div className="bg-white rounded-2xl shadow-2xl px-10 py-8 flex flex-col items-center gap-3">
-            <Upload className="w-12 h-12 text-indigo-600 animate-bounce" />
-            <p className="text-xl font-bold text-slate-800">Drop a resume or a job file</p>
-            <p className="text-sm text-slate-500 max-w-sm text-center">A resume attaches to the selected person. A job description stays on this role as a document.</p>
+        <div className="absolute inset-0 z-[200] flex flex-col items-center justify-center border-2 border-dashed border-[#5e6ad2] bg-black/40 pointer-events-none">
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-white/10 bg-[#111214] px-10 py-8 shadow-2xl">
+            <Upload className="h-10 w-10 text-[#c7c9ff]" />
+            <p className="text-lg font-medium text-white">Drop a resume or a job file</p>
+            <p className="max-w-sm text-center text-sm text-[#b1b3b8]">A resume attaches to the selected person. A job description stays on this role as a document.</p>
           </div>
         </div>
       )}
@@ -1650,30 +1628,18 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <p className="text-xs text-[#b1b3b8] mb-2">Greenhouse import is in This role. These connectors are not live. Adding one only places a step. It does not sign in or send data.</p>
-            {MCP_CONNECTORS.map((conn) => (
-              <button
-                key={conn.agentRole}
-                onClick={() => {
-                  const cx = (window.innerWidth / 2 - camera.x) / camera.zoom;
-                  const cy = (window.innerHeight / 2 - camera.y) / camera.zoom;
-                  insertLayer(LayerType.Agent, { x: cx, y: cy }, { r: 255, g: 255, b: 255 }, undefined, conn.agentRole);
-                  setIsMcpPanelOpen(false);
-                }}
-                className="w-full text-left flex items-start gap-3 p-3 rounded-xl border border-white/10 hover:border-[#5e6ad2] bg-black/20 transition-all group"
-              >
-                <div className={`p-2 rounded-lg ${conn.bg} ${conn.color} shrink-0 group-hover:scale-110 transition-transform`}>
-                  <conn.icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-medium text-white text-sm">{conn.label}</p>
-                  <p className="text-xs text-[#b1b3b8] mt-0.5">{conn.desc}</p>
-                </div>
-              </button>
-            ))}
+            <p className="text-xs leading-relaxed text-[#b1b3b8]">Nothing in this list sends, books, or writes to an ATS. Greenhouse import in This role is the live way to bring people in.</p>
+            <ul className="space-y-2">
+              {CONNECTOR_NOTES.map((conn) => (
+                <li key={conn.label} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+                  <p className="text-sm font-medium text-white">{conn.label}</p>
+                  <p className="mt-0.5 text-xs text-[#b1b3b8]">{conn.detail}</p>
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="p-4 border-t border-white/10">
-            <p className="text-xs text-[#8b8fa8] text-center">Nothing here sends email, books a calendar, or writes back to an ATS.</p>
+            <p className="text-center text-xs text-[#8b8fa8]">These rows do not add a step and do not sign in.</p>
           </div>
         </div>
       )}
@@ -1688,7 +1654,13 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       )}
 
       <BoardHelp />
-      <Toolbar canvasState={canvasState} setCanvasState={setCanvasState} onOpenTemplates={() => setIsTemplatesOpen(true)} />
+      <Toolbar canvasState={canvasState} setCanvasState={setCanvasState} onOpenTemplates={() => {
+        if (boardId && boardId !== 'new-workflow') {
+          window.dispatchEvent(new CustomEvent('openRoleSetup'));
+          return;
+        }
+        setIsTemplatesOpen(true);
+      }} />
       <LibraryModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} camera={camera} />
       <ZoomControls camera={camera} setCamera={setCamera} />
       <InspectorPanel boardId={boardId} />
@@ -1698,14 +1670,14 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         <div className="absolute top-4 left-4 z-50 flex items-center gap-3">
           <Link 
             href="/roles"
-            className="flex items-center justify-center w-10 h-10 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm text-slate-600 hover:text-indigo-600"
+            className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/10 bg-[#111214] text-[#b1b3b8] shadow-sm transition-colors hover:text-white"
             title="Back to Roles"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2">
-            <Workflow className="w-4 h-4 text-indigo-500" />
-            <h1 className="font-semibold text-slate-800 text-sm">
+          <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#111214] px-4 py-2.5 shadow-sm">
+            <Workflow className="w-4 h-4 text-[#c7c9ff]" />
+            <h1 className="text-sm font-medium text-white">
               New hiring pipeline
             </h1>
           </div>
@@ -1719,28 +1691,28 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           type="button"
           aria-label="Upload a resume for the selected person"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-3 py-2 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 hover:bg-white shadow-xs hover:shadow-sm transition-all cursor-pointer"
+          className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs font-medium text-white shadow-xs transition-colors hover:border-[#5e6ad2]"
           title="Upload a resume for the selected person"
         >
-          <Upload className="w-3.5 h-3.5 text-indigo-600" />
+          <Upload className="w-3.5 h-3.5 text-[#c7c9ff]" />
           Upload resume
         </button>
         <button
           type="button"
-          aria-label="Open integrations"
+          aria-label="Open connectors. Nothing here sends."
           aria-pressed={isMcpPanelOpen}
           onClick={() => setIsMcpPanelOpen(v => !v)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer ${isMcpPanelOpen ? 'bg-indigo-600 text-white border border-indigo-600' : 'bg-white/95 backdrop-blur-md border border-slate-200/80 text-slate-700 hover:bg-white hover:shadow-sm'}`}
-          title="Connect Greenhouse, Workday, Gmail, Calendar..."
+          className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium shadow-xs transition-colors ${isMcpPanelOpen ? 'border border-[#5e6ad2] bg-[#5e6ad2] text-white' : 'border border-white/10 bg-[#111214] text-white hover:border-[#5e6ad2]'}`}
+          title="Nothing here sends. Greenhouse import is in This role."
         >
-          <Plug className="w-3.5 h-3.5 text-emerald-600" />
-          Integrations
+          <Plug className="w-3.5 h-3.5 text-[#c7c9ff]" />
+          Connectors
         </button>
         <button
           type="button"
           aria-label={isRunning ? 'Stop pipeline' : 'Run pipeline for the selected person'}
           onClick={runWorkflow}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${isRunning ? 'border border-white/10 bg-[#111214] text-white hover:border-[#5e6ad2]' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-white shadow-md transition-colors ${isRunning ? 'border border-white/10 bg-[#111214] hover:border-[#5e6ad2]' : 'bg-[#5e6ad2] hover:bg-[#6d77d8]'}`}
           title={isRunning ? 'Stop this run. Earlier results stay on the steps.' : 'Run each step in order for the selected person. Earlier results stay on the steps.'}
         >
           {isRunning ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
@@ -1749,12 +1721,12 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         </div>
         {runQueue && (
           <div className="w-full rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs text-white shadow-xl">
-            <p>Running <span className="font-medium">{runQueue.active}</span> for the selected person.</p>
+            <p>Running <span className="font-medium">{runQueue.active}</span> for {runQueue.who}.</p>
             <p className="mt-1 text-[#b1b3b8]">{runQueue.next.length ? `Next: ${runQueue.next.join(' → ')}` : 'This is the last step.'}</p>
           </div>
         )}
         {activeCandidateId && (
-          <p className="pointer-events-none text-[11px] text-slate-600">
+          <p className="pointer-events-none text-[11px] text-[#b1b3b8]">
             Showing {personLabel(notePeople, activeCandidateId)}. Done, ready, and blocked are for this person.
           </p>
         )}
@@ -1777,7 +1749,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           </div>
         )}
         {!activeCandidateId && !runQueue && (
-          <p className="pointer-events-none text-[11px] text-slate-500">Select a person in This role. Steps stay blank until you do.</p>
+          <p className="pointer-events-none text-[11px] text-[#b1b3b8]">Select a person in This role. Steps stay blank until you do.</p>
         )}
       </div>
 
@@ -1785,7 +1757,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
         <defs>
           <pattern id="grid-pattern" x={camera.x % (24 * camera.zoom)} y={camera.y % (24 * camera.zoom)} width={24 * camera.zoom} height={24 * camera.zoom} patternUnits="userSpaceOnUse">
-            <circle cx={1 * camera.zoom} cy={1 * camera.zoom} r={1} fill="#cbd5e1" />
+            <circle cx={1 * camera.zoom} cy={1 * camera.zoom} r={0.6} fill="#2c2e33" />
           </pattern>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
             <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />

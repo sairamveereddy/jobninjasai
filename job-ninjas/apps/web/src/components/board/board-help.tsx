@@ -36,6 +36,7 @@ export function BoardHelp() {
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Connect steps</h3>
           <p>Draw a line from the right side of a step to the left side of the next one. The label on the line is what that connection carries, such as Resume or Scorecard. If the types do not fit, nothing is connected and the message says what to connect instead.</p>
+          <p className="mt-2">The left rail starts with hiring steps, templates, a team note, and a document. Shapes, the pen, and a blank slide sit under Layout. Connectors do not send. Greenhouse import is in This role.</p>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Give an agent a resume</h3>
           <ul className="space-y-1.5">

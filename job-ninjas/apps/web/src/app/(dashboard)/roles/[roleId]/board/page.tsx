@@ -85,6 +85,12 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
   }, [roleId, setLayerIds, setLayers, setEdgeIds, setEdges, setActivity]);
 
   useEffect(() => {
+    const openSetup = () => setWizardOpen(true);
+    window.addEventListener('openRoleSetup', openSetup);
+    return () => window.removeEventListener('openRoleSetup', openSetup);
+  }, []);
+
+  useEffect(() => {
     if (!roleId) return;
     fetch('/api/roles')
       .then((res) => res.json())

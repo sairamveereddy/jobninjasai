@@ -543,6 +543,24 @@ export function documentKind(name?: string, stored?: string): DocumentKind {
   return 'Other';
 }
 
+/** Body text of the job description. A file card labeled with its name is not the description. */
+export function jobDescriptionText(
+  layers: Record<string, { type?: LayerType; docKind?: string; value?: unknown; fileName?: string } | undefined>
+): string {
+  let best = '';
+  for (const item of Object.values(layers)) {
+    if (!item || (item.docKind || '').toLowerCase() !== 'jd') continue;
+    if (typeof item.value !== 'string') continue;
+    const value = item.value.trim();
+    if (!value) continue;
+    const fileName = (item.fileName || '').trim();
+    if (fileName && value === fileName) continue;
+    if (item.type !== LayerType.Text && value.length < 40) continue;
+    if (value.length > best.length) best = value;
+  }
+  return best;
+}
+
 export function summarizeAgentOutput(agentRole: string | undefined, output: any): string {
   if (output == null) return 'Result ready';
   if (typeof output === 'string') {

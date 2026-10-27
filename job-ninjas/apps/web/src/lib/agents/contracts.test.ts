@@ -5,6 +5,7 @@ import {
   applyArtifactAliases,
   collectUpstreamOutputs,
   documentKind,
+  jobDescriptionText,
   explainMissingInputs,
   localRunBlockers,
   normalizeStages,
@@ -233,6 +234,13 @@ assert.equal(summarizeAgentOutput('agent-schedule', { slots: [{ label: 'Tue 10:0
 assert.equal(documentKind('Senior_JD.pdf'), 'JD');
 assert.equal(documentKind('Ada-resume.pdf'), 'Resume');
 assert.equal(documentKind('deck.pptx'), 'Deck');
+assert.equal(jobDescriptionText({
+  file: { type: LayerType.Slide, docKind: 'jd', value: 'Senior_JD.pdf', fileName: 'Senior_JD.pdf' },
+  body: { type: LayerType.Text, docKind: 'jd', value: 'Build hiring systems.', fileName: 'Role job description' },
+}), 'Build hiring systems.');
+assert.equal(jobDescriptionText({
+  file: { type: LayerType.Slide, docKind: 'jd', value: 'Senior_JD.pdf', fileName: 'Senior_JD.pdf' },
+}), '');
 assert.match(conciergeToParser.message, /To fix this/);
 
 console.log(`contracts ok (${plan.edges.length} scaffold edges, ${full.edges.length} full-loop edges)`);
