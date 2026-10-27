@@ -24,6 +24,8 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
   const setLayers = useBoardStore(state => state.setLayers);
   const setEdgeIds = useBoardStore(state => state.setEdgeIds);
   const setEdges = useBoardStore(state => state.setEdges);
+  const activity = useBoardStore(state => state.activity);
+  const setActivity = useBoardStore(state => state.setActivity);
   
   const loadScaffold = useBoardStore(state => state.loadScaffold);
   
@@ -45,6 +47,7 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
     setLayers({});
     setEdgeIds([]);
     setEdges({});
+    setActivity({});
     
     fetch(`/api/boards/${roleId}`)
       .then(res => res.json())
@@ -52,11 +55,15 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
         const nextIntake = !data.error ? (data.intake || null) : null;
         const nextLayerIds = !data.error ? (data.layerIds || []) : [];
         if (!data.error) {
+          const rawLayers = { ...(data.layers || {}) };
+          const tucked = rawLayers.__activity;
+          delete rawLayers.__activity;
           setLayerIds(nextLayerIds);
-          setLayers(data.layers || {});
+          setLayers(rawLayers);
           setEdgeIds(data.edgeIds || []);
           setEdges(data.edges || {});
           setIntake(nextIntake);
+          setActivity(data.activity || tucked || {});
         } else {
           // Explicitly clear if board doesn't exist yet
           setLayerIds([]);
@@ -64,6 +71,7 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
           setEdgeIds([]);
           setEdges({});
           setIntake(null);
+          setActivity({});
         }
         if (nextLayerIds.length === 0 && !nextIntake?.completedAt && !nextIntake?.dismissed) {
           setWizardOpen(true);
@@ -74,7 +82,7 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
         setLoading(false);
         initialLoadRef.current = true;
       });
-  }, [roleId, setLayerIds, setLayers, setEdgeIds, setEdges]);
+  }, [roleId, setLayerIds, setLayers, setEdgeIds, setEdges, setActivity]);
 
   useEffect(() => {
     if (!roleId) return;
@@ -101,13 +109,13 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
       fetch(`/api/boards/${roleId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ layerIds, layers, edgeIds, edges, intake })
+        body: JSON.stringify({ layerIds, layers, edgeIds, edges, intake, activity })
       })
       .finally(() => setSaving(false));
     }, 1500); // Debounce saves by 1.5s
     
     return () => clearTimeout(saveTimeout.current);
-  }, [layerIds, layers, edgeIds, edges, intake, roleId, loading]);
+  }, [layerIds, layers, edgeIds, edges, intake, activity, roleId, loading]);
 
   const handleIntake = async (next: BoardIntake, mode: "build" | "save") => {
     setIntake(next);

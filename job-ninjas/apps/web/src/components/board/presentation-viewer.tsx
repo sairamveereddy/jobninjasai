@@ -120,7 +120,7 @@ export const PresentationViewer: React.FC<PresentationViewerProps> = ({ layers, 
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent blur-2xl pointer-events-none"></div>
                 <div className="z-10 flex flex-col items-center text-center p-12">
                   <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-md bg-gradient-to-br from-white to-blue-200 bg-clip-text text-transparent">{currentSlide?.fileName?.replace(/\.[^/.]+$/, "") || 'Presentation'}</h2>
-                  <p className="text-blue-200/80 text-lg font-medium">Job Ninjas Interactive Presentation</p>
+                  <p className="text-blue-200/80 text-lg font-medium">JobNinjas presentation</p>
                 </div>
               </div>
             )}

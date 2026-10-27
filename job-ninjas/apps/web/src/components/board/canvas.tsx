@@ -9,7 +9,7 @@ import { ZoomControls } from './zoom-controls';
 import { LibraryModal } from './library-modal';
 import { getStroke } from 'perfect-freehand';
 import Link from 'next/link';
-import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Mail, Calendar, MessageSquare, Database, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles } from 'lucide-react';
+import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Mail, Calendar, MessageSquare, Database, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles, Square } from 'lucide-react';
 import { getNodeSpec } from '@/lib/agents/node-specs';
 import { collectUpstreamOutputs, dataTypeLabel, documentKind, isSharedStep, localRunBlockers, outputForCandidate, plainLanguage, stepHealth, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
 import { SelectionBox } from './selection-box';
@@ -23,7 +23,30 @@ import { CandidateConciergeNode } from './candidate-concierge-node';
 import { CandidateNodeBlock } from './candidate-node-block';
 import { BoardHelp } from './board-help';
 import { ArtifactSheet, artifactKind, artifactTitle } from './artifact-sheet';
-import { markCandidateRun, recordCandidateRun, saveResultEdit } from './result-edits';
+import { markCandidateRun, recordCandidateRun, saveResultEdit, settleStoppedRun } from './result-edits';
+
+type BoardPerson = { id: string; firstName?: string; lastName?: string; resumeText?: string | null };
+
+function personHasResume(people: BoardPerson[], candidateId: string | null, unknownFallback: boolean | null) {
+  if (!candidateId) return unknownFallback !== false;
+  const person = people.find((item) => item.id === candidateId);
+  if (person && Object.prototype.hasOwnProperty.call(person, 'resumeText')) return !!person.resumeText;
+  return unknownFallback !== false;
+}
+
+function personLabel(people: BoardPerson[], candidateId: string | null) {
+  const person = people.find((item) => item.id === candidateId);
+  const name = person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : '';
+  return name || 'the selected person';
+}
+
+function formatActivityTime(at: number) {
+  try {
+    return new Date(at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
 
 let jdPersistTimer: ReturnType<typeof setTimeout> | undefined;
 function persistJobDescription(roleId: string | undefined, text: string) {
@@ -185,6 +208,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 });
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const stopPipelineRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const notePeopleRef = useRef<BoardPerson[]>([]);
   const [quickAddMenuFor, setQuickAddMenuFor] = useState<string | null>(null);
   const [presentationMode, setPresentationMode] = useState<{ active: boolean, layerId?: string }>({ active: false });
 
@@ -266,7 +292,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
     const blockers = localRunBlockers(layer.agentRole, clientUpstreamOutputs, {
       hasCandidate: !!activeCandId,
-      hasResume: activeHasResume !== false,
+      hasResume: personHasResume(notePeopleRef.current, activeCandId, activeHasResume),
       hasJobDescription: !!currentRole?.jobDescription,
     });
     if (blockers.length) {
@@ -280,10 +306,13 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     if (activeCandId) markCandidateRun(layerId, activeCandId);
     else updateLayer(layerId, { status: 'running', errorDetails: undefined });
 
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const response = await fetch('/api/agents/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           nodeId: layerId,
           agentType: layer.agentRole,
@@ -295,6 +324,10 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       });
 
       const data = await response.json();
+      if (stopPipelineRef.current) {
+        settleStoppedRun(layerId, activeCandId);
+        return false;
+      }
       
       if (response.ok && data.status !== 'ERROR' && data.status !== 'BLOCKED') {
         recordCandidateRun(layerId, activeCandId, {
@@ -320,8 +353,14 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         return false;
       }
     } catch (e: any) {
+      if (e?.name === 'AbortError' || stopPipelineRef.current) {
+        settleStoppedRun(layerId, activeCandId);
+        return false;
+      }
       recordCandidateRun(layerId, activeCandId, { ok: false, error: e.message || 'This step failed.' });
       return false;
+    } finally {
+      if (abortRef.current === controller) abortRef.current = null;
     }
   };
 
@@ -338,11 +377,14 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     const syncResume = (event?: Event) => {
       const candidate = (event as CustomEvent | undefined)?.detail?.candidate;
       if (candidate?.id) setActiveCandidateId(candidate.id);
+      const id = candidate?.id || (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '');
+      const listed = id ? notePeopleRef.current.find((item) => item.id === id) : undefined;
       if (candidate && 'resumeText' in candidate) {
         setActiveHasResume(!!candidate.resumeText);
         if (candidate.firstName || candidate.lastName) return;
+      } else if (listed && Object.prototype.hasOwnProperty.call(listed, 'resumeText')) {
+        setActiveHasResume(!!listed.resumeText);
       }
-      const id = candidate?.id || (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '');
       if (id) setActiveCandidateId(id);
       if (!id || !boardId || boardId === 'new-workflow') {
         if (!id) {
@@ -499,18 +541,31 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
   const [runQueue, setRunQueue] = useState<{ active: string; next: string[] } | null>(null);
   const [openResultId, setOpenResultId] = useState<string | null>(null);
-  const [notePeople, setNotePeople] = useState<{ id: string; firstName?: string; lastName?: string }[]>([]);
+  const [notePeople, setNotePeople] = useState<BoardPerson[]>([]);
+  notePeopleRef.current = notePeople;
+  const activityLog = useBoardStore((state) => state.activity);
+  const pushActivity = useBoardStore((state) => state.pushActivity);
 
   useEffect(() => {
     if (!boardId || boardId === 'new-workflow') return;
+    const applyPeople = (data: { candidates?: BoardPerson[] } | BoardPerson[]) => {
+      const people = Array.isArray(data) ? data : data?.candidates || [];
+      setNotePeople(people);
+      notePeopleRef.current = people;
+      const id = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '';
+      const person = people.find((item) => item.id === id);
+      if (person && Object.prototype.hasOwnProperty.call(person, 'resumeText')) {
+        setActiveHasResume(!!person.resumeText);
+      }
+    };
     fetch(`/api/candidates?roleId=${boardId}`)
       .then((res) => res.json())
-      .then((data) => setNotePeople(Array.isArray(data) ? data : data?.candidates || []))
+      .then(applyPeople)
       .catch(() => setNotePeople([]));
     const refreshPeople = () => {
       fetch(`/api/candidates?roleId=${boardId}`)
         .then((res) => res.json())
-        .then((data) => setNotePeople(Array.isArray(data) ? data : data?.candidates || []))
+        .then(applyPeople)
         .catch(() => undefined);
     };
     window.addEventListener('candidateChanged', refreshPeople);
@@ -518,7 +573,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   }, [boardId]);
 
   const runWorkflow = async () => {
-    if (isRunning) return;
+    if (isRunning) {
+      stopPipelineRef.current = true;
+      abortRef.current?.abort();
+      return;
+    }
     const state = useBoardStore.getState();
     const order = orderedAgentIds(state.layerIds, state.layers, state.edges);
     const stepName = (id: string) => {
@@ -534,27 +593,41 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       state.setConnectionNotice({ tone: 'error', message: 'Select a person on this role, then run the pipeline. Every step scores whoever is selected.' });
       return;
     }
+    stopPipelineRef.current = false;
     setIsRunning(true);
     const failed = new Set<string>();
+    let stopped = false;
     for (let index = 0; index < order.length; index += 1) {
+      if (stopPipelineRef.current) {
+        stopped = true;
+        break;
+      }
       const currentId = order[index];
       const upcoming = order.slice(index + 1, index + 4).map(stepName);
       setRunQueue({ active: stepName(currentId), next: upcoming });
       const freshEdges = Object.values(useBoardStore.getState().edges);
       const blockerId = freshEdges.find((edge) => edge.toNodeId === currentId && failed.has(edge.fromNodeId))?.fromNodeId;
-        if (blockerId) {
+      if (blockerId) {
         const message = `Stopped because ${stepName(blockerId)} did not finish. Fix that step, then run the pipeline again.`;
         recordCandidateRun(currentId, candId, { ok: false, error: message });
         failed.add(currentId);
         continue;
       }
       const success = await handleRunSingleAgent(currentId);
+      if (stopPipelineRef.current) {
+        stopped = true;
+        break;
+      }
       if (!success) failed.add(currentId);
     }
     setIsRunning(false);
     setRunQueue(null);
+    stopPipelineRef.current = false;
     const notice = useBoardStore.getState().setConnectionNotice;
-    if (failed.size) {
+    if (stopped) {
+      pushActivity(candId, 'Pipeline stopped');
+      notice({ tone: 'ok', message: 'Pipeline stopped. Earlier results for this person stay on the steps.' });
+    } else if (failed.size) {
       notice({ tone: 'error', message: `Pipeline stopped on ${failed.size} step${failed.size === 1 ? '' : 's'}. Read the message on the step. Earlier results stay where they are.` });
     } else {
       notice({ tone: 'ok', message: 'Pipeline finished for the selected person. Their results stay on the steps when you switch people.' });
@@ -871,7 +944,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                                 <FileText className="w-10 h-10 text-blue-300 drop-shadow-md" />
                               </div>
                               <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-md bg-gradient-to-br from-white to-blue-200 bg-clip-text text-transparent">{(layer as any).fileName?.replace(/\.[^/.]+$/, "") || 'Presentation'}</h2>
-                              <p className="text-blue-200/80 text-lg mb-8 font-medium max-w-lg">Job Ninjas Interactive Presentation</p>
+                              <p className="text-blue-200/80 text-lg mb-8 font-medium max-w-lg">JobNinjas presentation</p>
                             </div>
                          </div>
                     )}
@@ -1045,7 +1118,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                     const upstream = forPerson ? collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandidateId).outputs : {};
                     const blockers = forPerson ? localRunBlockers(layer.agentRole, upstream, {
                       hasCandidate: !!activeCandidateId,
-                      hasResume: activeHasResume !== false,
+                      hasResume: personHasResume(notePeople, activeCandidateId, activeHasResume),
                       hasJobDescription: !!(currentRole?.jobDescription || outputForCandidate(Object.values(layers).find((item) => (item as { agentRole?: string }).agentRole === 'input-job-details') as { agentRole?: string; outputData?: unknown } | undefined, null)),
                     }) : [];
                     const health = stepHealth({
@@ -1660,14 +1733,13 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         </button>
         <button
           type="button"
-          aria-label="Run pipeline for the selected person"
+          aria-label={isRunning ? 'Stop pipeline' : 'Run pipeline for the selected person'}
           onClick={runWorkflow}
-          disabled={isRunning}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${isRunning ? 'bg-indigo-300 text-white cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
-          title="Run each step in order for the selected person. Earlier results stay on the steps."
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${isRunning ? 'border border-white/10 bg-[#111214] text-white hover:border-[#5e6ad2]' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+          title={isRunning ? 'Stop this run. Earlier results stay on the steps.' : 'Run each step in order for the selected person. Earlier results stay on the steps.'}
         >
-          {isRunning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-          {isRunning ? 'Running pipeline…' : 'Run pipeline'}
+          {isRunning ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+          {isRunning ? 'Stop' : 'Run pipeline'}
         </button>
         </div>
         {runQueue && (
@@ -1678,8 +1750,26 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         )}
         {activeCandidateId && (
           <p className="pointer-events-none text-[11px] text-slate-600">
-            Showing {notePeople.find((item) => item.id === activeCandidateId) ? `${notePeople.find((item) => item.id === activeCandidateId)?.firstName || ''} ${notePeople.find((item) => item.id === activeCandidateId)?.lastName || ''}`.trim() : 'the selected person'}. Done, ready, and blocked are for this person.
+            Showing {personLabel(notePeople, activeCandidateId)}. Done, ready, and blocked are for this person.
           </p>
+        )}
+        {activeCandidateId && (
+          <div className="w-full rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs text-[#b1b3b8] shadow-xl">
+            <p className="font-medium text-white">Recent for {personLabel(notePeople, activeCandidateId)}</p>
+            {(activityLog[activeCandidateId] || []).length === 0 ? (
+              <p className="mt-1">No actions yet for this person.</p>
+            ) : (
+              <ul className="mt-1 space-y-1">
+                {(activityLog[activeCandidateId] || []).slice(0, 4).map((entry, index) => (
+                  <li key={`${entry.at}-${index}`} className="truncate">
+                    <span className="text-[#8a8f98]">{formatActivityTime(entry.at)}</span>
+                    <span className="text-[#5e6ad2]"> · </span>
+                    {entry.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
         {!activeCandidateId && !runQueue && (
           <p className="pointer-events-none text-[11px] text-slate-500">Select a person in This role. Steps stay blank until you do.</p>

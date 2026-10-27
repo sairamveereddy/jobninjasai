@@ -31,7 +31,7 @@ export function BoardHelp() {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <p>The steps on this board run hiring for this job only. Add people in <span className="text-white">This role</span>, attach a resume, then choose <span className="text-white">Run pipeline</span>. It walks the steps in order for the person you selected, and each step keeps its last result.</p>
+          <p>The steps on this board run hiring for this job only. Add people in <span className="text-white">This role</span>, attach a resume, then choose <span className="text-white">Run pipeline</span>. It walks the steps in order for the person you selected, and each step keeps its last result. <span className="text-white">Stop</span> ends the run and leaves earlier results in place. <span className="text-white">Recent</span> lists the last actions for the person you selected.</p>
           <p className="mt-2">Choose <span className="text-white">View</span> on a step, or the badges under a person, to read the scorecard, shortlist, outreach draft, interview times, interview analysis, or hiring recommendation. On a shortlist you can advance, hold, or pass that person, note the reason, and select them for the next run. Interview times can be copied, and one can be marked preferred. Outreach can be edited and copied before you mark it done. Nothing is sent. Role setup saves the job description on the board and connects it to JD Parser. Edits on that document update the job step.</p>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Connect steps</h3>
@@ -48,7 +48,7 @@ export function BoardHelp() {
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Team notes</h3>
           <p>Sticky notes are for your team. Agents do not read them, even if you color a note, pin it, or link it to a person. <span className="text-white">Must-ask note</span> is that kind of checklist: work authorization, pay, notice period, and access needs. A transcript has to be pasted on the Transcript step, and a resume has to be attached to a candidate.</p>
-          <p className="mt-2">Switching the selected person changes what each step shows. Done, ready, and blocked describe that person. Someone else’s scorecard stays on their row in This role.</p>
+          <p className="mt-2">Switching the selected person changes what each step shows. Done, ready, and blocked describe that person. A step that still needs their resume stays Blocked. A run that just started does not show the previous person’s result. Someone else’s scorecard stays on their row in This role.</p>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Hiring templates</h3>
           <p className="mb-2">Open <span className="text-white">Edit role setup</span> and start from one of these. Replacing the pipeline keeps documents and team notes.</p>

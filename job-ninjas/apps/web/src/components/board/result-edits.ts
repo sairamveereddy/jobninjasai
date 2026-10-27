@@ -1,5 +1,5 @@
 import { useBoardStore } from "@/store/board";
-import { isSharedStep } from "@/lib/agents/contracts";
+import { activityLine, isSharedStep, outputForCandidate } from "@/lib/agents/contracts";
 
 type ResultKind = "shortlist" | "outreach" | "schedule";
 
@@ -25,22 +25,19 @@ export function saveResultEdit(kind: ResultKind, candidateId: string | null | un
   const map = { ...(config[key] || {}) };
   const active = typeof window !== "undefined" ? window.localStorage.getItem("activeCandidateId") : "";
   const who = candidateId || active || "";
+  const scoped = who ? outputForCandidate(layer as { agentRole?: string; status?: string; outputData?: unknown; config?: Record<string, any> }, who) : undefined;
+  const baseResult = scoped && typeof scoped === "object" ? scoped : {};
   if (who) {
     map[who] = { ...(map[who] || {}), ...patch };
     const results = { ...(config.resultsByCandidate || {}) };
-    const baseResult = results[who] && typeof results[who] === "object"
-      ? results[who]
-      : config.lastRunCandidateId === who && layer.outputData && typeof layer.outputData === "object"
-        ? layer.outputData
-        : {};
     results[who] = { ...baseResult, ...patch };
     config.resultsByCandidate = results;
+    state.pushActivity(who, editActivity(kind, patch));
   }
   config[key] = map;
   const update: Record<string, unknown> = { config };
   if (!who || who === active) {
-    const base = layer.outputData && typeof layer.outputData === "object" ? layer.outputData : {};
-    update.outputData = { ...(base as object), ...patch };
+    update.outputData = { ...baseResult, ...patch };
   }
   state.updateLayer(layerId, update as any);
 }
@@ -57,13 +54,27 @@ export function personResult(
   const saved = node?.config?.[configKey]?.[candidateId];
   if (saved) return { ...(artifact || {}), ...saved };
   if (artifact) return artifact;
-  const scoped = node?.config?.resultsByCandidate?.[candidateId]
-    ?? (node?.config?.lastRunCandidateId === candidateId ? node?.outputData : undefined);
+  const scoped = outputForCandidate(node, candidateId) || (!candidateId && activeId ? outputForCandidate(node, activeId) : undefined);
   if (scoped && typeof scoped === "object") return scoped;
-  if (!candidateId && activeId && node?.config?.lastRunCandidateId === activeId && node?.outputData && typeof node.outputData === "object") {
-    return node.outputData;
-  }
   return null;
+}
+
+function editActivity(kind: ResultKind, patch: Record<string, unknown>) {
+  if (kind === "shortlist") {
+    const label = typeof patch.rankLabel === "string"
+      ? patch.rankLabel
+      : patch.advance === true
+        ? "Advance"
+        : patch.advance === false
+          ? "Pass"
+          : "";
+    if (label) return `Shortlist set to ${label}`;
+    if (typeof patch.reason === "string") return "Shortlist reason saved";
+    return "Shortlist updated";
+  }
+  if (kind === "outreach") return "Outreach draft updated";
+  if ("preferredSlot" in patch) return "Preferred time saved";
+  return "Interview times updated";
 }
 
 export function markCandidateRun(layerId: string, candidateId: string) {
@@ -73,11 +84,40 @@ export function markCandidateRun(layerId: string, candidateId: string) {
     state.updateLayer(layerId, { status: "running", errorDetails: undefined } as any);
     return;
   }
+  const previous = layer.config?.lastRunCandidateId;
   state.updateLayer(layerId, {
     status: "running",
     errorDetails: undefined,
-    config: { ...(layer.config || {}), lastRunCandidateId: candidateId },
+    config: {
+      ...(layer.config || {}),
+      lastRunCandidateId: candidateId,
+      previousLastRunCandidateId: previous === candidateId ? layer.config?.previousLastRunCandidateId : previous,
+    },
   } as any);
+}
+
+export function settleStoppedRun(layerId: string, candidateId: string) {
+  const state = useBoardStore.getState();
+  const layer = state.layers[layerId] as { config?: Record<string, any>; agentRole?: string; outputData?: unknown } | undefined;
+  if (!layer) return;
+  if (isSharedStep(layer.agentRole) || !candidateId) {
+    const had = layer.outputData != null && layer.outputData !== "";
+    state.updateLayer(layerId, { status: had ? "success" : "idle", errorDetails: undefined } as any);
+    return;
+  }
+  const config = { ...(layer.config || {}) };
+  const saved = config.resultsByCandidate?.[candidateId];
+  if (saved !== undefined) {
+    config.lastRunCandidateId = candidateId;
+    delete config.previousLastRunCandidateId;
+    state.updateLayer(layerId, { status: "success", outputData: saved, errorDetails: undefined, config } as any);
+    return;
+  }
+  if (config.lastRunCandidateId === candidateId) {
+    config.lastRunCandidateId = config.previousLastRunCandidateId;
+  }
+  delete config.previousLastRunCandidateId;
+  state.updateLayer(layerId, { status: "idle", errorDetails: undefined, config } as any);
 }
 
 export function recordCandidateRun(
@@ -88,6 +128,10 @@ export function recordCandidateRun(
   const state = useBoardStore.getState();
   const layer = state.layers[layerId] as { config?: Record<string, any>; agentRole?: string; outputData?: unknown } | undefined;
   if (!layer) return;
+  const failedBecauseUpstream = !result.ok && result.error.startsWith("Stopped because");
+  if (candidateId && !failedBecauseUpstream) {
+    state.pushActivity(candidateId, activityLine(layer.agentRole, result.ok ? result.output : undefined, result.ok));
+  }
   if (isSharedStep(layer.agentRole) || !candidateId) {
     state.updateLayer(layerId, result.ok
       ? { status: "success", outputData: result.output, errorDetails: undefined, executionTimeMs: result.executionTimeMs, inputData: result.input, runId: result.runId }
@@ -98,6 +142,7 @@ export function recordCandidateRun(
   const results = { ...(config.resultsByCandidate || {}) };
   const errors = { ...(config.errorsByCandidate || {}) };
   config.lastRunCandidateId = candidateId;
+  delete config.previousLastRunCandidateId;
   if (result.ok) {
     results[candidateId] = result.output;
     delete errors[candidateId];

@@ -8,6 +8,11 @@ export interface ConnectionNotice {
   message: string;
 }
 
+export interface BoardActivityEntry {
+  at: number;
+  text: string;
+}
+
 interface BoardState {
   layerIds: string[];
   layers: Record<string, Layer>;
@@ -35,6 +40,9 @@ interface BoardState {
   setInspectedNodeId: (id: string | null) => void;
   connectionNotice: ConnectionNotice | null;
   setConnectionNotice: (notice: ConnectionNotice | null) => void;
+  activity: Record<string, BoardActivityEntry[]>;
+  setActivity: (activity: Record<string, BoardActivityEntry[]>) => void;
+  pushActivity: (candidateId: string, text: string) => void;
   loadScaffold: (intake: BoardIntake) => void;
 }
 
@@ -50,6 +58,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   penColor: { r: 0, g: 0, b: 0 },
   inspectedNodeId: null,
   connectionNotice: null,
+  activity: {},
 
   setLayerIds: (ids) => set({ layerIds: ids }),
   setLayers: (layers) => set({ layers }),
@@ -57,6 +66,32 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   setEdgeIds: (ids) => set({ edgeIds: ids }),
   setInspectedNodeId: (id) => set({ inspectedNodeId: id }),
   setConnectionNotice: (notice) => set({ connectionNotice: notice }),
+  setActivity: (activity) => {
+    if (!activity || typeof activity !== 'object' || Array.isArray(activity)) {
+      set({ activity: {} });
+      return;
+    }
+    const next: Record<string, BoardActivityEntry[]> = {};
+    for (const [id, entries] of Object.entries(activity)) {
+      if (!Array.isArray(entries)) continue;
+      const clean = entries
+        .filter((entry) => entry && typeof entry.text === 'string')
+        .slice(0, 8)
+        .map((entry) => ({ at: Number(entry.at) || Date.now(), text: String(entry.text).slice(0, 180) }));
+      if (clean.length) next[id] = clean;
+    }
+    set({ activity: next });
+  },
+  pushActivity: (candidateId, text) => {
+    const who = candidateId.trim();
+    const line = text.trim();
+    if (!who || !line) return;
+    set((state) => {
+      const prev = state.activity[who] || [];
+      const next = [{ at: Date.now(), text: line.slice(0, 180) }, ...prev].slice(0, 8);
+      return { activity: { ...state.activity, [who]: next } };
+    });
+  },
   
   insertLayer: (layerType, position, color, points?, agentRole?, src?, config?) => {
     const id = Math.random().toString(36).substring(7);

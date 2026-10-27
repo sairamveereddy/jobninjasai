@@ -347,7 +347,7 @@ export function isSharedStep(role?: string) {
 }
 
 export function outputForCandidate(
-  layer?: { agentRole?: string; outputData?: any; config?: { resultsByCandidate?: Record<string, any>; lastRunCandidateId?: string } } | null,
+  layer?: { agentRole?: string; status?: string; outputData?: any; config?: { resultsByCandidate?: Record<string, any>; lastRunCandidateId?: string } } | null,
   candidateId?: string | null,
 ) {
   if (!layer) return undefined;
@@ -356,6 +356,11 @@ export function outputForCandidate(
   if (!candidateId) return undefined;
   const saved = layer.config?.resultsByCandidate?.[candidateId];
   if (saved !== undefined) return saved;
+  const map = layer.config?.resultsByCandidate;
+  // A run sets lastRunCandidateId before it writes a result. Until this person
+  // has their own entry, outputData still belongs to whoever finished last.
+  if (map && Object.keys(map).length > 0) return undefined;
+  if (layer.status === 'running') return undefined;
   if (layer.config?.lastRunCandidateId === candidateId) return layer.outputData;
   return undefined;
 }
@@ -577,6 +582,12 @@ export function summarizeAgentOutput(agentRole: string | undefined, output: any)
     default:
       return 'Result ready';
   }
+}
+
+export function activityLine(agentRole: string | undefined, output: unknown, ok: boolean): string {
+  const name = getNodeSpec(agentRole).displayName;
+  if (!ok) return `${name} needs a fix`;
+  return `${name} · ${summarizeAgentOutput(agentRole, output)}`;
 }
 
 export type InspectorTab = 'input' | 'parameters' | 'output';

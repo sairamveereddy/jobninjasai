@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { LayerType } from '../../types/canvas';
 import {
+  activityLine,
   applyArtifactAliases,
   collectUpstreamOutputs,
   documentKind,
@@ -187,6 +188,25 @@ const ada = { agentRole: 'agent-screen', outputData: { overallMatch: 90 }, confi
 assert.equal(outputForCandidate(ada, 'ben').overallMatch, 70);
 assert.equal(outputForCandidate(ada, 'cara'), undefined);
 assert.equal(outputForCandidate({ agentRole: 'input-job-details', outputData: 'Help customers.' }, 'ben'), 'Help customers.');
+const inflight = {
+  agentRole: 'agent-screen',
+  status: 'running',
+  outputData: { overallMatch: 90 },
+  config: { lastRunCandidateId: 'ben', resultsByCandidate: { ada: { overallMatch: 90 } } },
+};
+assert.equal(outputForCandidate(inflight, 'ben'), undefined);
+assert.equal(outputForCandidate(inflight, 'ada').overallMatch, 90);
+assert.equal(outputForCandidate({ agentRole: 'agent-screen', status: 'running', outputData: { overallMatch: 90 }, config: { lastRunCandidateId: 'ben' } }, 'ben'), undefined);
+assert.equal(outputForCandidate({ agentRole: 'agent-screen', status: 'success', outputData: { overallMatch: 90 }, config: { lastRunCandidateId: 'ben' } }, 'ben').overallMatch, 90);
+const leaked = collectUpstreamOutputs(
+  { screen: inflight, plan: { type: LayerType.Agent, agentRole: 'agent-interview-plan' } },
+  [{ fromNodeId: 'screen', toNodeId: 'plan' }],
+  'plan',
+  'ben',
+);
+assert.equal(leaked.outputs.Scorecard, undefined);
+assert.equal(activityLine('agent-screen', { overallMatch: 82, recommendation: 'ADVANCE' }, true), 'Screen and Score · Scorecard 82 · ADVANCE');
+assert.equal(activityLine('agent-shortlist', null, false), 'Shortlist needs a fix');
 const hidden = collectUpstreamOutputs(
   { screen: ada, plan: { type: LayerType.Agent, agentRole: 'agent-interview-plan' } },
   [{ fromNodeId: 'screen', toNodeId: 'plan' }],
