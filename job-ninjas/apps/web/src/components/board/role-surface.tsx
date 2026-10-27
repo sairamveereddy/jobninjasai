@@ -205,7 +205,10 @@ export function RoleSurface({
                       className={`rounded-md px-2 py-1.5 text-xs ${active ? "bg-[#5e6ad2]/20 ring-1 ring-[#5e6ad2]" : "hover:bg-white/5"}`}
                     >
                       <button type="button" onClick={() => selectCandidate(candidate)} className="flex w-full items-center justify-between text-left">
-                        <span className="truncate">{candidate.firstName} {candidate.lastName}</span>
+                        <span className="truncate">
+                          {candidate.firstName} {candidate.lastName}
+                          {active ? <span className="ml-1 text-[10px] uppercase tracking-wide text-[#c7c9ff]">Selected</span> : null}
+                        </span>
                         <span className={candidate.resumeText ? "text-emerald-300" : "text-amber-200"}>
                           {candidate.resumeText ? "Resume" : "No resume"}
                         </span>
