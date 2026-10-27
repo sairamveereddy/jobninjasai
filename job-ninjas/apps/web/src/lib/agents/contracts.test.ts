@@ -9,6 +9,8 @@ import {
   normalizeStages,
   PIPELINE_TEMPLATES,
   scaffoldFromIntake,
+  composeJobDescription,
+  extractPortPayloads,
   summarizeAgentOutput,
   validateConnection,
 } from './contracts';
@@ -119,6 +121,7 @@ const volume = scaffoldFromIntake({
   ats: 'Greenhouse',
   stages: volumeStages,
 });
+assert.ok(volume.edges.some((edge) => edge.from === 'job' && edge.to === 'jd'));
 assert.ok(volume.edges.some((edge) => edge.from === 'screen' && edge.to === 'shortlist'));
 assert.equal(volume.edges.some((edge) => edge.to === 'analysis'), false);
 for (const edge of volume.edges) {
@@ -154,6 +157,19 @@ for (const edge of executive.edges) {
 
 assert.equal(summarizeAgentOutput('agent-screen', { overallMatch: 82, recommendation: 'ADVANCE' }), 'Scorecard 82 · ADVANCE');
 assert.equal(summarizeAgentOutput('agent-shortlist', { rankLabel: 'Advance', advance: true }), 'Shortlist · Advance');
+assert.equal(summarizeAgentOutput('input-job-details', 'Help customers.'), 'Job description ready');
+const jd = composeJobDescription({
+  roleTitle: 'Support advocate',
+  jobDescription: 'Help customers.',
+  mustHaveSkills: 'writing',
+  seniority: 'Junior',
+  locations: 'Remote',
+  candidateVolume: '200+',
+  ats: 'Greenhouse',
+  stages: volumeStages,
+});
+assert.match(jd, /Help customers/);
+assert.equal(extractPortPayloads('input-job-details', jd).JobDescription, jd);
 assert.equal(documentKind('Senior_JD.pdf'), 'JD');
 assert.equal(documentKind('Ada-resume.pdf'), 'Resume');
 assert.equal(documentKind('deck.pptx'), 'Deck');

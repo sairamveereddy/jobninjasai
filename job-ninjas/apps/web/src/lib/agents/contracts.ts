@@ -495,7 +495,13 @@ export function documentKind(name?: string, stored?: string): DocumentKind {
 
 export function summarizeAgentOutput(agentRole: string | undefined, output: any): string {
   if (output == null) return 'Result ready';
-  if (typeof output === 'string') return output.trim() ? 'Transcript ready' : 'Result ready';
+  if (typeof output === 'string') {
+    if (!output.trim()) return 'Result ready';
+    if (agentRole === 'input-job-details') return 'Job description ready';
+    if (agentRole === 'input-resume') return 'Resume ready';
+    if (agentRole === 'input-transcript') return 'Transcript ready';
+    return 'Result ready';
+  }
   if (typeof output !== 'object') return 'Result ready';
   const words = (value: unknown) => String(value || '').replace(/_/g, ' ');
   switch (agentRole) {

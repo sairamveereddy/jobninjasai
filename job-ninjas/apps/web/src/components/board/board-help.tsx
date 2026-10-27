@@ -11,6 +11,8 @@ export function BoardHelp() {
     <div className="absolute right-3 top-16 z-50 sm:right-6 sm:top-6">
       <button
         type="button"
+        aria-label="How this board works"
+        aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#111214] px-2.5 py-2 text-xs font-medium text-white shadow-lg hover:border-[#5e6ad2]"
         title="How this role board works"
@@ -30,6 +32,7 @@ export function BoardHelp() {
             </button>
           </div>
           <p>The steps on this board run hiring for this job only. Add people in <span className="text-white">This role</span>, attach a resume, then choose <span className="text-white">Run pipeline</span>. It walks the steps in order for the person you selected, and each step keeps its last result.</p>
+          <p className="mt-2">Choose <span className="text-white">View</span> on a step, or the badges under a person, to read the scorecard, shortlist, outreach draft, interview analysis, or hiring recommendation. Outreach can be edited and copied before you mark it done. Nothing is sent. Role setup also saves the job description on the board and connects it to JD Parser.</p>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Connect steps</h3>
           <p>Draw a line from the right side of a step to the left side of the next one. The label on the line is what that connection carries, such as Resume or Scorecard. If the types do not fit, nothing is connected and the message says what to connect instead.</p>

@@ -139,10 +139,15 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
 
   return (
     <div className="absolute inset-0">
-      <div className="absolute top-6 left-6 z-50 flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-slate-200/50 cursor-pointer hover:bg-white transition-colors" onClick={() => window.location.href='/roles'}>
-        <img src="/logo.png" alt="JobNinjas" className="w-8 h-8 object-contain" />
+      <button
+        type="button"
+        aria-label="Back to roles"
+        onClick={() => { window.location.href = '/roles'; }}
+        className="absolute top-6 left-6 z-50 flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-slate-200/50 cursor-pointer hover:bg-white transition-colors"
+      >
+        <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
         <span className="font-extrabold text-slate-800 tracking-tight">JobNinjas</span>
-      </div>
+      </button>
 
       {/* Candidate Pipeline Management & ATS Ingestion Widget */}
       {roleId && <CandidateManager roleId={roleId} />}
@@ -191,6 +196,7 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
                 key={template.id}
                 type="button"
                 title={template.detail}
+                aria-label={`Start with ${template.label}`}
                 onClick={() => {
                   setIntake((current) => ({
                     roleTitle: current?.roleTitle || "",

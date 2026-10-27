@@ -22,6 +22,7 @@ import { PresentationViewer } from './presentation-viewer';
 import { CandidateConciergeNode } from './candidate-concierge-node';
 import { CandidateNodeBlock } from './candidate-node-block';
 import { BoardHelp } from './board-help';
+import { ArtifactSheet, artifactKind, artifactTitle } from './artifact-sheet';
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -194,6 +195,19 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     const layer = layers[layerId];
     if (!layer || layer.type !== LayerType.Agent) return false;
     
+    if (layer.agentRole === 'input-job-details') {
+      const fromDoc = String(
+        (Object.values(layers).find((item) => (item as { docKind?: string }).docKind === 'jd') as { value?: string } | undefined)?.value || ''
+      ).trim();
+      const text = String(layer.outputData || '').trim() || fromDoc;
+      updateLayer(layerId, {
+        status: 'success',
+        ...(text ? { outputData: text } : {}),
+        errorDetails: undefined,
+      });
+      return true;
+    }
+
     if (layer.agentRole === 'input-transcript') {
       const text = String(layer.config?.transcriptText || layer.outputData || '').trim();
       if (!text) {
@@ -460,6 +474,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   }, [camera, insertLayer, updateLayer, boardId, currentRole]);
 
   const [runQueue, setRunQueue] = useState<{ active: string; next: string[] } | null>(null);
+  const [openResultId, setOpenResultId] = useState<string | null>(null);
   const [notePeople, setNotePeople] = useState<{ id: string; firstName?: string; lastName?: string }[]>([]);
 
   useEffect(() => {
@@ -574,7 +589,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+      const active = document.activeElement;
+      if (active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.closest('[role="dialog"]') || document.querySelector('[role="dialog"]')) return;
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const selected = selections['local-user'];
         if (selected && selected.length > 0) {
@@ -1042,16 +1058,20 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                       Last result: {summarizeAgentOutput(layer.agentRole, layer.outputData)}
                     </p>
                   )}
-                  <p className="mt-1 truncate text-[10px] text-slate-500">
-                    In {nodeSpec.inputs.length ? nodeSpec.inputs.map((port) => dataTypeLabel(port.type)).join(" · ") : "—"}
-                    {" → "}
-                    Out {nodeSpec.outputs.length ? nodeSpec.outputs.map((port) => dataTypeLabel(port.type)).join(" · ") : "—"}
-                  </p>
+                  {isSelected && (
+                    <p className="mt-1 truncate text-[10px] text-slate-500">
+                      In {nodeSpec.inputs.length ? nodeSpec.inputs.map((port) => dataTypeLabel(port.type)).join(" · ") : "—"}
+                      {" → "}
+                      Out {nodeSpec.outputs.length ? nodeSpec.outputs.map((port) => dataTypeLabel(port.type)).join(" · ") : "—"}
+                    </p>
+                  )}
                 </div>
 
                 {/* Node Action Footer */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
                   <button
+                    type="button"
+                    aria-label="Open inspector"
                     onClick={(e) => {
                       e.stopPropagation();
                       setInspectedNodeId(layerId);
@@ -1083,8 +1103,25 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                       </button>
                     )}
 
+                    {artifactKind(layer.agentRole, layer.outputData) && (
+                      <button
+                        type="button"
+                        aria-label={`View ${artifactTitle(artifactKind(layer.agentRole, layer.outputData)!)}`}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenResultId(layerId);
+                        }}
+                        className="px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-50 rounded-lg pointer-events-auto cursor-pointer"
+                      >
+                        View
+                      </button>
+                    )}
+
                     {layer.agentRole?.startsWith('agent-') && (
                       <button 
+                        type="button"
+                        aria-label="Test this step"
                         onClick={(e) => { 
                           e.stopPropagation(); 
                           handleRunSingleAgent(layerId); 
@@ -1138,6 +1175,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                       key={color.name}
                       type="button"
                       title={color.name}
+                      aria-label={`${color.name} note color`}
                       onClick={() => updateLayer(layerId, { fill: color.fill })}
                       className="h-4 w-4 rounded-full border border-white/80"
                       style={{ backgroundColor: `rgb(${color.fill.r}, ${color.fill.g}, ${color.fill.b})` }}
@@ -1145,6 +1183,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                   ))}
                   <button
                     type="button"
+                    aria-pressed={!!(layer as any).config?.pinned}
+                    aria-label={(layer as any).config?.pinned ? 'Unpin note' : 'Pin note'}
                     onClick={() => updateLayer(layerId, { config: { ...((layer as any).config || {}), pinned: !(layer as any).config?.pinned } } as any)}
                     className={`rounded-md px-1.5 py-0.5 text-[10px] ${(layer as any).config?.pinned ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
                   >
@@ -1162,6 +1202,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                         },
                       } as any);
                     }}
+                    aria-label="Link this note to a person"
                     className="max-w-[140px] rounded-md border border-slate-200 bg-white px-1 py-0.5 text-[10px] text-slate-700"
                     title="Link this note to a person. Agents still do not read it."
                   >
@@ -1213,7 +1254,39 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           />
         )}
 
-        {layer.type === LayerType.Text && (
+        {layer.type === LayerType.Text && (layer as any).docKind === 'jd' && (
+          <foreignObject
+            x={0}
+            y={0}
+            width={layer.width || 280}
+            height={layer.height || 220}
+          >
+            <div className={`flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white shadow-sm ${isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-200'}`}>
+              <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-700">Job description</span>
+                <span className="text-[10px] text-slate-400">Read by JD Parser</span>
+              </div>
+              <textarea
+                value={layer.value || ""}
+                aria-label="Job description"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  updateLayer(layerId, { value });
+                  const jobId = useBoardStore.getState().layerIds.find((id) => (useBoardStore.getState().layers[id] as { agentRole?: string } | undefined)?.agentRole === 'input-job-details');
+                  if (jobId) {
+                    updateLayer(jobId, { outputData: value, status: value.trim() ? 'success' : 'idle', errorDetails: undefined });
+                  }
+                }}
+                placeholder="Job description for this role"
+                className={`w-full flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-relaxed text-slate-700 outline-none ${!isSelected && 'pointer-events-none'}`}
+                onPointerDown={(e) => isSelected ? e.stopPropagation() : undefined}
+                onKeyDown={(e) => e.stopPropagation()}
+              />
+            </div>
+          </foreignObject>
+        )}
+
+        {layer.type === LayerType.Text && (layer as any).docKind !== 'jd' && (
           <foreignObject
             x={0}
             y={0}
@@ -1512,6 +1585,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       <div className="absolute top-16 left-1/2 z-30 flex w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 flex-col items-center gap-2 sm:top-4">
         <div className="flex max-w-full flex-wrap items-center justify-center gap-2">
         <button
+          type="button"
+          aria-label="Upload a resume for the selected person"
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2 px-3 py-2 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 hover:bg-white shadow-xs hover:shadow-sm transition-all cursor-pointer"
           title="Upload a resume for the selected person"
@@ -1520,6 +1595,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           Upload resume
         </button>
         <button
+          type="button"
+          aria-label="Open integrations"
+          aria-pressed={isMcpPanelOpen}
           onClick={() => setIsMcpPanelOpen(v => !v)}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer ${isMcpPanelOpen ? 'bg-indigo-600 text-white border border-indigo-600' : 'bg-white/95 backdrop-blur-md border border-slate-200/80 text-slate-700 hover:bg-white hover:shadow-sm'}`}
           title="Connect Greenhouse, Workday, Gmail, Calendar..."
@@ -1528,6 +1606,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           Integrations
         </button>
         <button
+          type="button"
+          aria-label="Run pipeline for the selected person"
           onClick={runWorkflow}
           disabled={isRunning}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${isRunning ? 'bg-indigo-300 text-white cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
@@ -1543,7 +1623,10 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             <p className="mt-1 text-[#b1b3b8]">{runQueue.next.length ? `Next: ${runQueue.next.join(' → ')}` : 'This is the last step.'}</p>
           </div>
         )}
-        {!runQueue && (
+        {!runQueue && layerIds.some((id) => (layers[id] as { agentRole?: string } | undefined)?.agentRole?.startsWith('agent-')) && !layerIds.some((id) => {
+          const step = layers[id] as { agentRole?: string; status?: string; outputData?: unknown } | undefined;
+          return !!step?.agentRole?.startsWith('agent-') && (step.status === 'success' || step.outputData);
+        }) && (
           <p className="pointer-events-none text-[11px] text-slate-500">Runs the steps in order for whoever is selected. Last results stay on each step.</p>
         )}
       </div>
@@ -1836,6 +1919,18 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           )}
         </g>
       </svg>
+      {openResultId && layers[openResultId] && artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, (layers[openResultId] as { outputData?: unknown }).outputData) && (
+        <ArtifactSheet
+          kind={artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, (layers[openResultId] as { outputData?: unknown }).outputData)!}
+          data={(layers[openResultId] as { outputData?: unknown }).outputData}
+          onClose={() => setOpenResultId(null)}
+          onSaveOutreach={(next) => {
+            const current = useBoardStore.getState().layers[openResultId] as { outputData?: unknown } | undefined;
+            const base = current?.outputData && typeof current.outputData === 'object' ? current.outputData : {};
+            updateLayer(openResultId, { outputData: { ...(base as object), subject: next.subject, body: next.body } } as any);
+          }}
+        />
+      )}
     </main>
   );
 };
