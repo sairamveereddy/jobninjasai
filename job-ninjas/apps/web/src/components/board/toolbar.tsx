@@ -88,8 +88,8 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
   ];
 
   return (
-    <div className="absolute top-1/2 -translate-y-1/2 left-4 z-40 flex gap-2">
-      <div className="flex flex-col gap-1 rounded-lg border border-white/10 bg-[#111214] p-1.5 text-white shadow-xl">
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 pointer-events-auto">
+      <div className="flex flex-row items-center gap-1 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 text-slate-700 shadow-xl">
         <ToolButton
           icon={MousePointer2}
           isActive={
@@ -111,14 +111,14 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
             tooltip="Hiring steps"
           />
           {activeMenu === 'agents' && (
-            <div className="absolute left-full top-0 ml-2 flex max-h-[80vh] w-80 flex-col gap-1 overflow-y-auto rounded-lg border border-white/10 bg-[#111214] p-2 text-white shadow-xl">
-              <div className="sticky top-0 z-10 bg-[#111214] px-2 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-[#8b8fa8]">Hiring steps</div>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 flex max-h-[75vh] w-84 flex-col gap-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 text-slate-800 shadow-2xl">
+              <div className="sticky top-0 z-10 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Hiring steps</div>
               {NODE_CATEGORIES.map((group) => (
                 <div key={group.category} className="mb-2">
-                  <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-[#8b8fa8]">
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     {group.category}
                   </div>
-                  {'hint' in group && group.hint && <p className="px-2 pb-1 text-[11px] leading-snug text-[#b1b3b8]">{group.hint}</p>}
+                  {'hint' in group && group.hint && <p className="px-2 pb-1 text-[11px] leading-snug text-slate-500">{group.hint}</p>}
                   {group.items.map((agent) => (
                     <button
                       key={agent.role}
@@ -128,14 +128,14 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
                         setActiveMenu(null);
                       }}
                       title={plainLanguage(agent.role)}
-                      className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-white hover:bg-white/5"
+                      className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left text-sm text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
                     >
-                      <div className={`rounded-md p-1.5 ${agent.bg} ${agent.color}`}>
+                      <div className={`rounded-lg p-1.5 ${agent.bg} ${agent.color}`}>
                         <agent.icon className="h-4 w-4 shrink-0" />
                       </div>
                       <span className="flex min-w-0 flex-col">
-                        <span className="font-medium leading-tight">{agent.label}</span>
-                        <span className="text-[11px] font-normal leading-snug text-[#b1b3b8]">{plainLanguage(agent.role)}</span>
+                        <span className="font-semibold leading-tight">{agent.label}</span>
+                        <span className="text-[11px] font-normal leading-snug text-slate-500">{plainLanguage(agent.role)}</span>
                       </span>
                     </button>
                   ))}
@@ -159,7 +159,7 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
           tooltip="Team note. Agents do not read this."
         />
 
-        <label className="flex cursor-pointer items-center justify-center rounded-lg p-2.5 text-[#b1b3b8] hover:bg-white/5 hover:text-white" title="Add a document to this role">
+        <label className="flex cursor-pointer items-center justify-center rounded-xl p-2.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Add a document to this role">
           <FileText className="h-5 w-5" />
           <span className="sr-only">Add a document</span>
           <input
@@ -189,7 +189,7 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
           tooltip="Connect steps"
         />
 
-        <div className="my-0.5 h-px w-full bg-white/10" />
+        <div className="mx-0.5 h-6 w-px bg-slate-200" />
 
         <div className="relative">
           <ToolButton
@@ -199,9 +199,9 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
             tooltip="Layout. Shapes, pen, and slides."
           />
           {activeMenu === 'layout' && (
-            <div className="absolute left-full top-0 ml-2 w-56 rounded-lg border border-white/10 bg-[#111214] p-2 text-white shadow-xl">
-              <p className="px-2 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-[#8b8fa8]">Layout</p>
-              <p className="px-2 pb-2 text-[11px] leading-snug text-[#b1b3b8]">Hiring uses the steps, notes, and documents above. These only mark up the board.</p>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 rounded-2xl border border-slate-200 bg-white p-3 text-slate-800 shadow-2xl">
+              <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Layout</p>
+              <p className="px-2 pb-2 text-[11px] leading-snug text-slate-500">Hiring uses the steps, notes, and documents above. These only mark up the board.</p>
               {layoutTools.map((tool) => (
                 <button
                   key={tool.label}
@@ -210,14 +210,14 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
                     setCanvasState(tool.mode);
                     setActiveMenu(null);
                   }}
-                  className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-white hover:bg-white/5"
+                  className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  <tool.icon className="h-4 w-4 text-[#b1b3b8]" />
+                  <tool.icon className="h-4 w-4 text-slate-500" />
                   {tool.label}
                 </button>
               ))}
-              <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm text-white hover:bg-white/5">
-                <ImageIcon className="h-4 w-4 text-[#b1b3b8]" />
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                <ImageIcon className="h-4 w-4 text-slate-500" />
                 Image
                 <input
                   type="file"
@@ -253,7 +253,9 @@ const ToolButton = ({ icon: Icon, isActive, onClick, tooltip }: { icon: Componen
       onClick={onClick}
       title={tooltip}
       aria-label={tooltip}
-      className={`flex items-center justify-center rounded-lg p-2.5 transition-colors ${isActive ? 'bg-[#5e6ad2] text-white' : 'text-[#b1b3b8] hover:bg-white/5 hover:text-white'}`}
+      className={`flex items-center justify-center rounded-xl p-2.5 transition-colors cursor-pointer ${
+        isActive ? 'bg-[#5e6ad2] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+      }`}
     >
       <Icon className="h-5 w-5" />
     </button>

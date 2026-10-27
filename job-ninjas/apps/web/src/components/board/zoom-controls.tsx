@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, Maximize } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { Camera } from "@/types/canvas";
 
 interface ZoomControlsProps {
@@ -24,22 +24,22 @@ export const ZoomControls = ({ camera, setCamera }: ZoomControlsProps) => {
   const zoomPercent = Math.round(camera.zoom * 100);
 
   return (
-    <div className="absolute bottom-4 right-4 z-40 flex items-center gap-1 rounded-lg border border-white/10 bg-[#111214] p-1 text-[#b1b3b8] shadow-md">
+    <div className="absolute bottom-6 right-6 z-40 flex items-center gap-1 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 text-slate-700 shadow-xl pointer-events-auto">
       <button
         onClick={handleZoomOut}
-        className="rounded p-1 text-[#b1b3b8] transition-colors hover:bg-white/5 hover:text-white"
+        className="rounded-xl p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 cursor-pointer"
         title="Zoom Out"
       >
         <Minus className="w-4 h-4" />
       </button>
       
-      <div className="w-12 cursor-pointer select-none text-center text-xs font-medium text-white transition-colors hover:text-[#c7c9ff]" onClick={handleFit} title="Fit to screen">
+      <div className="w-12 cursor-pointer select-none text-center text-xs font-semibold text-slate-700 transition-colors hover:text-[#5e6ad2]" onClick={handleFit} title="Fit to screen">
         {zoomPercent}%
       </div>
       
       <button
         onClick={handleZoomIn}
-        className="rounded p-1 text-[#b1b3b8] transition-colors hover:bg-white/5 hover:text-white"
+        className="rounded-xl p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 cursor-pointer"
         title="Zoom In"
       >
         <Plus className="w-4 h-4" />

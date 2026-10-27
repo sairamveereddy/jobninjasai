@@ -774,8 +774,8 @@ export function scaffoldFromIntake(intake: BoardIntake): ScaffoldPlan {
         key: node.key,
         kind: 'agent',
         role: node.role,
-        x: 400 + columnIndex * 320,
-        y: 80 + rowIndex * 220,
+        x: 400 + columnIndex * 420,
+        y: 100 + rowIndex * 240,
       });
     });
   });

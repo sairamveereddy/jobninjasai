@@ -69,17 +69,17 @@ export function IntakeWizard({
   };
 
   return (
-    <div className="absolute inset-0 z-[320] flex items-center justify-center bg-black/70 p-4">
-      <div className="flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-white/10 bg-[#111214] text-white shadow-2xl">
-        <div className="border-b border-white/10 px-6 py-5">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8b8fa8]">This role</p>
-          <h2 className="mt-1 text-xl font-medium tracking-tight">Set up the hiring pipeline</h2>
-          <p className="mt-1 text-sm text-[#b1b3b8]">
+    <div className="absolute inset-0 z-[320] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+      <div className="flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl font-sans">
+        <div className="border-b border-slate-100 px-6 py-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">This role</p>
+          <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">Set up the hiring pipeline</h2>
+          <p className="mt-1 text-sm text-slate-600">
             One board is one open job. These answers become the job description, an HR note, and the agents that run this role.
           </p>
           <div className="mt-4 flex gap-1.5">
             {[0, 1, 2, 3].map((index) => (
-              <div key={index} className={`h-1 flex-1 rounded-full ${index <= step ? "bg-[#5e6ad2]" : "bg-white/10"}`} />
+              <div key={index} className={`h-1.5 flex-1 rounded-full ${index <= step ? "bg-[#5e6ad2]" : "bg-slate-100"}`} />
             ))}
           </div>
         </div>
@@ -119,7 +119,7 @@ export function IntakeWizard({
               </Field>
               <Field label="Locations">
                 <input className={inputClass} value={draft.locations} placeholder="New York, Remote US" onChange={(e) => set({ locations: e.target.value })} />
-                <button type="button" onClick={() => set({ locations: "" })} className="text-xs text-[#c7c9ff] hover:text-white">
+                <button type="button" onClick={() => set({ locations: "" })} className="text-xs font-semibold text-[#5e6ad2] hover:underline cursor-pointer">
                   Location not decided
                 </button>
               </Field>
@@ -148,7 +148,7 @@ export function IntakeWizard({
                   ))}
                 </div>
               </Field>
-              <p className="text-xs text-[#8b8fa8]">These already have defaults. Continue if they look right.</p>
+              <p className="text-xs text-slate-500">These already have defaults. Continue if they look right.</p>
               <Field label="Applicant tracking system">
                 <div className="flex flex-wrap gap-2">
                   {ATS_OPTIONS.map((ats) => (
@@ -186,7 +186,7 @@ export function IntakeWizard({
                   {HIRING_STAGES.map((stage) => {
                     const checked = draft.stages.includes(stage.id);
                     return (
-                      <label key={stage.id} className="flex cursor-pointer gap-3 rounded-md border border-white/10 bg-black/20 px-3 py-2.5">
+                      <label key={stage.id} className="flex cursor-pointer gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3 hover:bg-slate-50 transition-colors">
                         <input
                           type="checkbox"
                           className="mt-1 accent-[#5e6ad2]"
@@ -198,20 +198,20 @@ export function IntakeWizard({
                           }}
                         />
                         <span>
-                          <span className="block text-sm font-medium">{stage.label}</span>
-                          <span className="block text-xs text-[#8b8fa8]">{stage.detail}</span>
+                          <span className="block text-sm font-semibold text-slate-800">{stage.label}</span>
+                          <span className="block text-xs text-slate-500">{stage.detail}</span>
                         </span>
                       </label>
                     );
                   })}
                 </div>
               </Field>
-              <div className="rounded-md border border-white/10 bg-black/30 px-3 py-3 text-sm text-[#b1b3b8]">
-                <p className="font-medium text-white">Pipeline JobNinjas will place on this board</p>
-                <p className="mt-1 text-xs text-[#8b8fa8]">Build pipeline places these steps and connects them. Documents and team notes stay.</p>
-                <p className="mt-1">{resolvedStages.map((id) => HIRING_STAGES.find((stage) => stage.id === id)?.label).filter(Boolean).join(" → ")}</p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                <p className="font-semibold text-slate-900">Pipeline JobNinjas will place on this board</p>
+                <p className="mt-1 text-xs text-slate-500">Build pipeline places these steps and connects them. Documents and team notes stay.</p>
+                <p className="mt-2 font-medium text-indigo-700">{resolvedStages.map((id) => HIRING_STAGES.find((stage) => stage.id === id)?.label).filter(Boolean).join(" → ")}</p>
                 {added.length > 0 && (
-                  <p className="mt-2 text-xs text-[#c7c9ff]">
+                  <p className="mt-2 text-xs font-medium text-slate-500">
                     Also included so the steps can connect: {added.map((id) => HIRING_STAGES.find((stage) => stage.id === id)?.label).join(", ")}.
                   </p>
                 )}
@@ -219,31 +219,31 @@ export function IntakeWizard({
             </>
           )}
 
-          {error && <p className="text-sm text-red-300">{error}</p>}
+          {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-white/10 px-6 py-4">
-          <button type="button" onClick={onDismiss} className="text-sm text-[#8b8fa8] hover:text-white">
+        <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-6 py-4 bg-slate-50/30">
+          <button type="button" onClick={onDismiss} className="text-sm font-medium text-slate-500 hover:text-slate-800 cursor-pointer">
             {hasPipeline ? "Close" : "Start with an empty board"}
           </button>
           <div className="flex gap-2">
             {step > 0 && (
-              <button type="button" onClick={() => { setError(""); setStep((value) => value - 1); }} className="rounded-md border border-white/15 px-3 py-2 text-sm">
+              <button type="button" onClick={() => { setError(""); setStep((value) => value - 1); }} className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer">
                 Back
               </button>
             )}
             {step < 3 ? (
-              <button type="button" onClick={next} className="rounded-md bg-[#5e6ad2] px-4 py-2 text-sm font-medium">
+              <button type="button" onClick={next} className="rounded-xl bg-[#5e6ad2] px-4 py-2 text-sm font-semibold text-white hover:bg-[#4f59b6] shadow-xs cursor-pointer">
                 {step === 2 ? "Keep the defaults" : "Continue"}
               </button>
             ) : (
               <>
                 {hasPipeline && (
-                  <button type="button" onClick={() => finish("save")} className="rounded-md border border-white/15 px-3 py-2 text-sm">
+                  <button type="button" onClick={() => finish("save")} className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs cursor-pointer">
                     Save answers
                   </button>
                 )}
-                <button type="button" onClick={() => finish("build")} className="rounded-md bg-[#5e6ad2] px-4 py-2 text-sm font-medium">
+                <button type="button" onClick={() => finish("build")} className="rounded-xl bg-[#5e6ad2] px-4 py-2 text-sm font-semibold text-white hover:bg-[#4f59b6] shadow-xs cursor-pointer">
                   {hasPipeline ? "Replace pipeline" : "Build pipeline"}
                 </button>
               </>
@@ -255,16 +255,18 @@ export function IntakeWizard({
   );
 }
 
-const inputClass = "w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-[#94969c] focus:border-[#5e6ad2]";
+const inputClass = "w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#5e6ad2] focus:bg-white";
 
 function chipClass(active: boolean) {
-  return `rounded-md border px-3 py-1.5 text-sm ${active ? "border-[#5e6ad2] bg-[#5e6ad2]/20 text-white" : "border-white/10 text-[#b1b3b8] hover:border-white/20"}`;
+  return `rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+    active ? "border-[#5e6ad2] bg-indigo-50/70 text-indigo-700 shadow-2xs" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-2xs"
+  }`;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-2">
-      <span className="text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">{label}</span>
+      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</span>
       {children}
     </label>
   );

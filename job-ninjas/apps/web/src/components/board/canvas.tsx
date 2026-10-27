@@ -1625,7 +1625,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
   return (
     <main 
-      className="h-full w-full relative touch-none overflow-hidden bg-[#08090a]" 
+      className="h-full w-full relative touch-none overflow-hidden bg-[#f6f8fa]" 
       style={{ 
         cursor: canvasState.mode === CanvasMode.Pressing ? 'grabbing' : 
                 canvasState.mode === CanvasMode.Inserting ? 'crosshair' : 
@@ -1639,21 +1639,21 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       {/* === FEATURE 1.5: Blank Canvas Onboarding === */}
       {boardId === 'new-workflow' && layerIds.length === 0 && !isDragOver && (
         <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-          <div className="flex max-w-sm flex-col items-center gap-3 rounded-lg border border-white/10 bg-[#111214] px-6 py-5 text-center shadow-xl">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">JobNinjas</p>
-            <p className="text-base font-medium text-white">No hiring pipeline yet</p>
-            <p className="text-sm text-[#b1b3b8]">Add a hiring step from the left, or open a role and start from a template.</p>
+          <div className="flex max-w-sm flex-col items-center gap-3 rounded-lg border border-slate-200 bg-white/95 px-6 py-5 text-center shadow-xl text-slate-800">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-slate-400">JobNinjas</p>
+            <p className="text-base font-bold text-slate-900">No hiring pipeline yet</p>
+            <p className="text-sm text-slate-500">Add a hiring step from the toolbar, or open a role and start from a template.</p>
           </div>
         </div>
       )}
 
       {/* === FEATURE 1: Drag & Drop overlay === */}
       {isDragOver && (
-        <div className="absolute inset-0 z-[200] flex flex-col items-center justify-center border-2 border-dashed border-[#5e6ad2] bg-black/40 pointer-events-none">
-          <div className="flex flex-col items-center gap-3 rounded-lg border border-white/10 bg-[#111214] px-10 py-8 shadow-2xl">
+        <div className="absolute inset-0 z-[200] flex flex-col items-center justify-center border-2 border-dashed border-indigo-500 bg-slate-900/15 backdrop-blur-xs pointer-events-none">
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-slate-200 bg-white px-10 py-8 shadow-2xl text-slate-800">
             <Upload className="h-10 w-10 text-[#c7c9ff]" />
-            <p className="text-lg font-medium text-white">Drop a resume or a job file</p>
-            <p className="max-w-sm text-center text-sm text-[#b1b3b8]">A resume attaches to the selected person. A job description stays on this role as a document.</p>
+            <p className="text-lg font-bold text-slate-900">Drop a resume or a job file</p>
+            <p className="max-w-sm text-center text-sm text-slate-500">A resume attaches to the selected person. A job description stays on this role as a document.</p>
           </div>
         </div>
       )}
@@ -1686,28 +1686,28 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
       {/* MCP connectors */}
       {isMcpPanelOpen && (
-        <div className="absolute top-0 right-0 h-full w-80 z-[100] bg-[#111214] border-l border-white/10 shadow-2xl flex flex-col text-white">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <div className="absolute top-0 right-0 h-full w-84 z-[100] bg-white border-l border-slate-200 shadow-2xl flex flex-col text-slate-800">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Plug className="w-5 h-5 text-[#c7c9ff]" />
-              <h3 className="font-medium text-white">Connectors</h3>
+              <h3 className="font-bold text-slate-900">Connectors</h3>
             </div>
-            <button type="button" aria-label="Close connectors" onClick={() => setIsMcpPanelOpen(false)} className="text-[#8b8fa8] hover:text-white transition-colors">
+            <button type="button" aria-label="Close connectors" onClick={() => setIsMcpPanelOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <p className="text-xs leading-relaxed text-[#b1b3b8]">Nothing in this list sends, books, or writes to an ATS. Greenhouse import in This role is the live way to bring people in.</p>
+            <p className="text-xs leading-relaxed text-slate-500">Nothing in this list sends, books, or writes to an ATS. Greenhouse import in This role is the live way to bring people in.</p>
             <ul className="space-y-2">
               {CONNECTOR_NOTES.map((conn) => (
-                <li key={conn.label} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
-                  <p className="text-sm font-medium text-white">{conn.label}</p>
-                  <p className="mt-0.5 text-xs text-[#b1b3b8]">{conn.detail}</p>
+                <li key={conn.label} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+                  <p className="text-sm font-bold text-slate-900">{conn.label}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{conn.detail}</p>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="p-4 border-t border-white/10">
+          <div className="p-4 border-t border-slate-100">
             <p className="text-center text-xs text-[#8b8fa8]">These rows do not add a step and do not sign in.</p>
           </div>
         </div>
@@ -1753,17 +1753,22 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         </div>
       )}
       
-      {/* Top Bar Actions: Upload Resumes + Integrations + Run */}
-      <div className="absolute top-16 left-1/2 z-30 flex w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 flex-col items-center gap-2 sm:top-4">
-        <div className="flex max-w-full flex-wrap items-center justify-center gap-2">
+      {/* Top Bar Actions: Positioned at top-right to never overlap candidate selector */}
+      <div className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto">
+        {runQueue && (
+          <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/95 px-3 py-2 text-xs text-indigo-900 shadow-sm backdrop-blur-md animate-pulse">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+            <span>Running <strong className="font-semibold">{runQueue.active}</strong> for {runQueue.who}</span>
+          </div>
+        )}
         <button
           type="button"
           aria-label="Upload a resume for the selected person"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs font-medium text-white shadow-xs transition-colors hover:border-[#5e6ad2]"
+          className="flex items-center gap-2 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:border-indigo-400 cursor-pointer"
           title="Upload a resume for the selected person"
         >
-          <Upload className="w-3.5 h-3.5 text-[#c7c9ff]" />
+          <Upload className="w-3.5 h-3.5 text-indigo-600" />
           Upload resume
         </button>
         <button
@@ -1771,62 +1776,29 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           aria-label="Open connectors. Nothing here sends."
           aria-pressed={isMcpPanelOpen}
           onClick={() => setIsMcpPanelOpen(v => !v)}
-          className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium shadow-xs transition-colors ${isMcpPanelOpen ? 'border border-[#5e6ad2] bg-[#5e6ad2] text-white' : 'border border-white/10 bg-[#111214] text-white hover:border-[#5e6ad2]'}`}
+          className={`flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-semibold shadow-sm transition-colors cursor-pointer ${isMcpPanelOpen ? 'border border-indigo-600 bg-indigo-600 text-white' : 'border border-slate-200/90 bg-white/95 backdrop-blur-md text-slate-700 hover:bg-slate-50 hover:border-indigo-400'}`}
           title="Nothing here sends. Greenhouse import is in This role."
         >
-          <Plug className="w-3.5 h-3.5 text-[#c7c9ff]" />
+          <Plug className="w-3.5 h-3.5 text-indigo-600" />
           Connectors
         </button>
         <button
           type="button"
           aria-label={isRunning ? 'Stop pipeline' : 'Run pipeline for the selected person'}
           onClick={runWorkflow}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium text-white shadow-md transition-colors ${isRunning ? 'border border-white/10 bg-[#111214] hover:border-[#5e6ad2]' : 'bg-[#5e6ad2] hover:bg-[#6d77d8]'}`}
+          className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-semibold text-white shadow-md transition-colors cursor-pointer ${isRunning ? 'bg-slate-800 hover:bg-slate-900' : 'bg-[#5e6ad2] hover:bg-[#4f59c0]'}`}
           title={isRunning ? 'Stop this run. Earlier results stay on the steps.' : 'Run each step in order for the selected person. Earlier results stay on the steps.'}
         >
           {isRunning ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
           {isRunning ? 'Stop' : 'Run pipeline'}
         </button>
-        </div>
-        {runQueue && (
-          <div className="w-full rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs text-white shadow-xl">
-            <p>Running <span className="font-medium">{runQueue.active}</span> for {runQueue.who}.</p>
-            <p className="mt-1 text-[#b1b3b8]">{runQueue.next.length ? `Next: ${runQueue.next.join(' → ')}` : 'This is the last step.'}</p>
-          </div>
-        )}
-        {activeCandidateId && (
-          <p className="pointer-events-none text-[11px] text-[#b1b3b8]">
-            Showing {personLabel(notePeople, activeCandidateId)}. Done, ready, and blocked are for this person.
-          </p>
-        )}
-        {activeCandidateId && (
-          <div className="w-full rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs text-[#b1b3b8] shadow-xl">
-            <p className="font-medium text-white">Recent for {personLabel(notePeople, activeCandidateId)}</p>
-            {(activityLog[activeCandidateId] || []).length === 0 ? (
-              <p className="mt-1">No actions yet for this person.</p>
-            ) : (
-              <ul className="mt-1 space-y-1">
-                {(activityLog[activeCandidateId] || []).slice(0, 4).map((entry, index) => (
-                  <li key={`${entry.at}-${index}`} className="truncate">
-                    <span className="text-[#8a8f98]">{formatActivityTime(entry.at)}</span>
-                    <span className="text-[#5e6ad2]"> · </span>
-                    {entry.text}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-        {!activeCandidateId && !runQueue && (
-          <p className="pointer-events-none text-[11px] text-[#b1b3b8]">Select a person in This role. Steps stay blank until you do.</p>
-        )}
       </div>
 
       {/* Grid Pattern and Arrowhead */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
         <defs>
           <pattern id="grid-pattern" x={camera.x % (24 * camera.zoom)} y={camera.y % (24 * camera.zoom)} width={24 * camera.zoom} height={24 * camera.zoom} patternUnits="userSpaceOnUse">
-            <circle cx={1 * camera.zoom} cy={1 * camera.zoom} r={0.6} fill="#2c2e33" />
+            <circle cx={1 * camera.zoom} cy={1 * camera.zoom} r={0.8} fill="#d1d5db" />
           </pattern>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
             <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
@@ -1879,7 +1851,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                 <title>{edgeTitle}</title>
                 <path
                   d={pathD}
-                  stroke={incompatible ? "#e11d48" : isSelected ? "#5e6ad2" : "#64748b"}
+                  stroke={incompatible ? "#e11d48" : isSelected ? "#5e6ad2" : "#94a3b8"}
                   strokeWidth={isSelected ? "4" : "3"}
                   strokeDasharray={incompatible ? "2,6" : "6,6"}
                   fill="none"
@@ -1892,9 +1864,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                   }}
                 />
                 {(carries.length > 0 || incompatible) && (
-                  <foreignObject x={midX - 80} y={midY - 22} width={160} height={28} className="overflow-visible pointer-events-none">
-                    <div className={`mx-auto w-fit max-w-[160px] truncate rounded-full border px-2 py-0.5 text-center text-[10px] font-semibold ${
-                      incompatible ? "border-red-200 bg-red-50 text-red-700" : "border-slate-200 bg-white text-slate-600"
+                  <foreignObject x={midX - 70} y={midY - 14} width={140} height={28} className="overflow-visible pointer-events-none">
+                    <div className={`mx-auto w-fit max-w-[140px] truncate rounded-full border px-2 py-0.5 text-center text-[10px] font-semibold shadow-xs ${
+                      incompatible ? "border-red-200 bg-red-50 text-red-700" : "border-slate-200 bg-white text-slate-700"
                     }`}>
                       {edgeLabel}
                     </div>

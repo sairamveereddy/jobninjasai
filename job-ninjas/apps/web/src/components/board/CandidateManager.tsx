@@ -128,8 +128,8 @@ export default function CandidateManager({ roleId, roleTitle }: { roleId: string
 
   return (
     <>
-      {/* Positioned on top-left beside JobNinjas logo (left-52) so it NEVER collides with Inspector */}
-      <div className="absolute left-4 top-20 z-40 flex max-w-[calc(100vw-2rem)] flex-col font-sans transition-all duration-200 sm:left-52 sm:top-6">
+      {/* Inline positioned in unified top bar */}
+      <div className="flex max-w-[calc(100vw-2rem)] flex-col font-sans transition-all duration-200 relative pointer-events-auto">
         
         {/* Compact Pill Bar */}
         <div className="bg-white/95 backdrop-blur-md shadow-md hover:shadow-lg rounded-2xl border border-slate-200/80 px-3.5 py-2 flex items-center gap-3 transition-all max-w-full">

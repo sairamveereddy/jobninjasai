@@ -152,19 +152,22 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
   }
 
   return (
-    <div className="absolute inset-0">
-      <button
-        type="button"
-        aria-label="Back to roles"
-        onClick={() => { window.location.href = '/roles'; }}
-        className="absolute top-6 left-6 z-50 flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-slate-200/50 cursor-pointer hover:bg-white transition-colors"
-      >
-        <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
-        <span className="font-extrabold text-slate-800 tracking-tight">JobNinjas</span>
-      </button>
+    <div className="absolute inset-0 bg-[#f6f8fa]">
+      {/* Top Left Navigation Bar: Logo & Candidate Selector */}
+      <div className="absolute top-4 left-4 z-40 flex items-center gap-2.5 pointer-events-auto">
+        <button
+          type="button"
+          aria-label="Back to roles"
+          onClick={() => { window.location.href = '/roles'; }}
+          className="flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-sm border border-slate-200/80 cursor-pointer hover:bg-slate-50 transition-colors"
+        >
+          <img src="/logo.png" alt="" className="w-6 h-6 object-contain" />
+          <span className="font-extrabold text-slate-800 tracking-tight text-sm">JobNinjas</span>
+        </button>
 
-      {/* Candidate Pipeline Management & ATS Ingestion Widget */}
-      {roleId && <CandidateManager roleId={roleId} />}
+        {roleId && <CandidateManager roleId={roleId} />}
+      </div>
+
       {roleId && (
         <RoleSurface
           roleId={roleId}
@@ -201,11 +204,11 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
         </div>
       )}
       {roleId && !wizardOpen && !layerIds.some((id) => layers[id]?.type === LayerType.Agent) && (
-        <div className="absolute left-1/2 top-[34%] z-30 w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-white/10 bg-[#111214]/95 p-4 text-white shadow-xl">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">This role</p>
-          <p className="mt-1 text-sm text-white">No hiring pipeline yet</p>
-          <p className="mt-1 text-sm text-[#b1b3b8]">Pick a template and name the job. Then add a person in This role and run the steps. Nothing is scored until someone is selected.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+        <div className="absolute left-1/2 top-[34%] z-30 w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-md p-6 text-slate-800 shadow-2xl">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-slate-400">This role</p>
+          <p className="mt-1 text-base font-bold text-slate-900">No hiring pipeline yet</p>
+          <p className="mt-1 text-sm text-slate-500">Pick a template and name the job. Then add a person in This role and run the steps. Nothing is scored until someone is selected.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
             {PIPELINE_TEMPLATES.map((template) => (
               <button
                 key={template.id}
@@ -226,7 +229,7 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
                   }));
                   setWizardOpen(true);
                 }}
-                className="rounded-md border border-white/10 px-2.5 py-1.5 text-xs hover:border-[#5e6ad2] hover:bg-[#5e6ad2]/20"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-[#5e6ad2] hover:bg-indigo-50 hover:text-indigo-700 transition-colors shadow-2xs cursor-pointer"
               >
                 {template.label}
               </button>
