@@ -41,7 +41,7 @@ export default function WorkflowsPage() {
             <h2 className="text-3xl font-bold">Autonomous Hiring Workflows</h2>
           </div>
           <p className="text-indigo-100 text-base leading-relaxed mb-6">
-            Every job role in JobNinjas operates an interconnected AI pipeline. Sourcing agents pass candidate intelligence to resume verifiers, interview planners, transcript analyzers, and concierge nodes on an infinite canvas with human-in-the-loop decision gates.
+            Every open role in JobNinjas has one pipeline. Resume screening, interview planning, transcript analysis, and the decision stay on that requisition. Your team chooses who advances.
           </p>
           <Link
             href="/roles"
@@ -69,7 +69,7 @@ export default function WorkflowsPage() {
             </div>
             <h4 className="text-base font-bold text-slate-800 mb-1">No active workflow pipelines</h4>
             <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
-              Create a role to deploy a tailored agent graph with resume intelligence, interview analysis, and concierge bookings.
+              Create a role to run resume screening, interview analysis, and the decision on that requisition.
             </p>
             <Link
               href="/roles"

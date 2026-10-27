@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-layout";
 import { FaqList } from "@/components/marketing/faq-list";
-import { PLANS } from "@/lib/marketing/site";
+import { pageSeo, PLANS } from "@/lib/marketing/site";
 
-export const metadata: Metadata = {
-  title: "Pricing | JobNinjas",
-  description: "Start with one open role. Team is a flat monthly plan for the full hiring pipeline.",
-};
+export const metadata: Metadata = pageSeo(
+  "Pricing",
+  "Pricing for the JobNinjas OS for one open role. One requisition is free. Team is $49 a month for every open role and the full agent pipeline.",
+);
 
 export default function PricingPage() {
   return (
@@ -19,7 +19,7 @@ export default function PricingPage() {
             One role to start. A flat plan when you have more.
           </h1>
           <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
-            Starter and Team are not priced per seat. Enterprise is a conversation, not a badge we print on the page.
+            Starter and Team are flat plans. Enterprise is scoped with your team.
           </p>
         </div>
 
@@ -31,12 +31,12 @@ export default function PricingPage() {
                 plan.featured ? "border-[#5e6ad2] bg-[#5e6ad2]" : "border-white/[0.08] bg-[#111214]"
               }`}
             >
-              <p className={`text-[12px] font-medium uppercase tracking-[0.14em] ${plan.featured ? "text-white/80" : "text-[#707277]"}`}>
+              <p className={`text-[12px] font-medium uppercase tracking-[0.14em] ${plan.featured ? "text-white" : "text-[#94969c]"}`}>
                 {plan.name}
               </p>
               <p className="mt-4 text-[40px] font-medium tracking-[-0.02em]">{plan.price}</p>
-              <p className={`mt-1 text-[13px] ${plan.featured ? "text-white/80" : "text-[#707277]"}`}>{plan.period}</p>
-              <p className={`mt-4 text-[14px] leading-relaxed ${plan.featured ? "text-white/90" : "text-[#b1b3b8]"}`}>{plan.blurb}</p>
+              <p className={`mt-1 text-[13px] ${plan.featured ? "text-white" : "text-[#94969c]"}`}>{plan.period}</p>
+              <p className={`mt-4 text-[14px] leading-relaxed ${plan.featured ? "text-white" : "text-[#b1b3b8]"}`}>{plan.blurb}</p>
               <ul className="mt-6 flex-1 space-y-2.5">
                 {plan.features.map((feature) => (
                   <li key={feature} className={`text-[14px] ${plan.featured ? "text-white" : "text-[#b1b3b8]"}`}>

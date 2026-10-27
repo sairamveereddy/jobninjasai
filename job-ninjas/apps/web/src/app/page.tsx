@@ -3,12 +3,22 @@ import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-layout";
 import { RoleWorkspace } from "@/components/marketing/role-workspace";
 import { FaqList } from "@/components/marketing/faq-list";
-import { AGENTS, PLANS, TRIAL_HREF } from "@/lib/marketing/site";
+import { AGENTS, PLANS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL, TRIAL_HREF } from "@/lib/marketing/site";
 
 export const metadata: Metadata = {
-  title: "JobNinjas | One board for one open role",
-  description:
-    "JobNinjas is the operating system for a single requisition. Agents screen resumes, plan interviews, read transcripts, and write a hiring decision.",
+  title: { absolute: SITE_TITLE },
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+  },
+  twitter: {
+    card: "summary",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  alternates: { canonical: SITE_URL },
 };
 
 const STEPS = [
@@ -126,13 +136,13 @@ export default function Home() {
               {AGENTS.map((agent, index) => (
                 <li key={agent.name} className="grid gap-4 rounded-[8px] border border-white/[0.08] bg-[#111214] p-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:p-5">
                   <div>
-                    <p className="text-[12px] tabular-nums text-[#707277]">{String(index + 1).padStart(2, "0")}</p>
+                    <p className="text-[12px] tabular-nums text-[#94969c]">{String(index + 1).padStart(2, "0")}</p>
                     <h3 className="mt-1 text-[16px] font-medium tracking-[-0.02em]">{agent.name}</h3>
                     <p className="mt-2 text-[13px] leading-relaxed text-[#b1b3b8]">{agent.summary}</p>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-[4px] bg-[#0d0e10] p-3">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#707277]">Inputs</p>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#94969c]">Inputs</p>
                       <ul className="mt-2 space-y-1">
                         {agent.inputs.map((item) => (
                           <li key={item} className="text-[13px] text-[#b1b3b8]">{item}</li>
@@ -140,7 +150,7 @@ export default function Home() {
                       </ul>
                     </div>
                     <div className="rounded-[4px] bg-[#0d0e10] p-3">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#707277]">Outputs</p>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#94969c]">Outputs</p>
                       <ul className="mt-2 space-y-1">
                         {agent.outputs.map((item) => (
                           <li key={item} className="text-[13px] text-white">{item}</li>
@@ -186,7 +196,7 @@ export default function Home() {
                 Start with one role.
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-[#b1b3b8]">
-                Priced by the work, not by a whiteboard seat. Team is a flat monthly plan.
+                Priced per role. Team is a flat monthly plan.
               </p>
             </div>
             <div className="mt-10 grid gap-4 lg:grid-cols-3">
@@ -197,12 +207,12 @@ export default function Home() {
                     plan.featured ? "border-[#5e6ad2] bg-[#5e6ad2]" : "border-white/[0.08] bg-[#111214]"
                   }`}
                 >
-                  <p className={`text-[12px] font-medium uppercase tracking-[0.14em] ${plan.featured ? "text-white/80" : "text-[#707277]"}`}>
+                  <p className={`text-[12px] font-medium uppercase tracking-[0.14em] ${plan.featured ? "text-white" : "text-[#94969c]"}`}>
                     {plan.name}
                   </p>
                   <p className="mt-3 text-[36px] font-medium tracking-[-0.02em]">{plan.price}</p>
-                  <p className={`text-[13px] ${plan.featured ? "text-white/80" : "text-[#707277]"}`}>{plan.period}</p>
-                  <p className={`mt-4 text-[14px] leading-relaxed ${plan.featured ? "text-white/90" : "text-[#b1b3b8]"}`}>{plan.blurb}</p>
+                  <p className={`text-[13px] ${plan.featured ? "text-white" : "text-[#94969c]"}`}>{plan.period}</p>
+                  <p className={`mt-4 text-[14px] leading-relaxed ${plan.featured ? "text-white" : "text-[#b1b3b8]"}`}>{plan.blurb}</p>
                   <ul className="mt-5 flex-1 space-y-2">
                     {plan.features.map((feature) => (
                       <li key={feature} className={`text-[13px] ${plan.featured ? "text-white" : "text-[#b1b3b8]"}`}>

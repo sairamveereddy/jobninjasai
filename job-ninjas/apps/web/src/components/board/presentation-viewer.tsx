@@ -20,7 +20,7 @@ export const PresentationViewer: React.FC<PresentationViewerProps> = ({ layers, 
   }
 
   // Find all slide layers on the board that belong to this presentation
-  // We sort them by X position to determine slide order (like Miro's horizontal layout)
+  // Sort slides by X position so the deck reads left to right.
   const slideLayers = Object.entries(layers)
     .filter(([_, layer]) => layer.type === 7 /* LayerType.Slide */)
     .map(([id, layer]) => ({ id, layer: layer as SlideLayer }))
@@ -77,7 +77,7 @@ export const PresentationViewer: React.FC<PresentationViewerProps> = ({ layers, 
       <div className="absolute top-0 inset-x-0 z-50 h-14 bg-[#111]/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
         <div className="flex items-center gap-4">
           <button onClick={onClose} className="text-slate-400 hover:text-white flex items-center gap-2 text-sm font-medium transition-colors">
-            <X className="w-4 h-4" /> Back to canvas
+            <X className="w-4 h-4" /> Back to role
           </button>
         </div>
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -120,7 +120,7 @@ export const PresentationViewer: React.FC<PresentationViewerProps> = ({ layers, 
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent blur-2xl pointer-events-none"></div>
                 <div className="z-10 flex flex-col items-center text-center p-12">
                   <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-md bg-gradient-to-br from-white to-blue-200 bg-clip-text text-transparent">{currentSlide?.fileName?.replace(/\.[^/.]+$/, "") || 'Presentation'}</h2>
-                  <p className="text-blue-200/80 text-lg font-medium">Job Ninjas Interactive Presentation</p>
+                  <p className="text-blue-200/80 text-lg font-medium">JobNinjas</p>
                 </div>
               </div>
             )}

@@ -186,7 +186,7 @@ export default function CandidatesPage() {
                     </div>
                     <p className="text-sm font-semibold text-slate-700 mb-1">No candidates in pipeline</p>
                     <p className="text-xs text-slate-400 max-w-sm mx-auto mb-4">
-                      Candidates can be added directly inside any Role Board canvas or through the Candidate Manager tool.
+                      Add people on a role, or import them from Greenhouse.
                     </p>
                     <Link
                       href="/roles"

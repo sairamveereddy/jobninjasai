@@ -226,4 +226,9 @@
   will-change: transform;
 }
 
+.marketing-root :is(a, button, input):focus-visible {
+  outline: 2px solid #a8ade6;
+  outline-offset: 2px;
+}
+
 

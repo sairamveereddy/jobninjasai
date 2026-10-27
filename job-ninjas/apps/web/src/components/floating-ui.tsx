@@ -134,13 +134,13 @@ export function FloatingHeader() {
           <div className="w-6 h-6 text-blue-600 flex items-center justify-center">
             <Image 
               src="/logo.png" 
-              alt="Job Ninjas" 
+              alt="" 
               width={24} 
               height={24}
               className="object-contain drop-shadow-sm "
             />
           </div>
-          <span className="font-bold text-foreground tracking-tight">Job Ninjas</span>
+          <span className="font-bold text-foreground tracking-tight">JobNinjas</span>
         </div>
 
         <div className="flex items-center gap-2 px-4 text-sm font-medium">

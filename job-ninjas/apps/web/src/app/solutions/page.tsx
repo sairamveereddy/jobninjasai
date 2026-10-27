@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-layout";
 
-export const metadata: Metadata = {
-  title: "Solutions | JobNinjas",
-  description: "How startups, enterprise talent teams, and agencies run one board per open role.",
-};
+import { pageSeo } from "@/lib/marketing/site";
+
+export const metadata: Metadata = pageSeo(
+  "Solutions",
+  "How startups, enterprise talent teams, and agencies use JobNinjas, the OS for one open role.",
+);
 
 const SOLUTIONS = [
   {

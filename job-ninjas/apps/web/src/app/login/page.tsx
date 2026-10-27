@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { TRIAL_HREF } from "@/lib/marketing/site";
+import { pageSeo, TRIAL_HREF } from "@/lib/marketing/site";
+
+export const metadata: Metadata = pageSeo(
+  "Sign in",
+  "Sign in to JobNinjas, the OS for one open role, or open the demo workspace and try a requisition.",
+);
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#08090a] p-4 font-sans text-white">
+    <div className="marketing-root flex min-h-screen items-center justify-center bg-[#08090a] p-4 font-sans text-white">
       <div className="w-full max-w-md rounded-[8px] border border-white/[0.08] bg-[#111214] p-8">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="mb-4 block">
@@ -25,7 +31,7 @@ export default function LoginPage() {
               autoComplete="email"
               required
               placeholder="Email address"
-              className="w-full rounded-[4px] border border-white/[0.08] bg-black/20 px-3 py-2 text-[14px] text-white placeholder:text-[#707277] focus:border-[#5e6ad2] focus:outline-none"
+              className="w-full rounded-[4px] border border-white/[0.08] bg-black/20 px-3 py-2 text-[14px] text-white placeholder:text-[#94969c] focus:border-[#5e6ad2] focus:outline-none"
             />
           </div>
           <div>
@@ -37,7 +43,7 @@ export default function LoginPage() {
               autoComplete="current-password"
               required
               placeholder="Password"
-              className="w-full rounded-[4px] border border-white/[0.08] bg-black/20 px-3 py-2 text-[14px] text-white placeholder:text-[#707277] focus:border-[#5e6ad2] focus:outline-none"
+              className="w-full rounded-[4px] border border-white/[0.08] bg-black/20 px-3 py-2 text-[14px] text-white placeholder:text-[#94969c] focus:border-[#5e6ad2] focus:outline-none"
             />
           </div>
           <button
@@ -56,7 +62,7 @@ export default function LoginPage() {
           >
             Open the demo workspace
           </Link>
-          <div className="mt-5 text-center text-[12px] text-[#707277]">
+          <div className="mt-5 text-center text-[12px] text-[#94969c]">
             <Link href="/terms" className="underline underline-offset-2 hover:text-white">Terms</Link>
             <span className="mx-2">·</span>
             <Link href="/privacy" className="underline underline-offset-2 hover:text-white">Privacy</Link>

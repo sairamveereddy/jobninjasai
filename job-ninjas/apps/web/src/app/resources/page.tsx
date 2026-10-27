@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-layout";
 
-export const metadata: Metadata = {
-  title: "Resources | JobNinjas",
-  description: "How to work a role in JobNinjas, and what the product does not pretend to publish yet.",
-};
+import { pageSeo } from "@/lib/marketing/site";
+
+export const metadata: Metadata = pageSeo(
+  "Resources",
+  "How a requisition runs on JobNinjas, the OS for one open role: the job description, the candidates, and the agents.",
+);
 
 const LINKS = [
   {
@@ -40,7 +42,7 @@ export default function ResourcesPage() {
             Learn the role. Skip the brochure.
           </h1>
           <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
-            There is no newsletter and no canvas shortcut guide. Start with how a requisition actually runs.
+            Start with how a requisition runs: the job description, the candidates, and the agents on that role.
           </p>
         </div>
         <div className="mt-12 grid gap-4 sm:grid-cols-2">

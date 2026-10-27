@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-layout";
-import { AGENTS, TRIAL_HREF } from "@/lib/marketing/site";
+import { AGENTS, pageSeo, TRIAL_HREF } from "@/lib/marketing/site";
 
-export const metadata: Metadata = {
-  title: "Agents | JobNinjas",
-  description: "The hiring agents on a JobNinjas role: what they read, and what they write back.",
-};
+export const metadata: Metadata = pageSeo(
+  "Agents",
+  "The five agents on a JobNinjas role, and the inputs and outputs they write. JobNinjas is the OS for one open role.",
+);
 
 export default function AgentTemplatesPage() {
   return (
@@ -18,19 +18,19 @@ export default function AgentTemplatesPage() {
             Five agents. One pipeline. Every candidate.
           </h1>
           <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
-            These are the agents on a role board. They are not a menu of bots you scatter across a canvas. Each one consumes the previous step and writes a document the team can read.
+            These are the agents on a role. Each one reads the previous step and writes a document the team can read.
           </p>
         </div>
 
         <div className="mt-12 grid gap-4 md:grid-cols-2">
           {AGENTS.map((agent, index) => (
             <article key={agent.name} className="rounded-[8px] border border-white/[0.08] bg-[#111214] p-6">
-              <p className="text-[12px] tabular-nums text-[#707277]">{String(index + 1).padStart(2, "0")}</p>
+              <p className="text-[12px] tabular-nums text-[#94969c]">{String(index + 1).padStart(2, "0")}</p>
               <h2 className="mt-2 text-[20px] font-medium tracking-[-0.02em]">{agent.name}</h2>
               <p className="mt-2 text-[14px] leading-relaxed text-[#b1b3b8]">{agent.summary}</p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#707277]">Inputs</p>
+                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#94969c]">Inputs</p>
                   <ul className="mt-2 space-y-1">
                     {agent.inputs.map((item) => (
                       <li key={item} className="text-[13px] text-[#b1b3b8]">{item}</li>
@@ -38,7 +38,7 @@ export default function AgentTemplatesPage() {
                   </ul>
                 </div>
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#707277]">Outputs</p>
+                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#94969c]">Outputs</p>
                   <ul className="mt-2 space-y-1">
                     {agent.outputs.map((item) => (
                       <li key={item} className="text-[13px] text-white">{item}</li>

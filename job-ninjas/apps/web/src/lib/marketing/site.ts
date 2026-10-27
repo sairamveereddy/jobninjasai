@@ -1,4 +1,35 @@
 export const TRIAL_HREF = "/api/auth/skip";
+export const SITE_URL = "https://jobninjas.ai";
+export const SITE_TITLE = "JobNinjas | The OS for one open role";
+export const SITE_DESCRIPTION =
+  "JobNinjas is the OS for one open role. One board holds the job, the resumes, and the agents that screen, plan, and write the decision.";
+
+export function pageSeo(title: string, description: string) {
+  const full = `${title} · JobNinjas`;
+  return {
+    title,
+    description,
+    openGraph: { title: full, description },
+    twitter: { card: "summary" as const, title: full, description },
+  };
+}
+
+export function topicSeo(topic: MarketingTopic) {
+  const description = withRoleOs(topic.lede);
+  return pageSeo(topic.title, description);
+}
+
+function withRoleOs(lede: string) {
+  const suffix = " JobNinjas is the OS for one open role.";
+  const combined = `${lede}${suffix}`;
+  if (combined.length <= 160) return combined;
+  const firstSentence = lede.split(/(?<=\.)\s/)[0] ?? lede;
+  const fromFirst = `${firstSentence}${suffix}`;
+  if (fromFirst.length <= 160) return fromFirst;
+  const budget = 160 - suffix.length;
+  const cut = firstSentence.slice(0, budget).replace(/\s+\S*$/, "").replace(/[.,;:\s]+$/, "");
+  return `${cut}.${suffix}`;
+}
 
 export const PLANS = [
   {
@@ -134,7 +165,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
   "product/canvas": {
     kicker: "Product",
     title: "The role board",
-    lede: "Every open role gets one board. It holds the job description, the people in process, their documents, and the agents running that hire. It is a workspace for the requisition, not a freeform whiteboard.",
+    lede: "Every open role gets one board. It holds the job description, the people in process, their documents, and the agents running that hire.",
     points: [
       {
         title: "The requisition is the container",
@@ -146,7 +177,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "The pipeline is fixed work",
-        body: "Agents run a hiring sequence. You are not arranging boxes on an infinite canvas.",
+        body: "Agents run a fixed hiring sequence on this requisition: resume, interview plan, transcript, and decision.",
       },
     ],
   },
@@ -336,7 +367,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "The same pipeline every search",
-        body: "Agents make delivery consistent without turning the workspace into a blank canvas.",
+        body: "The same pipeline runs on every search, so each role produces the same kind of packet.",
       },
     ],
   },

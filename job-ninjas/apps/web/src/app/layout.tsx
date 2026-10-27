@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/lib/marketing/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,8 +15,24 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JobNinjas | The OS for one open role",
-  description: "One board per requisition. Agents screen resumes, plan interviews, read transcripts, and write the hiring decision.",
+  metadataBase: new URL("https://jobninjas.ai"),
+  title: {
+    default: SITE_TITLE,
+    template: "%s · JobNinjas",
+  },
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    siteName: "JobNinjas",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "https://jobninjas.ai",
+  },
+  twitter: {
+    card: "summary",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
   icons: {
     icon: "/logo.png",
   },

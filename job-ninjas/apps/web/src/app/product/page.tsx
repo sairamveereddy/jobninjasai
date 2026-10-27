@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-layout";
-import { TRIAL_HREF } from "@/lib/marketing/site";
+import { pageSeo, TRIAL_HREF } from "@/lib/marketing/site";
 
-export const metadata: Metadata = {
-  title: "Product | JobNinjas",
-  description: "One board per open role. Agents screen resumes, plan interviews, read transcripts, and write the decision.",
-};
+export const metadata: Metadata = pageSeo(
+  "Product",
+  "JobNinjas is the OS for one open role. Candidates, resumes, transcripts, and agent output stay on that requisition.",
+);
 
 const PILLARS = [
   {
@@ -36,7 +36,7 @@ export default function ProductPage() {
             The OS for a single open role.
           </h1>
           <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
-            JobNinjas is where a talent team runs one requisition. Candidates, resumes, transcripts, and agent output stay together. It is not a blank canvas and it is not a second ATS.
+            JobNinjas is where a talent team runs one requisition. Candidates, resumes, transcripts, and agent output stay on that role.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link

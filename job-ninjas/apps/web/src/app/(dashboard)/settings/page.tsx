@@ -116,7 +116,7 @@ export default function SettingsPage() {
             <div className="p-6 flex flex-col gap-4 max-w-xl">
               <div>
                 <h3 className="font-medium text-foreground">Theme Settings</h3>
-                <p className="text-sm text-muted-foreground mb-4">Choose how Job Ninjas looks to you. This applies to all pages.</p>
+                <p className="text-sm text-muted-foreground mb-4">Choose how JobNinjas looks to you. This applies to all pages.</p>
                 <div className="flex items-center gap-3">
                   <button 
                     onClick={() => setTheme('light')}
@@ -149,7 +149,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium text-foreground">Change Password</h3>
-                  <p className="text-sm text-muted-foreground">Update the password used for your Job Ninjas account.</p>
+                  <p className="text-sm text-muted-foreground">Update the password used for your JobNinjas account.</p>
                 </div>
                 <button className="px-4 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">
                   Update Password

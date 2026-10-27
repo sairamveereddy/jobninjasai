@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingShell } from "@/components/marketing-layout";
+import { pageSeo } from "@/lib/marketing/site";
 
-export const metadata: Metadata = {
-  title: "Terms | JobNinjas",
-  description: "Terms for using JobNinjas hiring agents and role boards.",
-};
+export const metadata: Metadata = pageSeo(
+  "Terms",
+  "Terms for using JobNinjas, the OS for one open role, including hiring agents and candidate data.",
+);
 
 export default function TermsPage() {
   return (
@@ -15,7 +16,7 @@ export default function TermsPage() {
           ← Home
         </Link>
         <h1 className="mt-6 text-[36px] font-medium tracking-[-0.02em]">Terms and Conditions</h1>
-        <p className="mt-3 text-[14px] text-[#707277]">Last updated: {new Date().toLocaleDateString()}</p>
+        <p className="mt-3 text-[14px] text-[#94969c]">Last updated: {new Date().toLocaleDateString()}</p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-[#b1b3b8]">
           <section>
