@@ -457,11 +457,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             if (cmd.action === 'add_agent') {
               insertLayer(
                 LayerType.Agent,
-                cmd.x || 100,
-                cmd.y || 100,
-                '',
-                cmd.title || 'AI Agent',
-                undefined,
+                { x: Number(cmd.x) || 100, y: Number(cmd.y) || 100 },
+                { r: 255, g: 255, b: 255 },
                 undefined,
                 cmd.agentRole
               );
