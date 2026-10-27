@@ -10,7 +10,7 @@ export const metadata: Metadata = pageSeo(
 
 const PILLARS = [
   {
-    href: "/product/canvas",
+    href: "/product/role-board",
     title: "One board is one role",
     body: "The requisition holds the job description, the candidates, and their documents. The next job gets its own board.",
   },

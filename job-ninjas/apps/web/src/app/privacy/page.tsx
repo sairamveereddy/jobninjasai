@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           ← Home
         </Link>
         <h1 className="mt-6 text-[36px] font-medium tracking-[-0.02em]">Privacy Policy</h1>
-        <p className="mt-3 text-[14px] text-[#94969c]">Last updated: {new Date().toLocaleDateString()}</p>
+        <p className="mt-3 text-[14px] text-[#94969c]">Last updated: October 27, 2026</p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-[#b1b3b8]">
           <section>
@@ -24,7 +24,7 @@ export default function PrivacyPage() {
             <p>We collect information that you provide directly to us when using JobNinjas, including:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Account information (name, email, company details)</li>
-              <li>Workflow configurations and AI agent prompts</li>
+              <li>Role boards, job descriptions, resumes, and agent output</li>
               <li>Candidate data processed through our platform</li>
               <li>Usage data and interactions with our service</li>
             </ul>
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
             <p>We use the collected information to:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Provide, maintain, and improve our AI hiring platform</li>
-              <li>Process and analyze candidate profiles as directed by your workflows</li>
+              <li>Process and analyze candidate profiles as directed on a role</li>
               <li>Communicate with you regarding service updates and support</li>
               <li>Ensure the security and integrity of our platform</li>
             </ul>

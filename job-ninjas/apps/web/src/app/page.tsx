@@ -37,7 +37,7 @@ const STEPS = [
   {
     n: "03",
     title: "Run the agents",
-    body: "The same pipeline runs for each person: score the resume, plan the interview, read the transcript, and write a decision. You choose who advances.",
+    body: "The same pipeline runs for each person: parse the job and the resume, score the match, then shortlist, draft outreach, schedule, analyze the interview, and write a recommendation. You choose who advances.",
   },
 ];
 
@@ -55,7 +55,7 @@ const USES = [
   {
     href: "/use-cases/executive",
     title: "A short senior search",
-    body: "Fewer people, a written recommendation, and onsite travel once you advance a finalist.",
+    body: "Fewer people, a written recommendation, and interview times you send yourself.",
   },
   {
     href: "/use-cases/campus",
@@ -210,7 +210,7 @@ export default function Home() {
                 Start with one role.
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-[#b1b3b8]">
-                Priced per role. Team is a flat monthly plan.
+                Starter is one open role. Team is $49 a month for the workspace, not per person.
               </p>
             </div>
             <div className="mt-10 grid gap-4 lg:grid-cols-3">

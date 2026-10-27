@@ -156,7 +156,7 @@ export function MarketingFooter() {
             <span className="text-[15px] font-medium tracking-[-0.02em] text-white">JobNinjas</span>
           </Link>
           <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-[#94969c]">
-            The OS for one open role. Agents screen, plan, and write the decision. Your team still hires.
+            The OS for one open role. Agents parse the job, score candidates, and write a recommendation. Your team still hires.
           </p>
           <TrialLink className="mt-5 inline-flex rounded-[4px] bg-[#5e6ad2] px-3.5 py-2 text-[13px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] hover:bg-[#6d78d8]" />
         </div>

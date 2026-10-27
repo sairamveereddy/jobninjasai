@@ -37,7 +37,7 @@ export default function SolutionsPage() {
             The same role board, three kinds of team.
           </h1>
           <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
-            We are not publishing customer quotes. These are the ways the product is meant to be used.
+            A founder, an in-house talent team, or an agency. Each one runs a requisition as its own board.
           </p>
         </div>
         <div className="mt-12 grid gap-4 md:grid-cols-3">

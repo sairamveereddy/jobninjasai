@@ -198,26 +198,55 @@ const DEFAULT_POINTS = [
   },
 ];
 
+const roleBoard: MarketingTopic = {
+  kicker: "Product",
+  title: "The role board",
+  lede: "Every open role gets one board. It holds the job description, the people in process, their documents, and the agents running that hire.",
+  points: [
+    {
+      title: "The requisition is the container",
+      body: "Title, department, location, and job description live on the role. A second job is a second board.",
+    },
+    {
+      title: "Candidates stay attached",
+      body: "Each person on the role keeps a resume, a stage, and the agent output produced for them.",
+    },
+    {
+      title: "The pipeline is fixed work",
+      body: "JD Parser, Resume Parser, Screen & Score, Shortlist, Outreach, Interview Schedule, Interview Analysis, and Hiring Recommendation run on this requisition.",
+    },
+    {
+      title: "Not a whiteboard",
+      body: "Miro-class tools store stickies. This board runs agents. Each one reads an input and writes an output on the candidate.",
+    },
+  ],
+};
+
+const interviewAnalysis: MarketingTopic = {
+  kicker: "Product",
+  title: "Interview Analysis",
+  lede: "Interview Analysis reads the transcript against the interview plan and writes scores, quotes, and red flags. It does not join the call.",
+  points: [
+    {
+      title: "Schedule first",
+      body: "Interview Schedule proposes times and an invite message from the interview plan. You send it. Interview Planning is what writes that plan.",
+    },
+    {
+      title: "Transcript in",
+      body: "Paste the transcript. Interview Analysis scores what was actually said.",
+    },
+    {
+      title: "Recommendation out",
+      body: "Hiring Recommendation combines that analysis with the scorecard. A person still decides.",
+    },
+  ],
+};
+
 export const TOPICS: Record<string, MarketingTopic> = {
-  "product/canvas": {
-    kicker: "Product",
-    title: "The role board",
-    lede: "Every open role gets one board. It holds the job description, the people in process, their documents, and the agents running that hire.",
-    points: [
-      {
-        title: "The requisition is the container",
-        body: "Title, department, location, and job description live on the role. A second job is a second board.",
-      },
-      {
-        title: "Candidates stay attached",
-        body: "Each person on the role keeps a resume, a stage, and the agent output produced for them.",
-      },
-      {
-        title: "The pipeline is fixed work",
-        body: "JD Parser, Resume Parser, Screen & Score, Shortlist, Outreach, Interview Schedule, Interview Analysis, and Hiring Recommendation run on this requisition.",
-      },
-    ],
-  },
+  "product/role-board": roleBoard,
+  "product/canvas": roleBoard,
+  "product/interview-analysis": interviewAnalysis,
+  "product/copilot": interviewAnalysis,
   "product/resume-parser": {
     kicker: "Product",
     title: "Resume Parser",
@@ -237,29 +266,10 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
     ],
   },
-  "product/copilot": {
-    kicker: "Product",
-    title: "Interview analysis",
-    lede: "Interview Analysis reads the transcript against the interview plan and writes scores, quotes, and red flags. It does not join the call.",
-    points: [
-      {
-        title: "Schedule first",
-        body: "Interview Schedule proposes times and an invite message from the interview plan. You send it.",
-      },
-      {
-        title: "Transcript in",
-        body: "Paste the transcript. Interview Analysis scores what was actually said.",
-      },
-      {
-        title: "Recommendation out",
-        body: "Hiring Recommendation combines that analysis with the scorecard. A person still decides.",
-      },
-    ],
-  },
   "product/integrations": {
     kicker: "Product",
     title: "Greenhouse, then the rest of the role",
-    lede: "Import candidates from a Greenhouse job onto the role board. Gmail, Calendar, Slack, Workday, and DocuSign connectors sit on the same requisition so the hire does not scatter across tabs.",
+    lede: "Import candidates from a Greenhouse job onto the role. Greenhouse can stay the system of record. Connectors beyond that import are an Enterprise conversation.",
     points: [
       {
         title: "Greenhouse import",
@@ -347,7 +357,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "Notes stay with the student",
-        body: "Transcript analysis is filed on the candidate, not in a separate doc.",
+        body: "Interview Analysis is filed on the candidate, not in a separate doc.",
       },
     ],
   },
@@ -436,7 +446,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
   "resources/case-studies": {
     kicker: "Resources",
     title: "How a role board is meant to be used",
-    lede: "We are not publishing customer logos or invented metrics. These are the workflows the product is built to run.",
+    lede: "No customer logos and no invented metrics. These are the jobs the product is built to run on one requisition.",
     points: [
       {
         title: "Screen a slate",
@@ -448,7 +458,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "Write the decision",
-        body: "A recommendation with rationale, then onsite logistics if you advance a finalist.",
+        body: "Hiring Recommendation writes the rationale. A person still decides who advances.",
       },
     ],
   },
@@ -465,7 +475,7 @@ export function topicFor(section: string, slug: string[]): MarketingTopic {
   return {
     kicker: section.replace(/-/g, " "),
     title: title || "JobNinjas",
-    lede: "JobNinjas is the operating system for one open role. Agents screen resumes, plan interviews, read transcripts, and write a decision on that requisition.",
+    lede: "JobNinjas is the OS for one open role. Agents parse the job and the resumes, score each candidate, and write a hiring recommendation on that requisition.",
     points: DEFAULT_POINTS,
   };
 }

@@ -16,7 +16,7 @@ export default function TermsPage() {
           ← Home
         </Link>
         <h1 className="mt-6 text-[36px] font-medium tracking-[-0.02em]">Terms and Conditions</h1>
-        <p className="mt-3 text-[14px] text-[#94969c]">Last updated: {new Date().toLocaleDateString()}</p>
+        <p className="mt-3 text-[14px] text-[#94969c]">Last updated: October 27, 2026</p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-[#b1b3b8]">
           <section>
@@ -26,7 +26,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-[18px] font-medium tracking-[-0.02em] text-white">2. Use of AI Agents</h2>
-            <p>JobNinjas provides AI-powered hiring agents and workflow automation tools. You are responsible for ensuring that your use of these agents complies with all applicable employment laws, anti-discrimination regulations, and hiring practices in your jurisdiction.</p>
+            <p>JobNinjas provides hiring agents for one open role. You are responsible for ensuring that your use of these agents complies with all applicable employment laws, anti-discrimination regulations, and hiring practices in your jurisdiction.</p>
           </section>
 
           <section>

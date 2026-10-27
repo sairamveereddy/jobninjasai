@@ -39,7 +39,7 @@ export default function ResourcesPage() {
         <div className="max-w-3xl">
           <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">Resources</p>
           <h1 className="mt-3 text-[40px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[52px]">
-            Learn the role. Skip the brochure.
+            How a requisition runs.
           </h1>
           <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
             Start with how a requisition runs: the job description, the candidates, and the agents on that role.

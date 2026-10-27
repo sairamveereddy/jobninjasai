@@ -144,7 +144,7 @@ export function FloatingHeader() {
         </div>
 
         <div className="flex items-center gap-2 px-4 text-sm font-medium">
-          <span className="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-full text-xs font-semibold">Acme Corp</span>
+          <span className="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-full text-xs font-semibold">Workspace</span>
           <span className="text-muted-foreground">/</span>
           {isEditingTitle ? (
             <input
@@ -162,7 +162,7 @@ export function FloatingHeader() {
               onClick={startEditing}
               title="Click to edit board name"
             >
-              {currentRole ? currentRole.title : "Acme Corp Hiring"}
+              {currentRole ? currentRole.title : "Open role"}
             </span>
           )}
         </div>
