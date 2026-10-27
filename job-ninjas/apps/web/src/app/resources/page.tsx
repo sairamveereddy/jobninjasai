@@ -18,7 +18,7 @@ const LINKS = [
   {
     href: "/templates",
     title: "Agent library",
-    body: "The five agents on a role, with the inputs they read and the outputs they write.",
+    body: "JD Parser through Hiring Recommendation, with the inputs they read and the outputs they write.",
   },
   {
     href: "/resources/case-studies",

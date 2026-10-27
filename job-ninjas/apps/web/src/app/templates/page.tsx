@@ -5,7 +5,7 @@ import { AGENTS, pageSeo, TRIAL_HREF } from "@/lib/marketing/site";
 
 export const metadata: Metadata = pageSeo(
   "Agents",
-  "The five agents on a JobNinjas role, and the inputs and outputs they write. JobNinjas is the OS for one open role.",
+  "JD Parser through Hiring Recommendation on a JobNinjas role. JobNinjas is the OS for one open role.",
 );
 
 export default function AgentTemplatesPage() {
@@ -15,10 +15,10 @@ export default function AgentTemplatesPage() {
         <div className="max-w-3xl">
           <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">Agents</p>
           <h1 className="mt-3 text-[40px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[52px]">
-            Five agents. One pipeline. Every candidate.
+            The agents on one role.
           </h1>
           <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
-            These are the agents on a role. Each one reads the previous step and writes a document the team can read.
+            Same names as the product. Each step reads an input and writes an output for a candidate on that requisition. Interview Planning writes the guide Schedule and Analysis use.
           </p>
         </div>
 

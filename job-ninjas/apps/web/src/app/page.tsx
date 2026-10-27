@@ -3,7 +3,7 @@ import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-layout";
 import { RoleWorkspace } from "@/components/marketing/role-workspace";
 import { FaqList } from "@/components/marketing/faq-list";
-import { AGENTS, PLANS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL, TRIAL_HREF } from "@/lib/marketing/site";
+import { AGENTS, OG_IMAGE, PLANS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL, TRIAL_HREF } from "@/lib/marketing/site";
 
 export const metadata: Metadata = {
   title: { absolute: SITE_TITLE },
@@ -12,11 +12,13 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
+    images: [OG_IMAGE],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: [OG_IMAGE.url],
   },
   alternates: { canonical: SITE_URL },
 };
@@ -76,7 +78,7 @@ export default function Home() {
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-[16px] leading-relaxed text-[#b1b3b8] sm:text-[18px]">
               JobNinjas gives every requisition its own workspace. Put the job description and the resumes in one place.
-              Agents screen each candidate, plan the interview, read the transcript, and write a decision your team can defend.
+              Agents parse the job and the resumes, score each candidate, and write a hiring recommendation your team can defend.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
@@ -121,6 +123,18 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="border-t border-white/[0.08]">
+          <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+            <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">Not a whiteboard</p>
+            <h2 className="mt-3 max-w-3xl text-[32px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[40px]">
+              Miro-class tools do not run a hire.
+            </h2>
+            <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-[#b1b3b8]">
+              A whiteboard stores stickies. JobNinjas runs agents on one open role. JD Parser, Screen & Score, Outreach, and Hiring Recommendation each take an input and write an output. Nothing on the role is there just to be arranged.
+            </p>
+          </div>
+        </section>
+
         <section id="pipeline" className="border-t border-white/[0.08]">
           <div className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
             <div className="max-w-2xl">
@@ -129,12 +143,12 @@ export default function Home() {
                 Each agent reads something and writes something back.
               </h2>
               <p className="mt-4 text-[15px] leading-relaxed text-[#b1b3b8]">
-                The sequence runs per candidate on the role. Outputs from one step are the inputs to the next. Nothing here is a freeform diagram.
+                These are the agents on the role, with the same names as the product. Interview Planning writes the guide that Interview Schedule and Interview Analysis read. The sequence runs per candidate.
               </p>
             </div>
             <ol className="mt-10 space-y-3">
               {AGENTS.map((agent, index) => (
-                <li key={agent.name} className="grid gap-4 rounded-[8px] border border-white/[0.08] bg-[#111214] p-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:p-5">
+                <li key={agent.name} className="grid gap-4 rounded-[8px] border border-white/[0.08] bg-[#111214] p-4 sm:grid-cols-[220px_minmax(0,1fr)] sm:p-5">
                   <div>
                     <p className="text-[12px] tabular-nums text-[#94969c]">{String(index + 1).padStart(2, "0")}</p>
                     <h3 className="mt-1 text-[16px] font-medium tracking-[-0.02em]">{agent.name}</h3>

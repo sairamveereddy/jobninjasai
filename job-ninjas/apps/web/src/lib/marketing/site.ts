@@ -4,13 +4,20 @@ export const SITE_TITLE = "JobNinjas | The OS for one open role";
 export const SITE_DESCRIPTION =
   "JobNinjas is the OS for one open role. One board holds the job, the resumes, and the agents that screen, plan, and write the decision.";
 
+export const OG_IMAGE = {
+  url: "/og.png",
+  width: 1200,
+  height: 630,
+  alt: "JobNinjas, the OS for one open role",
+};
+
 export function pageSeo(title: string, description: string) {
   const full = `${title} · JobNinjas`;
   return {
     title,
     description,
-    openGraph: { title: full, description },
-    twitter: { card: "summary" as const, title: full, description },
+    openGraph: { title: full, description, images: [OG_IMAGE] },
+    twitter: { card: "summary_large_image" as const, title: full, description, images: [OG_IMAGE.url] },
   };
 }
 
@@ -38,10 +45,10 @@ export const PLANS = [
     period: "to open one role",
     blurb: "A single requisition, with the agents that screen resumes and write a decision.",
     features: [
-      "1 active role",
-      "Resume Intelligence and Candidate Decision",
-      "Job description and resumes on the role",
-      "Demo workspace to try the board",
+      "1 open role at a time",
+      "JD Parser, Resume Parser, Screen & Score",
+      "Hiring Recommendation on that role",
+      "Demo workspace, no card",
     ],
     cta: "Try a role",
     href: TRIAL_HREF,
@@ -53,10 +60,10 @@ export const PLANS = [
     period: "per month",
     blurb: "Every open role on its own board, with the full hiring pipeline.",
     features: [
-      "Unlimited roles",
-      "Full agent pipeline, including interview analysis",
+      "Unlimited open roles",
+      "Shortlist, Outreach, interview schedule and analysis",
       "Greenhouse candidate import",
-      "Shared hiring team on the role",
+      "$49 for the workspace, not per person",
     ],
     cta: "Try a role",
     href: TRIAL_HREF,
@@ -86,7 +93,7 @@ export const FAQS = [
   },
   {
     q: "What do the agents actually do?",
-    a: "They run in order, per candidate. Resume Intelligence scores the resume against the job description. Interview Planning writes the loop from those gaps. Interview Analysis reads the transcript. Candidate Decision writes a recommendation and a rationale. Candidate Concierge plans onsite travel after someone is advanced.",
+    a: "On each candidate: JD Parser structures the job, Resume Parser reads the resume, and Screen & Score writes a scorecard. Shortlist says whether they move forward. Outreach drafts an email you send yourself. Interview Schedule proposes times. Interview Analysis scores the transcript. Hiring Recommendation writes an advisory hire or no-hire. A person still decides.",
   },
   {
     q: "Can one role hold many candidates?",
@@ -98,44 +105,74 @@ export const FAQS = [
   },
   {
     q: "Who makes the hiring decision?",
-    a: "Your team does. Agents produce scores, a plan, and a written recommendation. A person decides who moves forward.",
+    a: "Your team does. Hiring Recommendation is an advisory hire or no-hire with a rationale. A person decides who moves forward.",
   },
   {
     q: "How do I try it?",
-    a: "Open the demo workspace and create a role. That drops you on the product board. Team sign-in is rolling out separately.",
+    a: "Open the demo workspace and create a role. That drops you on the product. It does not start a paid subscription. Team sign-in is rolling out separately.",
+  },
+  {
+    q: "What counts as an open role on Starter?",
+    a: "Starter includes one requisition you are still hiring for. Opening a second role is a Team workspace. Close the first role when that search is done and the slot is free again.",
+  },
+  {
+    q: "Is Team priced per person or per role?",
+    a: "Neither. Team is $49 a month for the workspace. Teammates are not an extra seat fee, and additional open roles are included. This page has no annual price.",
+  },
+  {
+    q: "Does Outreach or Interview Schedule send anything?",
+    a: "No. Outreach writes a subject and body for you to copy into your mailbox. Interview Schedule proposes times and a message. Neither sends email nor writes to a calendar.",
   },
 ] as const;
 
 export const AGENTS = [
   {
-    name: "Resume Intelligence",
-    summary: "Reads one resume against this role’s job description.",
-    inputs: ["Candidate", "Resume", "Job description"],
-    outputs: ["Match score", "Verified skills", "Gaps", "Probe questions"],
+    name: "JD Parser",
+    summary: "Turns this role’s job description into the hiring bar.",
+    inputs: ["Job description"],
+    outputs: ["Must-haves", "Seniority", "Locations", "Summary"],
   },
   {
-    name: "Interview Planning",
-    summary: "Turns resume gaps into a structured interview plan.",
-    inputs: ["Resume analysis", "Role requirements"],
-    outputs: ["Agenda", "Questions", "Signals to listen for"],
+    name: "Resume Parser",
+    summary: "Reads one resume into a structured profile.",
+    inputs: ["Resume"],
+    outputs: ["Candidate profile"],
+  },
+  {
+    name: "Screen & Score",
+    summary: "Scores the resume against the parsed job.",
+    inputs: ["Resume", "Parsed job"],
+    outputs: ["Match score", "Strengths", "Gaps", "Interview focus"],
+  },
+  {
+    name: "Shortlist",
+    summary: "Says whether this person moves forward, and why.",
+    inputs: ["Scorecard"],
+    outputs: ["Advance or hold", "Reason"],
+  },
+  {
+    name: "Outreach",
+    summary: "Drafts the email. You send it.",
+    inputs: ["Candidate", "Job description"],
+    outputs: ["Subject", "Body", "The ask"],
+  },
+  {
+    name: "Interview Schedule",
+    summary: "Proposes times from the interview plan. It does not book the calendar.",
+    inputs: ["Interview plan", "Candidate"],
+    outputs: ["Suggested times", "Format", "Invite message"],
   },
   {
     name: "Interview Analysis",
-    summary: "Scores a transcript against the plan you already wrote.",
+    summary: "Scores the transcript against that plan.",
     inputs: ["Interview plan", "Transcript"],
-    outputs: ["Technical score", "Communication score", "Red flags"],
+    outputs: ["Scores", "Quotes", "Red flags"],
   },
   {
-    name: "Candidate Decision",
-    summary: "Combines the resume and the interview into a recommendation.",
-    inputs: ["Resume analysis", "Interview analysis"],
-    outputs: ["Hire or hold", "Rationale", "Compensation note"],
-  },
-  {
-    name: "Candidate Concierge",
-    summary: "Plans onsite travel after you advance a finalist.",
-    inputs: ["Decision", "Candidate location"],
-    outputs: ["Flight", "Hotel", "Welcome note"],
+    name: "Hiring Recommendation",
+    summary: "Writes an advisory hire or no-hire. A person still decides.",
+    inputs: ["Scorecard", "Interview analysis"],
+    outputs: ["Recommendation", "Rationale", "Compensation note"],
   },
 ] as const;
 
@@ -153,7 +190,7 @@ const DEFAULT_POINTS = [
   },
   {
     title: "Agents with inputs and outputs",
-    body: "Resume, interview plan, transcript analysis, and a written decision run for each candidate.",
+    body: "JD Parser, Screen & Score, Outreach, and Hiring Recommendation each write an output on the candidate.",
   },
   {
     title: "People still decide",
@@ -177,45 +214,45 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "The pipeline is fixed work",
-        body: "Agents run a fixed hiring sequence on this requisition: resume, interview plan, transcript, and decision.",
+        body: "JD Parser, Resume Parser, Screen & Score, Shortlist, Outreach, Interview Schedule, Interview Analysis, and Hiring Recommendation run on this requisition.",
       },
     ],
   },
   "product/resume-parser": {
     kicker: "Product",
-    title: "Resume Intelligence",
-    lede: "Drop a resume on the role. The agent reads it against that job description and returns a match score, which skills are verified, where the gaps are, and which questions to ask next.",
+    title: "Resume Parser",
+    lede: "Resume Parser reads one resume into a candidate profile. Screen & Score then compares that resume with the parsed job and writes the scorecard.",
     points: [
       {
-        title: "Input",
-        body: "The candidate, the resume text, and the open role.",
+        title: "Resume Parser",
+        body: "Input is the resume. Output is a structured candidate profile.",
       },
       {
-        title: "Output",
-        body: "A structured analysis: overall match, skill evidence, gaps, and interview focus areas.",
+        title: "Screen & Score",
+        body: "Inputs are the resume and the parsed job. Output is a match score, strengths, gaps, and interview focus.",
       },
       {
         title: "Many resumes, one bar",
-        body: "Run it across the slate. Scores stay tied to the same job description, so the shortlist is comparable.",
+        body: "JD Parser sets the bar once. Every resume on the role is scored against it.",
       },
     ],
   },
   "product/copilot": {
     kicker: "Product",
     title: "Interview analysis",
-    lede: "JobNinjas does not sit in the interview and talk for you. After the conversation, Interview Analysis reads the transcript against the plan and scores what the candidate actually said.",
+    lede: "Interview Analysis reads the transcript against the interview plan and writes scores, quotes, and red flags. It does not join the call.",
     points: [
       {
-        title: "Plan first",
-        body: "Interview Planning writes the agenda from resume gaps before anyone is on the call.",
+        title: "Schedule first",
+        body: "Interview Schedule proposes times and an invite message from the interview plan. You send it.",
       },
       {
         title: "Transcript in",
-        body: "Paste or attach the interview transcript. The agent scores technical depth and communication.",
+        body: "Paste the transcript. Interview Analysis scores what was actually said.",
       },
       {
-        title: "Evidence out",
-        body: "You get strengths, red flags, and a recommendation you can hand to the hiring manager.",
+        title: "Recommendation out",
+        body: "Hiring Recommendation combines that analysis with the scorecard. A person still decides.",
       },
     ],
   },
@@ -241,7 +278,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
   "use-cases/technical": {
     kicker: "Use case",
     title: "A technical role with a stack of resumes",
-    lede: "Open one engineering requisition. Load the job description once. Run Resume Intelligence on every applicant, then generate an interview plan from the gaps that actually showed up.",
+    lede: "Open one engineering requisition. JD Parser sets the bar once. Screen & Score runs on every resume.",
     points: [
       {
         title: "Same bar for every resume",
@@ -249,18 +286,18 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "Probe questions come from gaps",
-        body: "Interview Planning targets what the resume did not prove.",
+        body: "Screen & Score lists the gaps. Interview Analysis later checks them against the transcript.",
       },
       {
         title: "The loop leaves a record",
-        body: "Transcript analysis and the decision memo stay on the candidate.",
+        body: "Interview Analysis and the Hiring Recommendation stay on the candidate.",
       },
     ],
   },
   "use-cases/executive": {
     kicker: "Use case",
     title: "A senior search with a short slate",
-    lede: "Executive roles are still one board. Fewer candidates, heavier documents, and a decision memo the hiring committee can read. Concierge plans the onsite once you advance a finalist.",
+    lede: "Executive roles are still one board. Fewer candidates, heavier documents, and a Hiring Recommendation the committee can read.",
     points: [
       {
         title: "One confidential role",
@@ -268,11 +305,11 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "A written recommendation",
-        body: "Candidate Decision combines resume evidence and interview analysis into a rationale.",
+        body: "Hiring Recommendation combines the scorecard and Interview Analysis into a rationale.",
       },
       {
-        title: "Onsite logistics",
-        body: "Candidate Concierge drafts travel, hotel, and a welcome note after you advance someone.",
+        title: "The interview gets a time",
+        body: "Interview Schedule proposes slots and a message. You send the invite.",
       },
     ],
   },
@@ -306,7 +343,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "Shared interview plan",
-        body: "Interview Planning gives every interviewer the same agenda and signals.",
+        body: "Screen & Score and the interview plan give every interviewer the same gaps and signals.",
       },
       {
         title: "Notes stay with the student",
@@ -325,11 +362,11 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "Agents do the first pass",
-        body: "Resume Intelligence and Interview Planning cover the work a coordinator usually does by hand.",
+        body: "JD Parser, Resume Parser, and Screen & Score cover the first pass a coordinator usually does by hand.",
       },
       {
         title: "The founder still decides",
-        body: "The decision memo is a recommendation, not an automatic offer.",
+        body: "Hiring Recommendation is advice. The founder still makes the offer.",
       },
     ],
   },
@@ -363,7 +400,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "A packet the client can read",
-        body: "Candidate Decision writes the rationale from resume and interview evidence.",
+        body: "Hiring Recommendation writes the rationale from the scorecard and Interview Analysis.",
       },
       {
         title: "The same pipeline every search",
@@ -386,7 +423,7 @@ export const TOPICS: Record<string, MarketingTopic> = {
       },
       {
         title: "3. Run agents",
-        body: "Resume Intelligence, Interview Planning, Interview Analysis, and Candidate Decision each take the previous output.",
+        body: "Run JD Parser, Resume Parser, Screen & Score, then Shortlist, Outreach, Interview Schedule, Interview Analysis, and Hiring Recommendation.",
       },
     ],
   },

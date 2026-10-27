@@ -17,7 +17,7 @@ const PILLARS = [
   {
     href: "/product/resume-parser",
     title: "Agents with a job",
-    body: "Resume Intelligence, Interview Planning, Interview Analysis, and Candidate Decision each take inputs and write outputs.",
+    body: "JD Parser, Resume Parser, Screen & Score, Shortlist, Outreach, Interview Schedule, Interview Analysis, and Hiring Recommendation.",
   },
   {
     href: "/product/integrations",

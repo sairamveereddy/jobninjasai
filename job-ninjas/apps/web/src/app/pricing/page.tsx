@@ -6,7 +6,7 @@ import { pageSeo, PLANS } from "@/lib/marketing/site";
 
 export const metadata: Metadata = pageSeo(
   "Pricing",
-  "Pricing for the JobNinjas OS for one open role. One requisition is free. Team is $49 a month for every open role and the full agent pipeline.",
+  "Pricing for the JobNinjas OS for one open role. Starter is one role, free. Team is $49 a month for the workspace.",
 );
 
 export default function PricingPage() {
@@ -56,7 +56,18 @@ export default function PricingPage() {
           ))}
         </div>
 
-        <div className="mt-20 max-w-3xl">
+        <div className="mt-16 max-w-3xl">
+          <h2 className="text-[28px] font-medium tracking-[-0.02em]">Limits</h2>
+          <ul className="mt-6 space-y-3 text-[15px] leading-relaxed text-[#b1b3b8]">
+            <li>Starter includes one open role. A second open role is a Team workspace. Close the first role and that slot is free again.</li>
+            <li>Team is $49 a month for the workspace. Teammates are not a seat fee, and this page has no annual price.</li>
+            <li>Try a role opens the demo workspace. It does not start a subscription or ask for a card.</li>
+            <li>Outreach writes an email draft you copy over. Interview Schedule proposes times you send. Neither sends mail nor writes to a calendar.</li>
+            <li>Hiring Recommendation is advice. Someone on your team still accepts or rejects it.</li>
+          </ul>
+        </div>
+
+        <div className="mt-16 max-w-3xl">
           <h2 className="text-[28px] font-medium tracking-[-0.02em]">Questions</h2>
           <div className="mt-6">
             <FaqList />

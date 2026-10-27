@@ -68,17 +68,17 @@ export function RoleWorkspace() {
 
           <div className="mt-4 rounded-[8px] border border-white/[0.08] bg-[#0d0e10] p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[13px] font-medium text-white">Resume Intelligence</p>
+              <p className="text-[13px] font-medium text-white">Screen & Score</p>
               <p className="text-[11px] text-[#94969c]">Ran for Maya Chen</p>
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#94969c]">In</p>
-                <p className="mt-1 text-[12px] leading-relaxed text-[#b1b3b8]">Job description · maya-chen-resume.pdf</p>
+                <p className="mt-1 text-[12px] leading-relaxed text-[#b1b3b8]">Parsed job · maya-chen-resume.pdf</p>
               </div>
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#94969c]">Out</p>
-                <p className="mt-1 text-[12px] leading-relaxed text-[#b1b3b8]">92 match · Python verified · Kubernetes partial · 3 probe questions</p>
+                <p className="mt-1 text-[12px] leading-relaxed text-[#b1b3b8]">92 match · strengths · gaps · interview focus</p>
               </div>
             </div>
           </div>

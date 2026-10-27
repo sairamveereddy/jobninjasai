@@ -19,7 +19,7 @@ const FOOTER = [
     title: "Product",
     links: [
       { href: "/product", label: "Role board" },
-      { href: "/product/resume-parser", label: "Resume Intelligence" },
+      { href: "/product/resume-parser", label: "Resume Parser" },
       { href: "/product/integrations", label: "Greenhouse import" },
       { href: "/templates", label: "Agents" },
     ],
