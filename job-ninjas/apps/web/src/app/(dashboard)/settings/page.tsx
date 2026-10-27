@@ -80,7 +80,7 @@ export default function SettingsPage() {
               <div className="grid gap-5 max-w-xl">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Company Name</label>
-                  <input type="text" defaultValue="Acme Corp Hiring" className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-foreground" />
+                  <input type="text" defaultValue="Your company" className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-foreground" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Industry</label>
@@ -116,7 +116,7 @@ export default function SettingsPage() {
             <div className="p-6 flex flex-col gap-4 max-w-xl">
               <div>
                 <h3 className="font-medium text-foreground">Theme Settings</h3>
-                <p className="text-sm text-muted-foreground mb-4">Choose how Job Ninjas looks to you. This applies to all pages.</p>
+                <p className="text-sm text-muted-foreground mb-4">Choose how JobNinjas looks to you. This applies to all pages.</p>
                 <div className="flex items-center gap-3">
                   <button 
                     onClick={() => setTheme('light')}
@@ -149,7 +149,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium text-foreground">Change Password</h3>
-                  <p className="text-sm text-muted-foreground">Update the password used for your Job Ninjas account.</p>
+                  <p className="text-sm text-muted-foreground">Update the password used for your JobNinjas account.</p>
                 </div>
                 <button className="px-4 py-2 bg-background border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors">
                   Update Password
@@ -216,7 +216,7 @@ export default function SettingsPage() {
                 <div>
                   <h3 className="font-medium text-foreground">Contact Support</h3>
                   <p className="text-sm text-muted-foreground mt-1 mb-3">
-                    Need help with your account or workflows? Our support team is here to help.
+                    Need help with a role or your account? Our support team is here to help.
                   </p>
                   <a href="mailto:veereddy@jobninjas.org" className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-lg text-sm font-medium transition-colors">
                     <Mail className="w-4 h-4" />

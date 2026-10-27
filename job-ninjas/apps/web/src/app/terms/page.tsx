@@ -1,36 +1,41 @@
-import Link from 'next/link';
+import Link from "next/link";
+import type { Metadata } from "next";
+import { MarketingShell } from "@/components/marketing-layout";
+import { pageSeo } from "@/lib/marketing/site";
+
+export const metadata: Metadata = pageSeo(
+  "Terms",
+  "Terms for using JobNinjas, the OS for one open role, including hiring agents and candidate data.",
+);
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-muted py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-3xl mx-auto bg-card p-8 md:p-12 rounded-2xl shadow-sm border border-border">
-        <div className="mb-8">
-          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-2">
-            &larr; Back to Login
-          </Link>
-        </div>
-        
-        <h1 className="text-3xl font-bold text-foreground mb-6">Terms and Conditions</h1>
-        <p className="text-muted-foreground mb-8">Last updated: {new Date().toLocaleDateString()}</p>
+    <MarketingShell>
+      <main className="mx-auto max-w-3xl px-5 py-16">
+        <Link href="/" className="text-[13px] text-[#8b90d6] hover:text-white">
+          ← Home
+        </Link>
+        <h1 className="mt-6 text-[36px] font-medium tracking-[-0.02em]">Terms and Conditions</h1>
+        <p className="mt-3 text-[14px] text-[#94969c]">Last updated: October 27, 2026</p>
 
-        <div className="space-y-6 text-foreground">
+        <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-[#b1b3b8]">
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">1. Agreement to Terms</h2>
-            <p>By accessing and using Job Ninjas, you agree to be bound by these Terms and Conditions. If you disagree with any part of these terms, you may not access our service.</p>
+            <h2 className="text-[18px] font-medium tracking-[-0.02em] text-white">1. Agreement to Terms</h2>
+            <p>By accessing and using JobNinjas, you agree to be bound by these Terms and Conditions. If you disagree with any part of these terms, you may not access our service.</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">2. Use of AI Agents</h2>
-            <p>Job Ninjas provides AI-powered hiring agents and workflow automation tools. You are responsible for ensuring that your use of these agents complies with all applicable employment laws, anti-discrimination regulations, and hiring practices in your jurisdiction.</p>
+            <h2 className="text-[18px] font-medium tracking-[-0.02em] text-white">2. Use of AI Agents</h2>
+            <p>JobNinjas provides hiring agents for one open role. You are responsible for ensuring that your use of these agents complies with all applicable employment laws, anti-discrimination regulations, and hiring practices in your jurisdiction.</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">3. Data Privacy</h2>
-            <p>Your use of Job Ninjas is also governed by our Privacy Policy. Please review our Privacy Policy to understand our practices regarding candidate data and your personal information.</p>
+            <h2 className="text-[18px] font-medium tracking-[-0.02em] text-white">3. Data Privacy</h2>
+            <p>Your use of JobNinjas is also governed by our Privacy Policy. Please review our Privacy Policy to understand our practices regarding candidate data and your personal information.</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">4. User Responsibilities</h2>
+            <h2 className="text-[18px] font-medium tracking-[-0.02em] text-white">4. User Responsibilities</h2>
             <p>You agree not to use the platform to:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Process candidate data without proper consent</li>
@@ -41,21 +46,21 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">5. Intellectual Property</h2>
-            <p>The platform, including its original content, features, AI models, and functionality, are owned by Job Ninjas and are protected by international copyright, trademark, and other intellectual property laws.</p>
+            <h2 className="text-[18px] font-medium tracking-[-0.02em] text-white">5. Intellectual Property</h2>
+            <p>The platform, including its original content, features, AI models, and functionality, are owned by JobNinjas and are protected by international copyright, trademark, and other intellectual property laws.</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">6. Changes to Terms</h2>
+            <h2 className="text-[18px] font-medium tracking-[-0.02em] text-white">6. Changes to Terms</h2>
             <p>We reserve the right to modify or replace these Terms at any time. We will provide notice of any significant changes. Your continued use of the service following the posting of any changes constitutes acceptance of those changes.</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground mb-3">7. Contact & Support</h2>
-            <p>If you have any questions, require assistance, or need to report an issue, please contact us directly at <a href="mailto:veereddy@jobninjas.org" className="text-blue-600 hover:underline">veereddy@jobninjas.org</a>.</p>
+            <h2 className="text-[18px] font-medium tracking-[-0.02em] text-white">7. Contact & Support</h2>
+            <p>If you have any questions, require assistance, or need to report an issue, please contact us directly at <a href="mailto:veereddy@jobninjas.org" className="text-[#8b90d6] hover:underline">veereddy@jobninjas.org</a>.</p>
           </section>
         </div>
-      </div>
-    </div>
+      </main>
+    </MarketingShell>
   );
 }

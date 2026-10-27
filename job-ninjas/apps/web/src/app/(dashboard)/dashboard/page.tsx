@@ -166,7 +166,7 @@ export default function DashboardPage() {
                       <Plus className="w-6 h-6" />
                     </div>
                     <p className="text-[13px] font-semibold text-slate-700">No active boards</p>
-                    <p className="text-xs text-slate-400 max-w-sm">Create a role to configure your first visual agent workflow.</p>
+                    <p className="text-xs text-slate-400 max-w-sm">Create a role. The job, the candidates, and the agents stay on that requisition.</p>
                     <Link href="/roles"
                       className="px-4 py-2 bg-blue-600 text-white text-[12px] font-semibold rounded-lg hover:bg-blue-700 transition-colors">
                       + Create Role Board

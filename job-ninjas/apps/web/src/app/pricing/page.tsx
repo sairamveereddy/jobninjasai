@@ -1,112 +1,79 @@
-import { MarketingNav, MarketingFooter } from '@/components/marketing-layout';
-import { Check } from 'lucide-react';
-import Link from 'next/link';
+import type { Metadata } from "next";
+import Link from "next/link";
+import { MarketingShell } from "@/components/marketing-layout";
+import { FaqList } from "@/components/marketing/faq-list";
+import { pageSeo, PLANS } from "@/lib/marketing/site";
+
+export const metadata: Metadata = pageSeo(
+  "Pricing",
+  "Pricing for the JobNinjas OS for one open role. Starter is one role, free. Team is $49 a month for the workspace.",
+);
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100">
-      <MarketingNav />
-      
-      <main className="pt-24 pb-16 sm:pt-32 sm:pb-24 lg:pb-32 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">
-              Simple, transparent pricing
-            </h1>
-            <p className="text-xl text-slate-600 leading-relaxed mb-8">
-              Start for free, upgrade when you need advanced AI agents and enterprise integrations.
-            </p>
+    <MarketingShell>
+      <main className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+        <div className="max-w-2xl">
+          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">Pricing</p>
+          <h1 className="mt-3 text-[40px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[52px]">
+            One role to start. A flat plan when you have more.
+          </h1>
+          <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
+            Starter and Team are flat plans. Enterprise is scoped with your team.
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-4 lg:grid-cols-3">
+          {PLANS.map((plan) => (
+            <article
+              key={plan.name}
+              className={`flex flex-col rounded-[8px] border p-6 ${
+                plan.featured ? "border-[#5e6ad2] bg-[#5e6ad2]" : "border-white/[0.08] bg-[#111214]"
+              }`}
+            >
+              <p className={`text-[12px] font-medium uppercase tracking-[0.14em] ${plan.featured ? "text-white" : "text-[#94969c]"}`}>
+                {plan.name}
+              </p>
+              <p className="mt-4 text-[40px] font-medium tracking-[-0.02em]">{plan.price}</p>
+              <p className={`mt-1 text-[13px] ${plan.featured ? "text-white" : "text-[#94969c]"}`}>{plan.period}</p>
+              <p className={`mt-4 text-[14px] leading-relaxed ${plan.featured ? "text-white" : "text-[#b1b3b8]"}`}>{plan.blurb}</p>
+              <ul className="mt-6 flex-1 space-y-2.5">
+                {plan.features.map((feature) => (
+                  <li key={feature} className={`text-[14px] ${plan.featured ? "text-white" : "text-[#b1b3b8]"}`}>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={plan.href}
+                className={`mt-8 inline-flex h-10 items-center justify-center rounded-[4px] text-[13px] font-medium ${
+                  plan.featured ? "bg-white text-[#1c2148] hover:bg-white/90" : "bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                }`}
+              >
+                {plan.cta}
+              </Link>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-16 max-w-3xl">
+          <h2 className="text-[28px] font-medium tracking-[-0.02em]">Limits</h2>
+          <ul className="mt-6 space-y-3 text-[15px] leading-relaxed text-[#b1b3b8]">
+            <li>Starter includes one open role. A second open role is a Team workspace. Close the first role and that slot is free again.</li>
+            <li>Team is $49 a month for the workspace. Teammates are not a seat fee, and this page has no annual price.</li>
+            <li>Try a role opens the demo workspace. It does not start a subscription or ask for a card.</li>
+            <li>Outreach writes an email draft you copy over. Interview Schedule proposes times you send. Neither sends mail nor writes to a calendar.</li>
+            <li>Hiring Recommendation is advice. Someone on your team still accepts or rejects it.</li>
+          </ul>
+        </div>
+
+        <div className="mt-16 max-w-3xl">
+          <h2 className="text-[28px] font-medium tracking-[-0.02em]">Questions</h2>
+          <div className="mt-6">
+            <FaqList />
           </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mt-12 max-w-5xl mx-auto">
-            {/* Free Tier */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col">
-              <h3 className="text-xl font-bold mb-2">Starter</h3>
-              <p className="text-slate-500 text-sm mb-6">Perfect for small teams exploring spatial recruiting.</p>
-              <div className="mb-6">
-                <span className="text-4xl font-extrabold">$0</span>
-                <span className="text-slate-500">/mo</span>
-              </div>
-              <Link href="/dashboard" className="w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold py-3 rounded-xl transition-colors mb-8">
-                Get Started
-              </Link>
-              <ul className="space-y-4 flex-1">
-                <li className="flex items-start gap-3 text-sm text-slate-700">
-                  <Check className="w-5 h-5 text-emerald-500 shrink-0" /> Up to 3 active boards
-                </li>
-                <li className="flex items-start gap-3 text-sm text-slate-700">
-                  <Check className="w-5 h-5 text-emerald-500 shrink-0" /> Basic workflow agents
-                </li>
-                <li className="flex items-start gap-3 text-sm text-slate-700">
-                  <Check className="w-5 h-5 text-emerald-500 shrink-0" /> Standard integrations (Gmail, Excel)
-                </li>
-                <li className="flex items-start gap-3 text-sm text-slate-700">
-                  <Check className="w-5 h-5 text-emerald-500 shrink-0" /> 100 AI actions per month
-                </li>
-              </ul>
-            </div>
-
-            {/* Pro Tier */}
-            <div className="bg-blue-600 rounded-3xl p-8 border border-blue-500 shadow-2xl flex flex-col relative transform md:-translate-y-4">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-400 to-indigo-400 text-white text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full">
-                Most Popular
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-white">Professional</h3>
-              <p className="text-blue-100 text-sm mb-6">For growing teams building automated pipelines.</p>
-              <div className="mb-6">
-                <span className="text-4xl font-extrabold text-white">$49</span>
-                <span className="text-blue-200">/user/mo</span>
-              </div>
-              <Link href="/dashboard" className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 font-bold py-3 rounded-xl transition-colors mb-8 shadow-lg">
-                Start 14-Day Free Trial
-              </Link>
-              <ul className="space-y-4 flex-1">
-                <li className="flex items-start gap-3 text-sm text-blue-50">
-                  <Check className="w-5 h-5 text-blue-300 shrink-0" /> Unlimited boards
-                </li>
-                <li className="flex items-start gap-3 text-sm text-blue-50">
-                  <Check className="w-5 h-5 text-blue-300 shrink-0" /> All premium AI agents (Resume, Sourcing)
-                </li>
-                <li className="flex items-start gap-3 text-sm text-blue-50">
-                  <Check className="w-5 h-5 text-blue-300 shrink-0" /> LinkedIn & ATS integrations
-                </li>
-                <li className="flex items-start gap-3 text-sm text-blue-50">
-                  <Check className="w-5 h-5 text-blue-300 shrink-0" /> 5,000 AI actions per month
-                </li>
-              </ul>
-            </div>
-
-            {/* Enterprise Tier */}
-            <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-xl flex flex-col text-white">
-              <h3 className="text-xl font-bold mb-2">Enterprise</h3>
-              <p className="text-slate-400 text-sm mb-6">Custom constraints, compliance, and dedicated support.</p>
-              <div className="mb-6">
-                <span className="text-4xl font-extrabold">Custom</span>
-              </div>
-              <Link href="#" className="w-full text-center bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl transition-colors mb-8 border border-slate-700">
-                Contact Sales
-              </Link>
-              <ul className="space-y-4 flex-1">
-                <li className="flex items-start gap-3 text-sm text-slate-300">
-                  <Check className="w-5 h-5 text-slate-500 shrink-0" /> Custom MCP API Connectors
-                </li>
-                <li className="flex items-start gap-3 text-sm text-slate-300">
-                  <Check className="w-5 h-5 text-slate-500 shrink-0" /> Dedicated success manager
-                </li>
-                <li className="flex items-start gap-3 text-sm text-slate-300">
-                  <Check className="w-5 h-5 text-slate-500 shrink-0" /> SOC2 Compliance & SSO
-                </li>
-                <li className="flex items-start gap-3 text-sm text-slate-300">
-                  <Check className="w-5 h-5 text-slate-500 shrink-0" /> Unlimited AI actions
-                </li>
-              </ul>
-            </div>
-          </div>
-          
         </div>
       </main>
-
-      <MarketingFooter />
-    </div>
+    </MarketingShell>
   );
 }

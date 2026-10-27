@@ -38,10 +38,10 @@ export default function WorkflowsPage() {
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <Workflow className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-3xl font-bold">Autonomous Hiring Workflows</h2>
+            <h2 className="text-3xl font-bold">One pipeline per role</h2>
           </div>
           <p className="text-indigo-100 text-base leading-relaxed mb-6">
-            Every job role in JobNinjas operates an interconnected AI pipeline. Sourcing agents pass candidate intelligence to resume verifiers, interview planners, transcript analyzers, and concierge nodes on an infinite canvas with human-in-the-loop decision gates.
+            Every open role in JobNinjas has one pipeline. JD Parser, Resume Parser, Screen & Score, and Hiring Recommendation stay on that requisition. Your team chooses who advances.
           </p>
           <Link
             href="/roles"
@@ -69,7 +69,7 @@ export default function WorkflowsPage() {
             </div>
             <h4 className="text-base font-bold text-slate-800 mb-1">No active workflow pipelines</h4>
             <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
-              Create a role to deploy a tailored agent graph with resume intelligence, interview analysis, and concierge bookings.
+              Create a role to run resume screening, interview analysis, and the decision on that requisition.
             </p>
             <Link
               href="/roles"
@@ -96,7 +96,7 @@ export default function WorkflowsPage() {
                   </div>
                   <h4 className="text-base font-bold text-slate-900 mb-1">{role.title}</h4>
                   <p className="text-xs text-slate-500 mb-4 line-clamp-2">
-                    {role.jobDescription || 'Autonomous recruiting pipeline with connected AI agents and decision gates.'}
+                    {role.jobDescription || 'One role, with the agents that screen resumes and write a recommendation.'}
                   </p>
 
                   <div className="space-y-1.5 border-t border-slate-100 pt-3 mb-4 text-xs text-slate-600">
@@ -105,7 +105,7 @@ export default function WorkflowsPage() {
                       <span className="font-medium text-slate-800">{role.location}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Candidates in DAG:</span>
+                      <span className="text-slate-400">Candidates:</span>
                       <span className="font-medium text-slate-800">{role.candidates?.length || 0}</span>
                     </div>
                     <div className="flex justify-between">
@@ -120,7 +120,7 @@ export default function WorkflowsPage() {
                   className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-xs transition-colors"
                 >
                   <Layers className="w-3.5 h-3.5" />
-                  Open Canvas Board
+                  Open the role
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
