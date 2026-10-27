@@ -364,7 +364,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
               window.localStorage.setItem('activeCandidateId', uploadData.candidate.id);
               window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: uploadData.candidate } }));
               setActiveHasResume(true);
-              setConnectionNotice({ tone: 'ok', message: `Attached ${file.name} to ${person}. The file is also on this role as a resume.` });
+              const emailNote = createdName ? ' Add a real email on This role before you draft outreach.' : '';
+              setConnectionNotice({ tone: 'ok', message: `Attached ${file.name} to ${person}. The file is also on this role as a resume.${emailNote}` });
             } else {
               setConnectionNotice({ tone: 'error', message: uploadData.error || `Could not attach ${file.name}. It is on the board. Select a person in This role and use Attach resume.` });
             }
