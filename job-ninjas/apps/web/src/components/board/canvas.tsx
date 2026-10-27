@@ -1483,7 +1483,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                     setSelection([edgeId]);
                   }}
                 />
-                {carries.length > 0 && (
+                {(carries.length > 0 || incompatible) && (
                   <foreignObject x={midX - 80} y={midY - 22} width={160} height={28} className="overflow-visible pointer-events-none">
                     <div className={`mx-auto w-fit max-w-[160px] truncate rounded-full border px-2 py-0.5 text-center text-[10px] font-semibold ${
                       incompatible ? "border-red-200 bg-red-50 text-red-700" : "border-slate-200 bg-white text-slate-600"
