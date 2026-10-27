@@ -10,9 +10,13 @@ export const JdParserAgent: AgentDefinition = {
   needsCandidate: false,
   execute: async (context) => {
     const { role } = context;
-    const description = role?.jobDescription?.trim();
+    const upstream = context.upstreamOutputs?.JobDescription;
+    const fromBoard = typeof upstream === 'string'
+      ? upstream
+      : upstream?.text || upstream?.jobDescription || upstream?.description;
+    const description = (fromBoard || role?.jobDescription || '').trim();
     if (!description) {
-      throw new Error('Job description required. Add one in role setup or on the Job description step.');
+      throw new Error('Job description required. Add one in role setup. Build pipeline also places it on the board and connects it to this step.');
     }
 
     const parsed = await generateStructuredOutput({

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { CanvasMode, CanvasState, Color, Layer, LayerType, Point, XYWH, Side, Edge } from '@/types/canvas';
 import { getNodeSpec } from '@/lib/agents/node-specs';
-import { BoardIntake, scaffoldFromIntake, validateConnection } from '@/lib/agents/contracts';
+import { BoardIntake, composeJobDescription, scaffoldFromIntake, validateConnection } from '@/lib/agents/contracts';
 
 export interface ConnectionNotice {
   tone: 'error' | 'ok';
@@ -115,6 +115,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
   loadScaffold: (intake) => {
     const plan = scaffoldFromIntake(intake);
+    const jdText = composeJobDescription(intake);
     const state = get();
     const tagged = state.layerIds.some((id) => (state.layers[id] as { config?: { fromIntake?: boolean } })?.config?.fromIntake);
     const remove = new Set<string>();
@@ -162,6 +163,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         } as Layer;
       } else {
         const spec = getNodeSpec(node.role);
+        const carriesJd = node.role === 'input-job-details' && !!jdText;
         layers[id] = {
           type: LayerType.Agent,
           x: node.x + shiftX,
@@ -171,10 +173,29 @@ export const useBoardStore = create<BoardState>((set, get) => ({
           fill: { r: 255, g: 255, b: 255 },
           value: spec.displayName,
           agentRole: node.role,
-          status: 'idle',
+          status: carriesJd ? 'success' : 'idle',
+          outputData: carriesJd ? jdText : undefined,
           config,
         };
       }
+    }
+
+    if (jdText) {
+      const jdId = Math.random().toString(36).substring(2, 9);
+      layerIds.push(jdId);
+      layers[jdId] = {
+        type: LayerType.Text,
+        x: 70 + shiftX,
+        y: 440,
+        width: 280,
+        height: 220,
+        fill: { r: 255, g: 255, b: 255 },
+        value: jdText,
+        fileName: `${intake.roleTitle || 'Role'} job description`,
+        docKind: 'jd',
+        fontSize: 13,
+        config: { fromIntake: true, scaffoldKey: 'jd-doc' },
+      } as Layer;
     }
 
     const edges: Record<string, Edge> = {};
