@@ -5,7 +5,7 @@ import { FileText, StickyNote, Users } from "lucide-react";
 import { useBoardStore } from "@/store/board";
 import { LayerType } from "@/types/canvas";
 import { GreenhouseImportModal } from "./greenhouse-import-modal";
-import { documentKind, recommendationPresentation } from "@/lib/agents/contracts";
+import { MUST_ASK_NOTE, documentKind, isMustAskNote, recommendationPresentation } from "@/lib/agents/contracts";
 import { ArtifactSheet, type ArtifactKind } from "./artifact-sheet";
 import { personResult, saveResultEdit } from "./result-edits";
 
@@ -108,6 +108,13 @@ export function RoleSurface({
     [layerIds, layers]
   );
   const notes = layerIds.filter((id) => layers[id]?.type === LayerType.Note);
+
+  const addMustAsk = () => {
+    const existing = layerIds.find((id) => layers[id]?.type === LayerType.Note && isMustAskNote((layers[id] as { value?: string }).value));
+    if (existing) return;
+    const id = insertLayer(LayerType.Note, { x: 80, y: 700 }, { r: 94, g: 106, b: 210 });
+    updateLayer(id, { width: 280, height: 240, value: MUST_ASK_NOTE, config: { pinned: true, scaffoldKey: "must-ask" } } as any);
+  };
 
   const addNote = () => {
     const id = insertLayer(
@@ -368,6 +375,9 @@ export function RoleSurface({
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={addMustAsk} title="A checklist for your team. Agents do not read it." className="inline-flex items-center gap-1 rounded-md border border-white/10 px-2 py-1.5 text-xs hover:bg-white/5">
+              Must-ask note
+            </button>
             <button type="button" onClick={addNote} title="Sticky notes are for your team. Agents do not read them." className="inline-flex items-center gap-1 rounded-md border border-white/10 px-2 py-1.5 text-xs hover:bg-white/5">
               <StickyNote className="h-3.5 w-3.5" /> HR note ({notes.length})
             </button>

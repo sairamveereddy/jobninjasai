@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { CanvasMode, CanvasState, Color, Layer, LayerType, Point, XYWH, Side, Edge } from '@/types/canvas';
 import { getNodeSpec } from '@/lib/agents/node-specs';
-import { BoardIntake, composeJobDescription, scaffoldFromIntake, validateConnection } from '@/lib/agents/contracts';
+import { BoardIntake, MUST_ASK_NOTE, composeJobDescription, isMustAskNote, scaffoldFromIntake, validateConnection } from '@/lib/agents/contracts';
 
 export interface ConnectionNotice {
   tone: 'error' | 'ok';
@@ -195,6 +195,22 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         docKind: 'jd',
         fontSize: 13,
         config: { fromIntake: true, scaffoldKey: 'jd-doc' },
+      } as Layer;
+    }
+
+    const hasMustAsk = layerIds.some((id) => layers[id]?.type === LayerType.Note && isMustAskNote((layers[id] as { value?: string }).value));
+    if (!hasMustAsk) {
+      const noteId = Math.random().toString(36).substring(2, 9);
+      layerIds.push(noteId);
+      layers[noteId] = {
+        type: LayerType.Note,
+        x: 70 + shiftX,
+        y: 700,
+        width: 280,
+        height: 240,
+        fill: { r: 94, g: 106, b: 210 },
+        value: MUST_ASK_NOTE,
+        config: { pinned: true, scaffoldKey: 'must-ask' },
       } as Layer;
     }
 
