@@ -116,7 +116,11 @@ export default function CandidateManager({ roleId, roleTitle }: { roleId: string
   };
 
   const handleGreenhouseImportSuccess = (imported: any[]) => {
-    fetchCandidates(imported[0]?.id);
+    const first = imported?.[0];
+    if (first?.id && typeof window !== 'undefined') {
+      window.localStorage.setItem('activeCandidateId', first.id);
+    }
+    fetchCandidates(first?.id);
     setIsExpanded(false);
   };
 

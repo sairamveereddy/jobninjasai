@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { greenhouseAuthMessage } from '@/lib/integrations/greenhouse-message';
 
 export async function POST(req: Request) {
   try {
@@ -31,8 +32,7 @@ export async function POST(req: Request) {
     });
 
     if (!ghRes.ok) {
-      const errText = await ghRes.text();
-      return NextResponse.json({ success: false, error: `Failed to fetch Greenhouse jobs: ${errText}` }, { status: ghRes.status });
+      return NextResponse.json({ success: false, error: greenhouseAuthMessage(ghRes.status, 'list open jobs') }, { status: ghRes.status });
     }
 
     const ghJobs = await ghRes.json();

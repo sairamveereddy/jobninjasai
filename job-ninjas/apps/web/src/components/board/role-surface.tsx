@@ -355,8 +355,13 @@ export function RoleSurface({
         onClose={() => setGreenhouseOpen(false)}
         roleId={roleId}
         roleTitle={roleTitle}
-        onImportSuccess={() => {
-          setGreenhouseOpen(false);
+        onImportSuccess={(people) => {
+          const first = people?.[0];
+          if (first?.id) {
+            window.localStorage.setItem('activeCandidateId', first.id);
+            setActiveId(first.id);
+            window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: first } }));
+          }
           refresh();
         }}
       />

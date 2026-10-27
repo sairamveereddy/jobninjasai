@@ -49,6 +49,10 @@ export function GreenhouseImportModal({
 
   const handleTestConnection = async () => {
     setError(null);
+    if (!apiKey.trim()) {
+      setError('Paste a Harvest API key. Type demo if you do not have one yet.');
+      return;
+    }
     setIsVerifying(true);
     try {
       const res = await fetch('/api/integrations/greenhouse/test', {
@@ -66,10 +70,13 @@ export function GreenhouseImportModal({
         await loadJobs();
       } else {
         setIsConnected(false);
-        setError(data.error || 'Connection failed');
+        setJobs([]);
+        setCandidates([]);
+        setError(data.error || 'Greenhouse did not accept this key. Check it, or type demo to import sample people.');
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch {
+      setIsConnected(false);
+      setError('Could not reach Greenhouse. Check the key, or type demo to import sample people.');
     } finally {
       setIsVerifying(false);
     }
@@ -84,20 +91,24 @@ export function GreenhouseImportModal({
         body: JSON.stringify({ apiKey })
       });
       const data = await res.json();
-      if (data.success && data.jobs) {
+      if (data.success && data.jobs?.length) {
         setJobs(data.jobs);
-        // Find best match for current role title
         const matched = data.jobs.find((j: any) =>
           roleTitle && (j.name.toLowerCase().includes(roleTitle.toLowerCase()) || roleTitle.toLowerCase().includes(j.name.toLowerCase()))
         );
         const activeJobId = matched ? matched.id : (data.jobs[0]?.id || "");
         setSelectedJobId(activeJobId);
-        if (activeJobId) {
-          loadCandidates(activeJobId);
-        }
+        if (activeJobId) loadCandidates(activeJobId);
+      } else if (data.success) {
+        setJobs([]);
+        setError('No open jobs came back. The key may not be allowed to list jobs, or type demo for sample jobs.');
+      } else {
+        setJobs([]);
+        setError(data.error || 'Could not load Greenhouse jobs. Check the key, or type demo.');
       }
-    } catch (e: any) {
-      setError('Failed to load Greenhouse jobs');
+    } catch {
+      setJobs([]);
+      setError('Could not load Greenhouse jobs. Check the key, or type demo.');
     } finally {
       setLoadingJobs(false);
     }
@@ -118,10 +129,12 @@ export function GreenhouseImportModal({
         // Pre-select all candidates by default
         setSelectedCandidateIds(data.candidates.map((c: any) => c.candidateId));
       } else {
-        setError(data.error || 'Failed to load candidates');
+        setCandidates([]);
+        setError(data.error || 'Could not load people from that Greenhouse job.');
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch {
+      setCandidates([]);
+      setError('Could not load people from that Greenhouse job.');
     } finally {
       setLoadingCandidates(false);
     }
@@ -160,18 +173,15 @@ export function GreenhouseImportModal({
       });
 
       const data = await res.json();
-      if (data.success && data.candidates) {
-        setImportSuccessMessage(`Successfully imported ${data.importedCount} candidate(s) to this board!`);
+      if (data.success && data.candidates?.length) {
+        const count = data.importedCount || data.candidates.length;
+        setImportSuccessMessage(`Imported ${count} ${count === 1 ? 'person' : 'people'} onto this role. The first one is selected. Attach a resume if Greenhouse did not send one, then run the pipeline.`);
         onImportSuccess(data.candidates);
-        setTimeout(() => {
-          onClose();
-          setImportSuccessMessage(null);
-        }, 1200);
       } else {
-        setError(data.error || 'Import failed');
+        setError(data.error || 'Import did not finish. Nothing new was added to this role.');
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch {
+      setError('Import did not finish. Nothing new was added to this role.');
     } finally {
       setIsImporting(false);
     }
@@ -194,7 +204,7 @@ export function GreenhouseImportModal({
                   Harvest API v3
                 </span>
               </h2>
-              <p className="text-xs text-slate-500">Sync live candidate requisitions and resumes into this board</p>
+              <p className="text-xs text-slate-500">Bring people onto this role. Type demo if you do not have a Harvest key yet.</p>
             </div>
           </div>
           <button 
@@ -308,7 +318,7 @@ export function GreenhouseImportModal({
                 </div>
               ) : candidates.length === 0 ? (
                 <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  No active applicants found in this Greenhouse job requisition.
+                  No applicants came back for this job. Pick another opening, or type demo for sample people.
                 </div>
               ) : (
                 <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100 max-h-64 overflow-y-auto">
@@ -366,7 +376,7 @@ export function GreenhouseImportModal({
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/50 rounded-xl transition-colors"
             >
-              Cancel
+              {importSuccessMessage ? 'Back to this role' : 'Cancel'}
             </button>
             <button
               onClick={handleImport}
