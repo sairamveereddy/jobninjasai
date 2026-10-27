@@ -1,81 +1,72 @@
-import { MarketingNav, MarketingFooter } from '@/components/marketing-layout';
-import { Bot, CheckCircle2, Workflow, Database, Share2, LayoutTemplate } from 'lucide-react';
-import Link from 'next/link';
+import type { Metadata } from "next";
+import Link from "next/link";
+import { MarketingShell } from "@/components/marketing-layout";
+import { TRIAL_HREF } from "@/lib/marketing/site";
+
+export const metadata: Metadata = {
+  title: "Product | JobNinjas",
+  description: "One board per open role. Agents screen resumes, plan interviews, read transcripts, and write the decision.",
+};
+
+const PILLARS = [
+  {
+    href: "/product/canvas",
+    title: "One board is one role",
+    body: "The requisition holds the job description, the candidates, and their documents. The next job gets its own board.",
+  },
+  {
+    href: "/product/resume-parser",
+    title: "Agents with a job",
+    body: "Resume Intelligence, Interview Planning, Interview Analysis, and Candidate Decision each take inputs and write outputs.",
+  },
+  {
+    href: "/product/integrations",
+    title: "Greenhouse comes in",
+    body: "Import a Greenhouse slate onto the role. The ATS can stay the system of record.",
+  },
+];
 
 export default function ProductPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100">
-      <MarketingNav />
-      
-      <main className="pt-24 pb-16 sm:pt-32 sm:pb-24 lg:pb-32 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">
-              The Spatial Recruiting OS
-            </h1>
-            <p className="text-xl text-slate-600 leading-relaxed mb-8">
-              Move beyond linear spreadsheets and static applicant tracking systems. Visualize your entire hiring pipeline, deploy AI agents on the fly, and collaborate in real-time.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link href="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-semibold transition-colors shadow-lg shadow-blue-500/30">
-                Get Started
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mt-16">
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-xl hover:border-blue-100 transition-all">
-              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6">
-                <LayoutTemplate className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Infinite Canvas</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Map out complex hiring workflows on an infinite visual board. Drop in candidates, connect them to roles, and see the big picture.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-xl hover:border-purple-100 transition-all">
-              <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-6">
-                <Bot className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Autonomous Agents</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Deploy specialized AI agents to handle sourcing, resume screening, scheduling, and onboarding automatically.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-xl hover:border-emerald-100 transition-all">
-              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6">
-                <Workflow className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Seamless Integrations</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Connect directly with Workday, LinkedIn, Gmail, Excel, and your existing HR stack via custom API connectors.
-              </p>
-            </div>
-          </div>
-          
-          <div className="mt-32">
-            <div className="bg-blue-600 rounded-3xl p-12 text-center text-white shadow-2xl relative overflow-hidden">
-              <div className="relative z-10">
-                <h2 className="text-3xl font-bold mb-4">Ready to transform your hiring?</h2>
-                <p className="text-blue-100 mb-8 max-w-2xl mx-auto text-lg">
-                  Join forward-thinking talent teams who are already building the future of recruiting on Job Ninjas.
-                </p>
-                <Link href="/dashboard" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-full font-bold hover:bg-blue-50 transition-colors shadow-lg">
-                  Start Your Free Trial
-                </Link>
-              </div>
-              
-              {/* Decorative background elements */}
-              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-blue-500 opacity-50 blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-indigo-500 opacity-50 blur-3xl"></div>
-            </div>
+    <MarketingShell>
+      <main className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+        <div className="max-w-3xl">
+          <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">Product</p>
+          <h1 className="mt-3 text-[40px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[56px]">
+            The OS for a single open role.
+          </h1>
+          <p className="mt-5 text-[17px] leading-relaxed text-[#b1b3b8]">
+            JobNinjas is where a talent team runs one requisition. Candidates, resumes, transcripts, and agent output stay together. It is not a blank canvas and it is not a second ATS.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href={TRIAL_HREF}
+              className="inline-flex h-11 items-center justify-center rounded-[4px] bg-[#5e6ad2] px-5 text-[14px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] hover:bg-[#6d78d8]"
+            >
+              Try a role
+            </Link>
+            <Link
+              href="/templates"
+              className="inline-flex h-11 items-center justify-center rounded-[4px] border border-white/[0.15] px-5 text-[14px] font-medium text-white hover:bg-white/[0.04]"
+            >
+              See the agents
+            </Link>
           </div>
         </div>
-      </main>
 
-      <MarketingFooter />
-    </div>
+        <div className="mt-16 grid gap-4 md:grid-cols-3">
+          {PILLARS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-[8px] border border-white/[0.08] bg-[#111214] p-6 transition-colors hover:bg-[#1a1b1e]"
+            >
+              <h2 className="text-[18px] font-medium tracking-[-0.02em]">{item.title}</h2>
+              <p className="mt-3 text-[14px] leading-relaxed text-[#b1b3b8]">{item.body}</p>
+            </Link>
+          ))}
+        </div>
+      </main>
+    </MarketingShell>
   );
 }

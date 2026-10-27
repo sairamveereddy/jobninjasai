@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JobNinjas | AI-Powered HR Workspace",
-  description: "Automate your hiring pipelines with JobNinjas.",
+  title: "JobNinjas | The OS for one open role",
+  description: "One board per requisition. Agents screen resumes, plan interviews, read transcripts, and write the hiring decision.",
   icons: {
     icon: "/logo.png",
   },

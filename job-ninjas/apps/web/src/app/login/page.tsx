@@ -1,74 +1,68 @@
-import Link from 'next/link';
+import Link from "next/link";
+import { TRIAL_HREF } from "@/lib/marketing/site";
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-card p-8 shadow-lg ring-1 ring-gray-900/5">
-        <div className="text-center flex flex-col items-center">
-          <div className="w-24 h-24 relative mb-4">
-            <img src="/logo.png" alt="Logo" className="object-contain w-full h-full drop-shadow-lg " />
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Job Ninjas
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            A spatial recruiting operating system
+    <div className="flex min-h-screen items-center justify-center bg-[#08090a] p-4 font-sans text-white">
+      <div className="w-full max-w-md rounded-[8px] border border-white/[0.08] bg-[#111214] p-8">
+        <div className="flex flex-col items-center text-center">
+          <Link href="/" className="mb-4 block">
+            <img src="/logo.png" alt="JobNinjas" className="size-16 rounded-[4px] object-contain" />
+          </Link>
+          <h1 className="text-[28px] font-medium tracking-[-0.02em]">JobNinjas</h1>
+          <p className="mt-2 text-[14px] leading-relaxed text-[#b1b3b8]">
+            One board for one open role. Team sign-in is rolling out. The demo workspace is ready.
           </p>
         </div>
-        
-        <form className="mt-8 space-y-6" action="#" method="POST">
-          <div className="space-y-4 rounded-md shadow-sm">
-            <div>
-              <label htmlFor="email-address" className="sr-only">Email address</label>
-              <input id="email-address" name="email" type="email" autoComplete="email" required 
-                className="relative block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
-                placeholder="Email address" />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input id="password" name="password" type="password" autoComplete="current-password" required 
-                className="relative block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
-                placeholder="Password" />
-            </div>
-          </div>
 
+        <form className="mt-8 space-y-4" action="#" method="POST">
           <div>
-            <button type="button" disabled
-              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 opacity-50 cursor-not-allowed">
-              Sign in (Coming Soon)
-            </button>
+            <label htmlFor="email-address" className="sr-only">Email address</label>
+            <input
+              id="email-address"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              placeholder="Email address"
+              className="w-full rounded-[4px] border border-white/[0.08] bg-black/20 px-3 py-2 text-[14px] text-white placeholder:text-[#707277] focus:border-[#5e6ad2] focus:outline-none"
+            />
           </div>
+          <div>
+            <label htmlFor="password" className="sr-only">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              placeholder="Password"
+              className="w-full rounded-[4px] border border-white/[0.08] bg-black/20 px-3 py-2 text-[14px] text-white placeholder:text-[#707277] focus:border-[#5e6ad2] focus:outline-none"
+            />
+          </div>
+          <button
+            type="button"
+            disabled
+            className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-[4px] bg-[#5e6ad2]/50 text-[14px] font-medium text-white"
+          >
+            Sign in (coming soon)
+          </button>
         </form>
 
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-card px-2 text-gray-500">Prototype Demo</span>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <Link href="/api/auth/skip" 
-              className="flex w-full justify-center rounded-md bg-card px-3 py-1.5 text-sm font-semibold leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-              Skip for now (Enter Demo Workspace)
-            </Link>
-          </div>
-          <div className="mt-6 text-center text-xs text-gray-500">
-            <Link href="/terms" className="hover:text-gray-900 underline underline-offset-2 mx-2">
-              Terms & Conditions
-            </Link>
-            |
-            <Link href="/privacy" className="hover:text-gray-900 underline underline-offset-2 mx-2">
-              Privacy Policy
-            </Link>
+        <div className="mt-6 border-t border-white/[0.08] pt-6">
+          <Link
+            href={TRIAL_HREF}
+            className="flex h-10 w-full items-center justify-center rounded-[4px] border border-white/[0.15] text-[14px] font-medium text-white hover:bg-white/[0.04]"
+          >
+            Open the demo workspace
+          </Link>
+          <div className="mt-5 text-center text-[12px] text-[#707277]">
+            <Link href="/terms" className="underline underline-offset-2 hover:text-white">Terms</Link>
+            <span className="mx-2">·</span>
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-white">Privacy</Link>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-
