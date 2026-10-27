@@ -23,6 +23,20 @@ import { CandidateConciergeNode } from './candidate-concierge-node';
 import { CandidateNodeBlock } from './candidate-node-block';
 import { BoardHelp } from './board-help';
 import { ArtifactSheet, artifactKind, artifactTitle } from './artifact-sheet';
+import { saveResultEdit } from './result-edits';
+
+let jdPersistTimer: ReturnType<typeof setTimeout> | undefined;
+function persistJobDescription(roleId: string | undefined, text: string) {
+  if (!roleId || roleId === 'new-workflow') return;
+  window.clearTimeout(jdPersistTimer);
+  jdPersistTimer = setTimeout(() => {
+    fetch('/api/roles', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: roleId, jobDescription: text }),
+    }).catch(() => undefined);
+  }, 500);
+}
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -196,15 +210,24 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     if (!layer || layer.type !== LayerType.Agent) return false;
     
     if (layer.agentRole === 'input-job-details') {
-      const fromDoc = String(
-        (Object.values(layers).find((item) => (item as { docKind?: string }).docKind === 'jd') as { value?: string } | undefined)?.value || ''
-      ).trim();
-      const text = String(layer.outputData || '').trim() || fromDoc;
+      const doc = Object.values(layers).find((item) => (item as { docKind?: string }).docKind === 'jd') as { value?: string } | undefined;
+      const fromNode = typeof layer.outputData === 'string' ? layer.outputData.trim() : '';
+      const text = doc ? String(doc.value || '').trim() : fromNode;
+      if (doc && !text) {
+        updateLayer(layerId, {
+          status: 'error',
+          outputData: undefined,
+          errorDetails: 'Add a job description on the job card, or in role setup.',
+        });
+        persistJobDescription(boardId, '');
+        return false;
+      }
       updateLayer(layerId, {
-        status: 'success',
-        ...(text ? { outputData: text } : {}),
+        status: text ? 'success' : 'idle',
+        outputData: text || undefined,
         errorDetails: undefined,
       });
+      if (text) persistJobDescription(boardId, text);
       return true;
     }
 
@@ -1276,6 +1299,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                   if (jobId) {
                     updateLayer(jobId, { outputData: value, status: value.trim() ? 'success' : 'idle', errorDetails: undefined });
                   }
+                  persistJobDescription(boardId, value);
                 }}
                 placeholder="Job description for this role"
                 className={`w-full flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-relaxed text-slate-700 outline-none ${!isSelected && 'pointer-events-none'}`}
@@ -1921,14 +1945,25 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       </svg>
       {openResultId && layers[openResultId] && artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, (layers[openResultId] as { outputData?: unknown }).outputData) && (
         <ArtifactSheet
+          key={openResultId}
           kind={artifactKind((layers[openResultId] as { agentRole?: string }).agentRole, (layers[openResultId] as { outputData?: unknown }).outputData)!}
           data={(layers[openResultId] as { outputData?: unknown }).outputData}
-          onClose={() => setOpenResultId(null)}
-          onSaveOutreach={(next) => {
-            const current = useBoardStore.getState().layers[openResultId] as { outputData?: unknown } | undefined;
-            const base = current?.outputData && typeof current.outputData === 'object' ? current.outputData : {};
-            updateLayer(openResultId, { outputData: { ...(base as object), subject: next.subject, body: next.body } } as any);
+          candidateName={(() => {
+            const id = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '';
+            const person = notePeople.find((item) => item.id === id);
+            return person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : undefined;
+          })()}
+          candidateSelected={typeof window !== 'undefined' && !!window.localStorage.getItem('activeCandidateId')}
+          onSelectCandidate={() => {
+            const id = window.localStorage.getItem('activeCandidateId');
+            if (!id) return;
+            const person = notePeople.find((item) => item.id === id);
+            window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: person || { id } } }));
           }}
+          onClose={() => setOpenResultId(null)}
+          onSaveOutreach={(next) => saveResultEdit('outreach', window.localStorage.getItem('activeCandidateId'), next)}
+          onSaveShortlist={(next) => saveResultEdit('shortlist', window.localStorage.getItem('activeCandidateId'), next)}
+          onSaveSchedule={(next) => saveResultEdit('schedule', window.localStorage.getItem('activeCandidateId'), next)}
         />
       )}
     </main>

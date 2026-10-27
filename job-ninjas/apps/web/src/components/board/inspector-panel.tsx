@@ -14,9 +14,10 @@ import {
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDemoStore } from "@/lib/store";
 import { getNodeSpec, NodeDescription } from "@/lib/agents/node-specs";
-import { collectUpstreamOutputs, dataTypeLabel, explainAgent, localRunBlockers, plainLanguage, portsCompatible, summarizeAgentOutput } from "@/lib/agents/contracts";
+import { collectUpstreamOutputs, dataTypeLabel, defaultInspectorTab, localRunBlockers, plainLanguage, portsCompatible, summarizeAgentOutput } from "@/lib/agents/contracts";
 import { AgentIoCard } from "./agent-io-card";
 import { ArtifactSheet, artifactKind, artifactTitle } from "./artifact-sheet";
+import { saveResultEdit } from "./result-edits";
 
 export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   const { inspectedNodeId, setInspectedNodeId, layers, updateLayer, deleteLayers, edges } = useBoardStore();
@@ -34,6 +35,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
   useEffect(() => {
     setResultOpen(false);
+    const current = inspectedNodeId ? useBoardStore.getState().layers[inspectedNodeId] : null;
+    setActiveTab(defaultInspectorTab(current as { agentRole?: string; status?: string; outputData?: unknown } | null));
   }, [inspectedNodeId]);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [availableCandidates, setAvailableCandidates] = useState<any[]>([]);
@@ -404,28 +407,29 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                 {nodeSpec.category}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 line-clamp-2">{plainLanguage(layer.agentRole)}</p>
-            <p className="text-[11px] text-slate-400 line-clamp-2">{explainAgent(layer.agentRole)}</p>
+            <p className="text-[11px] text-slate-500 line-clamp-2">{plainLanguage((layer as { agentRole?: string }).agentRole)}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {layer.agentRole?.startsWith('agent-') && (
             <button
+              type="button"
+              aria-label="Run this step"
               onClick={handleRunAgent}
               disabled={layer.status === 'running'}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white text-xs font-bold rounded-lg shadow-sm transition-colors cursor-pointer"
-              title="Evaluate active candidate with current step"
+              title="Run this step for the selected person"
             >
               {layer.status === 'running' ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Evaluating...
+                  Running…
                 </>
               ) : (
                 <>
                   <Play className="w-3.5 h-3.5 fill-current" />
-                  Evaluate Candidate
+                  Run this step
                 </>
               )}
             </button>
@@ -443,6 +447,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
       {/* Recruiter 3-Tab Navigator */}
       <div className="flex items-center border-b border-slate-200/70 bg-white px-5 gap-6 text-[13px] font-semibold">
         <button
+          type="button"
+          aria-selected={activeTab === 'input'}
           onClick={() => setActiveTab('input')}
           className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
             activeTab === 'input'
@@ -458,6 +464,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
         </button>
 
         <button
+          type="button"
+          aria-selected={activeTab === 'parameters'}
           onClick={() => setActiveTab('parameters')}
           className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
             activeTab === 'parameters'
@@ -470,6 +478,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
         </button>
 
         <button
+          type="button"
+          aria-selected={activeTab === 'output'}
           onClick={() => setActiveTab('output')}
           className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
             activeTab === 'output'
@@ -1275,20 +1285,22 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
           Delete Step
         </button>
 
-        <span className="text-[10px] font-mono text-slate-400">
-          Step ID: {layerId}
-        </span>
       </div>
       {resultOpen && artifactKind((layer as { agentRole?: string }).agentRole, executionOutput) && (
         <ArtifactSheet
+          key={layerId}
           kind={artifactKind((layer as { agentRole?: string }).agentRole, executionOutput)!}
           data={executionOutput}
-          onClose={() => setResultOpen(false)}
-          onSaveOutreach={(next) => {
-            const current = (useBoardStore.getState().layers[layerId] as { outputData?: unknown } | undefined)?.outputData;
-            const base = current && typeof current === "object" ? current : {};
-            updateLayer(layerId, { outputData: { ...(base as object), subject: next.subject, body: next.body } } as any);
+          candidateSelected={typeof window !== "undefined" && !!window.localStorage.getItem("activeCandidateId")}
+          onSelectCandidate={() => {
+            const id = window.localStorage.getItem("activeCandidateId");
+            if (!id) return;
+            window.dispatchEvent(new CustomEvent("candidateChanged", { detail: { candidate: { id } } }));
           }}
+          onClose={() => setResultOpen(false)}
+          onSaveOutreach={(next) => saveResultEdit("outreach", window.localStorage.getItem("activeCandidateId"), next)}
+          onSaveShortlist={(next) => saveResultEdit("shortlist", window.localStorage.getItem("activeCandidateId"), next)}
+          onSaveSchedule={(next) => saveResultEdit("schedule", window.localStorage.getItem("activeCandidateId"), next)}
         />
       )}
     </div>
