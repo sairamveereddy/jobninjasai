@@ -29,7 +29,7 @@ export function BoardHelp() {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <p>The steps on this board run hiring for this job only. Add people in <span className="text-white">This role</span>, attach a resume, then run the pipeline for the person you selected.</p>
+          <p>The steps on this board run hiring for this job only. Add people in <span className="text-white">This role</span>, attach a resume, then choose <span className="text-white">Run pipeline</span>. It walks the steps in order for the person you selected, and each step keeps its last result.</p>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Connect steps</h3>
           <p>Draw a line from the right side of a step to the left side of the next one. The label on the line is what that connection carries, such as Resume or Scorecard. If the types do not fit, nothing is connected and the message says what to connect instead.</p>
@@ -44,7 +44,7 @@ export function BoardHelp() {
           </ul>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Team notes</h3>
-          <p>Sticky notes are for your team. Agents do not read them. A transcript has to be pasted on the Transcript step, and a resume has to be attached to a candidate.</p>
+          <p>Sticky notes are for your team. Agents do not read them, even if you color a note, pin it, or link it to a person. A transcript has to be pasted on the Transcript step, and a resume has to be attached to a candidate.</p>
 
           <h3 className="mb-1 mt-4 text-xs font-medium uppercase tracking-wide text-[#8b8fa8]">Hiring templates</h3>
           <p className="mb-2">Open <span className="text-white">Edit role setup</span> and start from one of these. Replacing the pipeline keeps documents and team notes.</p>

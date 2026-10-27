@@ -80,6 +80,48 @@ function getBoxIntersection(
   };
 }
 
+const NOTE_COLORS = [
+  { name: 'Indigo', fill: { r: 94, g: 106, b: 210 } },
+  { name: 'Amber', fill: { r: 176, g: 132, b: 48 } },
+  { name: 'Slate', fill: { r: 71, g: 78, b: 94 } },
+  { name: 'Rose', fill: { r: 168, g: 72, b: 90 } },
+];
+
+function orderedAgentIds(layerIds: string[], layers: Record<string, { type?: LayerType; x?: number }>, edges: Record<string, { fromNodeId: string; toNodeId: string }>) {
+  const ids = layerIds.filter((id) => layers[id]?.type === LayerType.Agent);
+  const indegree: Record<string, number> = {};
+  const outgoing: Record<string, string[]> = {};
+  ids.forEach((id) => {
+    indegree[id] = 0;
+    outgoing[id] = [];
+  });
+  Object.values(edges).forEach((edge) => {
+    if (indegree[edge.toNodeId] === undefined || outgoing[edge.fromNodeId] === undefined) return;
+    indegree[edge.toNodeId] += 1;
+    outgoing[edge.fromNodeId].push(edge.toNodeId);
+  });
+  const ready = ids.filter((id) => indegree[id] === 0).sort((a, b) => (layers[a]?.x || 0) - (layers[b]?.x || 0));
+  const order: string[] = [];
+  const seen = new Set<string>();
+  while (ready.length > 0) {
+    const id = ready.shift()!;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    order.push(id);
+    for (const next of outgoing[id] || []) {
+      indegree[next] -= 1;
+      if (indegree[next] <= 0 && !seen.has(next)) {
+        ready.push(next);
+        ready.sort((a, b) => (layers[a]?.x || 0) - (layers[b]?.x || 0));
+      }
+    }
+  }
+  ids.forEach((id) => {
+    if (!seen.has(id)) order.push(id);
+  });
+  return order;
+}
+
 export const Canvas = ({ boardId }: { boardId: string }) => {
   const layerIds = useBoardStore(state => state.layerIds);
   const layers = useBoardStore(state => state.layers);
@@ -144,6 +186,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRunSingleAgent = async (layerId: string): Promise<boolean> => {
+    const store = useBoardStore.getState();
+    const layers = store.layers;
+    const edges = store.edges;
+    const updateLayer = store.updateLayer;
+    const setConnectionNotice = store.setConnectionNotice;
     const layer = layers[layerId];
     if (!layer || layer.type !== LayerType.Agent) return false;
     
@@ -162,7 +209,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
     // Other input nodes and human gates succeed immediately
     if (!layer.agentRole?.startsWith('agent-')) {
-       updateLayer(layerId, { status: 'success' });
+       updateLayer(layerId, { status: 'success', errorDetails: undefined });
        return true;
     }
 
@@ -412,83 +459,70 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     }
   }, [camera, insertLayer, updateLayer, boardId, currentRole]);
 
-  // Workflow orchestration engine - True DAG Topological Execution (n8n paradigm)
+  const [runQueue, setRunQueue] = useState<{ active: string; next: string[] } | null>(null);
+  const [notePeople, setNotePeople] = useState<{ id: string; firstName?: string; lastName?: string }[]>([]);
+
+  useEffect(() => {
+    if (!boardId || boardId === 'new-workflow') return;
+    fetch(`/api/candidates?roleId=${boardId}`)
+      .then((res) => res.json())
+      .then((data) => setNotePeople(Array.isArray(data) ? data : data?.candidates || []))
+      .catch(() => setNotePeople([]));
+    const refreshPeople = () => {
+      fetch(`/api/candidates?roleId=${boardId}`)
+        .then((res) => res.json())
+        .then((data) => setNotePeople(Array.isArray(data) ? data : data?.candidates || []))
+        .catch(() => undefined);
+    };
+    window.addEventListener('candidateChanged', refreshPeople);
+    return () => window.removeEventListener('candidateChanged', refreshPeople);
+  }, [boardId]);
+
   const runWorkflow = async () => {
     if (isRunning) return;
-    setIsRunning(true);
-    
-    const agentIds = layerIds.filter(id => layers[id]?.type === LayerType.Agent);
-    if (agentIds.length === 0) {
-      setIsRunning(false);
+    const state = useBoardStore.getState();
+    const order = orderedAgentIds(state.layerIds, state.layers, state.edges);
+    const stepName = (id: string) => {
+      const layer = useBoardStore.getState().layers[id] as { value?: string; agentRole?: string } | undefined;
+      return layer?.value || getNodeSpec(layer?.agentRole).displayName;
+    };
+    if (order.length === 0) {
+      state.setConnectionNotice({ tone: 'error', message: 'There is no pipeline on this role yet. Pick a template in role setup, then run it for one person.' });
       return;
     }
-
-    // Reset status of all nodes
-    agentIds.forEach(id => updateLayer(id, { status: 'idle', errorDetails: undefined }));
-
-    // Build DAG adjacency and in-degree map
-    const inDegree: Record<string, number> = {};
-    const adj: Record<string, string[]> = {};
-    
-    agentIds.forEach(id => {
-      inDegree[id] = 0;
-      adj[id] = [];
-    });
-
-    Object.values(edges).forEach(edge => {
-      if (inDegree[edge.toNodeId] !== undefined && adj[edge.fromNodeId] !== undefined) {
-        inDegree[edge.toNodeId]++;
-        adj[edge.fromNodeId].push(edge.toNodeId);
-      }
-    });
-
-    // Nodes with in-degree 0 are ready to execute first
-    const readyQueue: string[] = agentIds.filter(id => inDegree[id] === 0);
-    
-    // Fallback: If no node has in-degree 0 (e.g. cycles), sort by x coordinate
-    if (readyQueue.length === 0) {
-      readyQueue.push(...[...agentIds].sort((a, b) => (layers[a]?.x || 0) - (layers[b]?.x || 0)));
+    const candId = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') : '';
+    if (!candId) {
+      state.setConnectionNotice({ tone: 'error', message: 'Select a person on this role, then run the pipeline. Every step scores whoever is selected.' });
+      return;
     }
-
-    const executed = new Set<string>();
+    setIsRunning(true);
     const failed = new Set<string>();
-
-    while (readyQueue.length > 0) {
-      const currentId = readyQueue.shift()!;
-      if (executed.has(currentId)) continue;
-
-      // Check if any upstream node failed
-      const upstreamEdges = Object.values(edges).filter(e => e.toNodeId === currentId);
-      const hasFailedUpstream = upstreamEdges.some(e => failed.has(e.fromNodeId));
-
-      if (hasFailedUpstream) {
-        updateLayer(currentId, { 
-          status: 'error', 
-          errorDetails: 'Blocked: Upstream node execution failed.' 
+    for (let index = 0; index < order.length; index += 1) {
+      const currentId = order[index];
+      const upcoming = order.slice(index + 1, index + 4).map(stepName);
+      setRunQueue({ active: stepName(currentId), next: upcoming });
+      const freshEdges = Object.values(useBoardStore.getState().edges);
+      const blockerId = freshEdges.find((edge) => edge.toNodeId === currentId && failed.has(edge.fromNodeId))?.fromNodeId;
+      if (blockerId) {
+        useBoardStore.getState().updateLayer(currentId, {
+          status: 'error',
+          errorDetails: `Stopped because ${stepName(blockerId)} did not finish. Fix that step, then run the pipeline again.`,
         });
         failed.add(currentId);
-        executed.add(currentId);
         continue;
       }
-
-      // Execute current node
       const success = await handleRunSingleAgent(currentId);
-      executed.add(currentId);
-
-      if (!success) {
-        failed.add(currentId);
-      } else {
-        // Decrement in-degree of downstream neighbors
-        for (const neighborId of adj[currentId] || []) {
-          inDegree[neighborId]--;
-          if (inDegree[neighborId] <= 0 && !executed.has(neighborId)) {
-            readyQueue.push(neighborId);
-          }
-        }
-      }
+      if (!success) failed.add(currentId);
     }
-
     setIsRunning(false);
+    setRunQueue(null);
+    const notice = useBoardStore.getState().setConnectionNotice;
+    if (failed.size) {
+      notice({ tone: 'error', message: `Pipeline stopped on ${failed.size} step${failed.size === 1 ? '' : 's'}. Read the message on the step. Earlier results stay where they are.` });
+    } else {
+      notice({ tone: 'ok', message: 'Pipeline finished for the selected person. Each step keeps its last result.' });
+    }
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('candidateChanged'));
   };
   
   // Track pencil drawing state locally before committing
@@ -1003,6 +1037,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                       ? summarizeAgentOutput(layer.agentRole, layer.outputData)
                       : plainLanguage(layer.agentRole)}
                   </p>
+                  {layer.status === 'error' && layer.outputData && (
+                    <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-slate-500">
+                      Last result: {summarizeAgentOutput(layer.agentRole, layer.outputData)}
+                    </p>
+                  )}
                   <p className="mt-1 truncate text-[10px] text-slate-500">
                     In {nodeSpec.inputs.length ? nodeSpec.inputs.map((port) => dataTypeLabel(port.type)).join(" · ") : "—"}
                     {" → "}
@@ -1088,10 +1127,54 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                 className="h-2 w-full shrink-0"
                 style={{ backgroundColor: layer.fill ? `rgb(${layer.fill.r}, ${layer.fill.g}, ${layer.fill.b})` : '#fef08a' }}
               />
-              <div className="flex items-center justify-between px-3 pt-2">
+              <div className="flex items-center justify-between gap-2 px-3 pt-2">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Team note</span>
                 <span className="text-[10px] text-slate-400">Agents do not read this.</span>
               </div>
+              {isSelected && (
+                <div className="flex flex-wrap items-center gap-1 px-3 pt-2" onPointerDown={(e) => e.stopPropagation()}>
+                  {NOTE_COLORS.map((color) => (
+                    <button
+                      key={color.name}
+                      type="button"
+                      title={color.name}
+                      onClick={() => updateLayer(layerId, { fill: color.fill })}
+                      className="h-4 w-4 rounded-full border border-white/80"
+                      style={{ backgroundColor: `rgb(${color.fill.r}, ${color.fill.g}, ${color.fill.b})` }}
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => updateLayer(layerId, { config: { ...((layer as any).config || {}), pinned: !(layer as any).config?.pinned } } as any)}
+                    className={`rounded-md px-1.5 py-0.5 text-[10px] ${(layer as any).config?.pinned ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
+                  >
+                    {(layer as any).config?.pinned ? 'Pinned' : 'Pin'}
+                  </button>
+                  <select
+                    value={(layer as any).config?.candidateId || ''}
+                    onChange={(event) => {
+                      const person = notePeople.find((item) => item.id === event.target.value);
+                      updateLayer(layerId, {
+                        config: {
+                          ...((layer as any).config || {}),
+                          candidateId: person?.id || '',
+                          candidateName: person ? `${person.firstName || ''} ${person.lastName || ''}`.trim() : '',
+                        },
+                      } as any);
+                    }}
+                    className="max-w-[140px] rounded-md border border-slate-200 bg-white px-1 py-0.5 text-[10px] text-slate-700"
+                    title="Link this note to a person. Agents still do not read it."
+                  >
+                    <option value="">Not about one person</option>
+                    {notePeople.map((person) => (
+                      <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {(layer as any).config?.candidateName && (
+                <p className="px-3 pt-1 text-[10px] text-slate-500">About {(layer as any).config.candidateName}. Agents do not read this.</p>
+              )}
               <div className="px-5 pb-4 pt-1 flex-1 flex flex-col bg-slate-50/30">
                 <textarea
                   value={layer.value || ""}
@@ -1425,15 +1508,16 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         </div>
       )}
       
-      {/* Top Bar Actions: Upload Resumes + Integrations */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+      {/* Top Bar Actions: Upload Resumes + Integrations + Run */}
+      <div className="absolute top-16 left-1/2 z-30 flex w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 flex-col items-center gap-2 sm:top-4">
+        <div className="flex max-w-full flex-wrap items-center justify-center gap-2">
         <button
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2 px-3 py-2 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-xl text-xs font-bold text-slate-700 hover:bg-white shadow-xs hover:shadow-sm transition-all cursor-pointer"
-          title="Upload candidate resumes (PDF, Word, TXT)"
+          title="Upload a resume for the selected person"
         >
           <Upload className="w-3.5 h-3.5 text-indigo-600" />
-          Upload Resumes
+          Upload resume
         </button>
         <button
           onClick={() => setIsMcpPanelOpen(v => !v)}
@@ -1443,28 +1527,25 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           <Plug className="w-3.5 h-3.5 text-emerald-600" />
           Integrations
         </button>
-      </div>
-      
-      {/* Run Full Pipeline Button */}
-      <div className="absolute top-4 right-6 z-50">
         <button
           onClick={runWorkflow}
           disabled={isRunning}
-          className={`
-            flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer
-            ${isRunning 
-              ? 'bg-indigo-300 text-white cursor-not-allowed' 
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow-lg hover:-translate-y-0.5'}
-          `}
-          title="Execute all pipeline evaluation steps sequentially"
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${isRunning ? 'bg-indigo-300 text-white cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+          title="Run each step in order for the selected person. Earlier results stay on the steps."
         >
-          {isRunning ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Play className="w-3.5 h-3.5 fill-current" />
-          )}
-          {isRunning ? 'Evaluating Pipeline...' : 'Run Full Pipeline'}
+          {isRunning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+          {isRunning ? 'Running pipeline…' : 'Run pipeline'}
         </button>
+        </div>
+        {runQueue && (
+          <div className="w-full rounded-lg border border-white/10 bg-[#111214] px-3 py-2 text-xs text-white shadow-xl">
+            <p>Running <span className="font-medium">{runQueue.active}</span> for the selected person.</p>
+            <p className="mt-1 text-[#b1b3b8]">{runQueue.next.length ? `Next: ${runQueue.next.join(' → ')}` : 'This is the last step.'}</p>
+          </div>
+        )}
+        {!runQueue && (
+          <p className="pointer-events-none text-[11px] text-slate-500">Runs the steps in order for whoever is selected. Last results stay on each step.</p>
+        )}
       </div>
 
       {/* Grid Pattern and Arrowhead */}

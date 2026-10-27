@@ -119,12 +119,13 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     const tagged = state.layerIds.some((id) => (state.layers[id] as { config?: { fromIntake?: boolean } })?.config?.fromIntake);
     const remove = new Set<string>();
     for (const id of state.layerIds) {
-      const layer = state.layers[id] as { type?: LayerType; value?: string; config?: { fromIntake?: boolean } } | undefined;
+      const layer = state.layers[id] as { type?: LayerType; value?: string; config?: { fromIntake?: boolean; pinned?: boolean } } | undefined;
       if (!layer) continue;
       if (layer.config?.fromIntake) {
         remove.add(id);
         continue;
       }
+      if (layer.config?.pinned) continue;
       if (tagged) continue;
       if (layer.type === LayerType.Agent) remove.add(id);
       else if (layer.type === LayerType.Note && String(layer.value || '').includes('Pipeline:')) remove.add(id);

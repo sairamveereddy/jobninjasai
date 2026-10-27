@@ -208,6 +208,7 @@ export function IntakeWizard({
               </Field>
               <div className="rounded-md border border-white/10 bg-black/30 px-3 py-3 text-sm text-[#b1b3b8]">
                 <p className="font-medium text-white">Pipeline JobNinjas will place on this board</p>
+                <p className="mt-1 text-xs text-[#8b8fa8]">Build pipeline places these steps and connects them. Documents and team notes stay.</p>
                 <p className="mt-1">{resolvedStages.map((id) => HIRING_STAGES.find((stage) => stage.id === id)?.label).filter(Boolean).join(" → ")}</p>
                 {added.length > 0 && (
                   <p className="mt-2 text-xs text-[#c7c9ff]">
