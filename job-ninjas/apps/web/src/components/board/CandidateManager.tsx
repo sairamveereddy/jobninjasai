@@ -127,7 +127,7 @@ export default function CandidateManager({ roleId, roleTitle }: { roleId: string
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-2.5 text-left group cursor-pointer"
-            title="Click to switch candidate or manage pipeline"
+            title="Switch the person this pipeline runs for"
           >
             <div className="w-7 h-7 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs group-hover:bg-indigo-100 transition-colors">
               <Users className="w-4 h-4" />
@@ -136,7 +136,7 @@ export default function CandidateManager({ roleId, roleTitle }: { roleId: string
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
-                  {activeCandidate ? `${activeCandidate.firstName} ${activeCandidate.lastName}` : (loadingCandidates ? "Loading..." : "No Candidates")}
+                  {activeCandidate ? `${activeCandidate.firstName} ${activeCandidate.lastName}` : (loadingCandidates ? "Opening candidates…" : "No one on this role yet")}
                 </span>
                 {activeCandidate && (
                   <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -154,7 +154,7 @@ export default function CandidateManager({ roleId, roleTitle }: { roleId: string
                     <AlertCircle className="w-3 h-3 text-amber-500" /> No Resume
                   </span>
                 )}
-                <span>• {candidates.length} in pipeline</span>
+                <span>• {candidates.length} on this role</span>
               </div>
             </div>
 
