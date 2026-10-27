@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { CanvasMode, LayerType } from "@/types/canvas";
 import { useBoardStore } from "@/store/board";
+import { plainLanguage } from "@/lib/agents/contracts";
 
 interface ToolbarProps {
   canvasState: any;
@@ -124,7 +125,7 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
           icon={StickyNote}
           isActive={canvasState.mode === CanvasMode.Inserting && canvasState.layerType === LayerType.Note}
           onClick={() => { setCanvasState({ mode: CanvasMode.Inserting, layerType: LayerType.Note }); setActiveMenu(null); }}
-          tooltip="Sticky Note (N)"
+          tooltip="Team note. Agents do not read this. (N)"
         />
 
         {/* Shapes Menu */}
@@ -237,7 +238,7 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
           </button>
           
           {activeMenu === 'agents' && (
-            <div className="absolute left-full bottom-0 ml-2 bg-card shadow-xl border border-border rounded-xl p-2 flex flex-col gap-1 w-64 max-h-[80vh] overflow-y-auto scrollbar-thin animate-in fade-in slide-in-from-left-2">
+            <div className="absolute left-full bottom-0 ml-2 bg-card shadow-xl border border-border rounded-xl p-2 flex flex-col gap-1 w-80 max-h-[80vh] overflow-y-auto scrollbar-thin animate-in fade-in slide-in-from-left-2">
               <div className="text-xs font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider mb-1 sticky top-0 bg-card z-10">Workflow Nodes</div>
               {NODE_CATEGORIES.map((group) => (
                 <div key={group.category} className="mb-2">
@@ -251,12 +252,16 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
                         setCanvasState({ mode: CanvasMode.Inserting, layerType: LayerType.Agent, agentRole: agent.role });
                         setActiveMenu(null);
                       }}
+                      title={plainLanguage(agent.role)}
                       className="flex items-center gap-3 px-2 py-2 hover:bg-muted rounded-lg transition-colors text-foreground text-sm group/btn w-full"
                     >
                       <div className={`p-1.5 rounded-md ${agent.bg} ${agent.color}`}>
                         <agent.icon className="w-4 h-4 shrink-0" />
                       </div>
-                      <span className="font-medium text-left leading-tight">{agent.label}</span>
+                      <span className="flex min-w-0 flex-col text-left">
+                        <span className="font-medium leading-tight">{agent.label}</span>
+                        <span className="text-[11px] font-normal leading-snug text-muted-foreground">{plainLanguage(agent.role)}</span>
+                      </span>
                     </button>
                   ))}
                 </div>

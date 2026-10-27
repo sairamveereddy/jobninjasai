@@ -21,6 +21,7 @@ import { EdgeToolbar } from './edge-toolbar';
 import { PresentationViewer } from './presentation-viewer';
 import { CandidateConciergeNode } from './candidate-concierge-node';
 import { CandidateNodeBlock } from './candidate-node-block';
+import { BoardHelp } from './board-help';
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -1211,6 +1212,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                             setSelection([newId]);
                             setQuickAddMenuFor(null);
                           }}
+                          title={plainLanguage(agent.role)}
                           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors group/agent text-left"
                         >
                           <div className={`p-1.5 rounded-md ${agent.bg} ${agent.color}`}>
@@ -1253,7 +1255,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
               <Plus className="w-8 h-8 text-slate-300" />
             </div>
             <p className="text-xl font-bold text-slate-300">No pipeline on this role yet</p>
-            <p className="text-sm max-w-sm text-center">Answer a few questions about the job. JobNinjas will place the agents, the job description, and an HR note for this role.</p>
+            <p className="text-sm max-w-sm text-center">Open role setup and pick a hiring template. JobNinjas places the steps for this job. Add people from This role. Sticky notes stay with your team.</p>
           </div>
         </div>
       )}
@@ -1283,12 +1285,15 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       />
 
       {connectionNotice && (
-        <div className={`absolute top-20 left-1/2 z-[80] w-[min(520px,calc(100%-2rem))] -translate-x-1/2 rounded-lg border px-4 py-3 text-sm shadow-xl ${
+        <div className={`absolute top-20 left-1/2 z-[80] flex w-[min(520px,calc(100%-2rem))] -translate-x-1/2 items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-xl ${
           connectionNotice.tone === 'error'
             ? 'border-red-400/40 bg-[#1a1214] text-red-100'
             : 'border-white/10 bg-[#111214] text-white'
         }`}>
-          {connectionNotice.message}
+          <p className="flex-1 leading-relaxed">{connectionNotice.message}</p>
+          <button type="button" onClick={() => setConnectionNotice(null)} className="shrink-0 text-xs opacity-70 hover:opacity-100">
+            Dismiss
+          </button>
         </div>
       )}
 
@@ -1342,6 +1347,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         />
       )}
 
+      <BoardHelp />
       <Toolbar canvasState={canvasState} setCanvasState={setCanvasState} onOpenTemplates={() => setIsTemplatesOpen(true)} />
       <LibraryModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} camera={camera} />
       <ZoomControls camera={camera} setCamera={setCamera} />
