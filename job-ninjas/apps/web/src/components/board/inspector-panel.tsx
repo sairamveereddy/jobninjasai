@@ -16,6 +16,7 @@ import { useDemoStore } from "@/lib/store";
 import { getNodeSpec, NodeDescription } from "@/lib/agents/node-specs";
 import { collectUpstreamOutputs, dataTypeLabel, explainAgent, localRunBlockers, plainLanguage, portsCompatible, summarizeAgentOutput } from "@/lib/agents/contracts";
 import { AgentIoCard } from "./agent-io-card";
+import { ArtifactSheet, artifactKind, artifactTitle } from "./artifact-sheet";
 
 export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   const { inspectedNodeId, setInspectedNodeId, layers, updateLayer, deleteLayers, edges } = useBoardStore();
@@ -29,6 +30,11 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [inputViewMode, setInputViewMode] = useState<'formatted' | 'raw'>('formatted');
   const [outputViewMode, setOutputViewMode] = useState<'formatted' | 'raw'>('formatted');
+  const [resultOpen, setResultOpen] = useState(false);
+
+  useEffect(() => {
+    setResultOpen(false);
+  }, [inspectedNodeId]);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [availableCandidates, setAvailableCandidates] = useState<any[]>([]);
 
@@ -1206,12 +1212,34 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                     </div>
                   )}
 
-                  {/* Fallback structured display */}
-                  {!['agent-resume', 'agent-interview-plan', 'agent-interview-analysis', 'agent-decision', 'agent-concierge'].includes(layer.agentRole || '') && (
-                    <div className="bg-slate-900 rounded-xl p-4 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner max-h-[500px]">
-                      <pre>{JSON.stringify(executionOutput, null, 2)}</pre>
-                    </div>
-                  )}
+                  {(() => {
+                    const kind = artifactKind((layer as { agentRole?: string }).agentRole, executionOutput);
+                    const hasCustomVisual = ['agent-resume', 'agent-interview-plan', 'agent-interview-analysis', 'agent-decision', 'agent-concierge'].includes(layer.agentRole || '');
+                    if (kind && !hasCustomVisual) {
+                      return (
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
+                          <p className="text-sm font-medium text-slate-800">{summarizeAgentOutput((layer as { agentRole?: string }).agentRole, executionOutput)}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-slate-500">Open the full result. An outreach draft can be edited and copied before you mark it done. Nothing is sent.</p>
+                          <button
+                            type="button"
+                            aria-label={`View ${artifactTitle(kind)}`}
+                            onClick={() => setResultOpen(true)}
+                            className="mt-3 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
+                          >
+                            View {artifactTitle(kind)}
+                          </button>
+                        </div>
+                      );
+                    }
+                    if (!hasCustomVisual) {
+                      return (
+                        <div className="bg-slate-900 rounded-xl p-4 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner max-h-[500px]">
+                          <pre>{JSON.stringify(executionOutput, null, 2)}</pre>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               ) : (
                 <div className="bg-slate-900 rounded-xl p-4 text-emerald-400 font-mono text-xs overflow-x-auto shadow-inner max-h-[500px]">
@@ -1221,9 +1249,9 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
             ) : layer.status !== 'error' && (
               <div className="p-8 text-center bg-white rounded-xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
                 <Sparkles className="w-8 h-8 text-slate-300" />
-                <p className="text-xs font-bold text-slate-700">No evaluation results yet</p>
+                <p className="text-xs font-bold text-slate-700">No result on this step yet</p>
                 <p className="text-[11px] text-slate-400 max-w-xs">
-                  Click "Evaluate Candidate" to run this AI screening step and view structured recruiter results.
+                  Run this step, or run the pipeline for the selected person. The scorecard, shortlist, outreach draft, or recommendation will open from here.
                 </p>
               </div>
             )}
@@ -1234,7 +1262,9 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
       {/* Footer Actions */}
       <div className="p-4 border-t border-slate-200/70 bg-white flex items-center justify-between">
-        <button 
+        <button
+          type="button"
+          aria-label="Delete this step"
           onClick={() => {
             deleteLayers([layerId]);
             setInspectedNodeId(null);
@@ -1249,6 +1279,18 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
           Step ID: {layerId}
         </span>
       </div>
+      {resultOpen && artifactKind((layer as { agentRole?: string }).agentRole, executionOutput) && (
+        <ArtifactSheet
+          kind={artifactKind((layer as { agentRole?: string }).agentRole, executionOutput)!}
+          data={executionOutput}
+          onClose={() => setResultOpen(false)}
+          onSaveOutreach={(next) => {
+            const current = (useBoardStore.getState().layers[layerId] as { outputData?: unknown } | undefined)?.outputData;
+            const base = current && typeof current === "object" ? current : {};
+            updateLayer(layerId, { outputData: { ...(base as object), subject: next.subject, body: next.body } } as any);
+          }}
+        />
+      )}
     </div>
   );
 };
