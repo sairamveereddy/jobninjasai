@@ -12,26 +12,39 @@ export const InterviewAnalysisAgent: AgentDefinition = {
   execute: async (context) => {
     const { candidate } = context;
     const interviewPlan = context.upstreamOutputs['InterviewPlan'] as InterviewPlan;
-
-    // Fetch the transcript for the candidate
-    const interview = await prisma.interview.findFirst({
-      where: { candidateId: candidate.id }
-    });
-
-    if (!interview || !interview.transcriptText) {
-      throw new Error("No interview transcript found for this candidate.");
+    if (!interviewPlan) {
+      throw new Error('Interview plan required. Connect Interview Planning, run it, then connect it to this step.');
+    }
+    if (!candidate?.id) {
+      throw new Error('Pick a candidate on this role before scoring an interview.');
     }
 
-    const systemPrompt = `You are an expert technical interviewer evaluating a candidate's transcript.
-You must grade them against the provided INTERVIEW PLAN.
-Look for the expected signals and penalize for red flags.
+    const upstreamTranscript = context.upstreamOutputs['Transcript'];
+    const pasted = typeof upstreamTranscript === 'string'
+      ? upstreamTranscript
+      : upstreamTranscript?.text || upstreamTranscript?.transcriptText;
+
+    const interview = pasted
+      ? null
+      : await prisma.interview.findFirst({
+          where: { candidateId: candidate.id },
+          orderBy: { createdAt: 'desc' },
+        });
+
+    const transcriptText = (pasted || interview?.transcriptText || '').trim();
+    if (!transcriptText) {
+      throw new Error('Transcript required. Open the Transcript step, paste what was said in the interview, and connect that step here. Agents do not read sticky notes.');
+    }
+
+    const systemPrompt = `You are an expert interviewer evaluating a candidate for a recruiter.
+Grade the transcript against the interview plan. Cite what was said. Do not invent quotes.
 
 INTERVIEW PLAN:
 ${JSON.stringify(interviewPlan, null, 2)}
 `;
 
     const input = `CANDIDATE TRANSCRIPT:
-${interview.transcriptText}
+${transcriptText}
 
 Evaluate this transcript and provide a structured analysis.`;
 
@@ -42,13 +55,16 @@ Evaluate this transcript and provide a structured analysis.`;
       modelName: 'openai/gpt-oss-120b',
     });
 
+    const scorecard = context.upstreamOutputs['Scorecard'] || context.upstreamOutputs['ResumeAnalysis'];
+
     return {
-      outputPayload: analysis,
+      outputPayload: scorecard ? { ...analysis, Scorecard: scorecard } : analysis,
       artifacts: [
         {
           type: 'InterviewAnalysis',
           data: analysis,
         },
+        ...(scorecard ? [{ type: 'Scorecard', data: scorecard }] : []),
       ],
       events: [
         {

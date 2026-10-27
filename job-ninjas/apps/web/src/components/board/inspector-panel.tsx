@@ -14,7 +14,7 @@ import {
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDemoStore } from "@/lib/store";
 import { getNodeSpec, NodeDescription } from "@/lib/agents/node-specs";
-import { collectUpstreamOutputs, dataTypeLabel, explainAgent, portsCompatible } from "@/lib/agents/contracts";
+import { collectUpstreamOutputs, dataTypeLabel, explainAgent, plainLanguage, portsCompatible } from "@/lib/agents/contracts";
 import { AgentIoCard } from "./agent-io-card";
 
 export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
@@ -382,7 +382,8 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                 {nodeSpec.category}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 line-clamp-2">{explainAgent(layer.agentRole)}</p>
+            <p className="text-[11px] text-slate-500 line-clamp-2">{plainLanguage(layer.agentRole)}</p>
+            <p className="text-[11px] text-slate-400 line-clamp-2">{explainAgent(layer.agentRole)}</p>
           </div>
         </div>
 
@@ -539,6 +540,27 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
             {inputViewMode === 'formatted' ? (
               <div className="flex flex-col gap-3">
                 {layerId && <AgentIoCard agentRole={layer.agentRole} layerId={layerId} mode="input" />}
+                {layerId && (layer as { agentRole?: string }).agentRole === 'input-transcript' && (
+                  <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-800">Interview transcript</label>
+                    <p className="text-[11px] text-slate-500">Paste what was said. Connect this step to Interview Analysis. Agents do not read sticky notes.</p>
+                    <textarea
+                      value={(layer as { config?: { transcriptText?: string }; outputData?: unknown }).config?.transcriptText || (typeof (layer as { outputData?: unknown }).outputData === 'string' ? (layer as { outputData?: string }).outputData : '')}
+                      onChange={(e) => {
+                        const transcriptText = e.target.value;
+                        const current = layer as { config?: Record<string, unknown> };
+                        updateLayer(layerId, {
+                          config: { ...(current.config || {}), transcriptText },
+                          outputData: transcriptText.trim() ? transcriptText : undefined,
+                          status: transcriptText.trim() ? 'success' : 'idle',
+                          errorDetails: undefined,
+                        });
+                      }}
+                      placeholder="Paste the interview transcript here."
+                      className="min-h-[140px] w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                )}
                 {/* Job Requisition Block with Inline JD Editing */}
                 <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">

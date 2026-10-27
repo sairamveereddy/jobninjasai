@@ -4,6 +4,24 @@ import { useEffect, useMemo, useState } from "react";
 import { FileText, StickyNote, Users } from "lucide-react";
 import { useBoardStore } from "@/store/board";
 import { LayerType } from "@/types/canvas";
+import { GreenhouseImportModal } from "./greenhouse-import-modal";
+
+function latestArtifact(candidate: any, type: string) {
+  return (candidate.artifacts || []).find((item: any) => item.artifactType === type)?.data;
+}
+
+function statusBadges(candidate: any): string[] {
+  const score = latestArtifact(candidate, "Scorecard") || latestArtifact(candidate, "ResumeAnalysis");
+  const shortlist = latestArtifact(candidate, "Shortlist");
+  const decision = latestArtifact(candidate, "CandidateDecision");
+  const badges: string[] = [];
+  if (score?.overallMatch != null) badges.push(`Score ${score.overallMatch}`);
+  if (score?.recommendation) badges.push(String(score.recommendation).replace(/_/g, " "));
+  if (shortlist?.rankLabel) badges.push(String(shortlist.rankLabel));
+  else if (typeof shortlist?.advance === "boolean") badges.push(shortlist.advance ? "Advance" : "Pass");
+  if (decision?.recommendation) badges.push(String(decision.recommendation).replace(/_/g, " "));
+  return badges;
+}
 
 export function RoleSurface({
   roleId,
@@ -20,24 +38,35 @@ export function RoleSurface({
   const updateLayer = useBoardStore((state) => state.updateLayer);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [open, setOpen] = useState(true);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [greenhouseOpen, setGreenhouseOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "" });
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
 
-  useEffect(() => {
+  const refresh = () => {
     if (!roleId) return;
     fetch(`/api/candidates?roleId=${roleId}`)
       .then((res) => res.json())
       .then((data) => setCandidates(Array.isArray(data) ? data : data?.candidates || []))
       .catch(() => setCandidates([]));
+  };
+
+  useEffect(() => {
+    refresh();
   }, [roleId, layerIds.length]);
 
   useEffect(() => {
-    const refresh = () => {
-      fetch(`/api/candidates?roleId=${roleId}`)
-        .then((res) => res.json())
-        .then((data) => setCandidates(Array.isArray(data) ? data : data?.candidates || []))
-        .catch(() => undefined);
+    setActiveId(window.localStorage.getItem("activeCandidateId"));
+    const onChange = (event: Event) => {
+      const nextId = (event as CustomEvent).detail?.candidate?.id || window.localStorage.getItem("activeCandidateId");
+      setActiveId(nextId);
+      refresh();
     };
-    window.addEventListener("candidateChanged", refresh);
-    return () => window.removeEventListener("candidateChanged", refresh);
+    window.addEventListener("candidateChanged", onChange);
+    return () => window.removeEventListener("candidateChanged", onChange);
   }, [roleId]);
 
   const documents = useMemo(
@@ -75,11 +104,56 @@ export function RoleSurface({
 
   const selectCandidate = (candidate: any) => {
     window.localStorage.setItem("activeCandidateId", candidate.id);
+    setActiveId(candidate.id);
     window.dispatchEvent(new CustomEvent("candidateChanged", { detail: { candidate } }));
   };
 
+  const uploadResume = async (candidateId: string, file: File) => {
+    const body = new FormData();
+    body.append("candidateId", candidateId);
+    body.append("file", file);
+    const res = await fetch("/api/resumes/upload", { method: "POST", body });
+    if (!res.ok) {
+      setFormError("Could not attach that resume.");
+      return;
+    }
+    refresh();
+    window.dispatchEvent(new CustomEvent("candidateChanged"));
+  };
+
+  const addCandidate = async () => {
+    if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
+      setFormError("First name, last name, and email are required.");
+      return;
+    }
+    setBusy(true);
+    setFormError("");
+    try {
+      const res = await fetch("/api/candidates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roleId, firstName: form.firstName.trim(), lastName: form.lastName.trim(), email: form.email.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.candidate) {
+        setFormError(data.error || "Could not add this person.");
+        return;
+      }
+      if (resumeFile) await uploadResume(data.candidate.id, resumeFile);
+      selectCandidate(data.candidate);
+      setAdding(false);
+      setForm({ firstName: "", lastName: "", email: "" });
+      setResumeFile(null);
+      refresh();
+    } catch {
+      setFormError("Could not add this person.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-    <div className="absolute bottom-4 left-4 z-40 w-[340px] overflow-hidden rounded-lg border border-white/10 bg-[#111214] text-white shadow-xl">
+    <div className="absolute bottom-4 left-4 z-40 w-[360px] overflow-hidden rounded-lg border border-white/10 bg-[#111214] text-white shadow-xl">
       <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center justify-between px-3 py-2.5 text-left">
         <span>
           <span className="block text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">This role</span>
@@ -88,28 +162,79 @@ export function RoleSurface({
         <span className="text-xs text-[#8b8fa8]">{open ? "Hide" : "Show"}</span>
       </button>
       {open && (
-        <div className="space-y-3 border-t border-white/10 px-3 py-3">
+        <div className="max-h-[min(70vh,560px)] space-y-3 overflow-y-auto border-t border-white/10 px-3 py-3">
           <div>
-            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-[#8b8fa8]">
-              <Users className="h-3.5 w-3.5" /> Candidates ({candidates.length})
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-[#8b8fa8]">
+                <Users className="h-3.5 w-3.5" /> Candidates ({candidates.length})
+              </div>
+              <button type="button" onClick={() => { setAdding((value) => !value); setFormError(""); }} className="text-[11px] text-[#c7c9ff]">
+                {adding ? "Cancel" : "Add person"}
+              </button>
             </div>
+            {adding && (
+              <div className="mb-2 space-y-2 rounded-md border border-white/10 bg-black/30 p-2">
+                <input className={fieldClass} placeholder="First name" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
+                <input className={fieldClass} placeholder="Last name" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+                <input className={fieldClass} placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <label className="block text-[11px] text-[#b1b3b8]">
+                  Resume (optional)
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    className="mt-1 block w-full text-[11px]"
+                    onChange={(event) => setResumeFile(event.target.files?.[0] || null)}
+                  />
+                </label>
+                <button type="button" disabled={busy} onClick={addCandidate} className="rounded-md bg-[#5e6ad2] px-2 py-1.5 text-xs font-medium disabled:opacity-60">
+                  {busy ? "Adding…" : "Add to this role"}
+                </button>
+              </div>
+            )}
+            {formError && <p className="mb-2 text-xs text-red-300">{formError}</p>}
             {candidates.length === 0 ? (
-              <p className="text-xs text-[#b1b3b8]">No candidates yet. Add them from the bar above, or drop a resume on the board.</p>
+              <p className="text-xs text-[#b1b3b8]">No candidates yet. Add a person here, import from Greenhouse, or drop a resume on the board.</p>
             ) : (
-              <div className="flex max-h-28 flex-col gap-1 overflow-y-auto">
-                {candidates.map((candidate) => (
-                  <button
-                    key={candidate.id}
-                    type="button"
-                    onClick={() => selectCandidate(candidate)}
-                    className="flex items-center justify-between rounded-md px-2 py-1.5 text-left text-xs hover:bg-white/5"
-                  >
-                    <span className="truncate">{candidate.firstName} {candidate.lastName}</span>
-                    <span className={candidate.resumeText ? "text-emerald-300" : "text-amber-200"}>
-                      {candidate.resumeText ? "Resume" : "No resume"}
-                    </span>
-                  </button>
-                ))}
+              <div className="flex max-h-40 flex-col gap-1 overflow-y-auto">
+                {candidates.map((candidate) => {
+                  const badges = statusBadges(candidate);
+                  const active = candidate.id === activeId;
+                  return (
+                    <div
+                      key={candidate.id}
+                      className={`rounded-md px-2 py-1.5 text-xs ${active ? "bg-[#5e6ad2]/20 ring-1 ring-[#5e6ad2]" : "hover:bg-white/5"}`}
+                    >
+                      <button type="button" onClick={() => selectCandidate(candidate)} className="flex w-full items-center justify-between text-left">
+                        <span className="truncate">{candidate.firstName} {candidate.lastName}</span>
+                        <span className={candidate.resumeText ? "text-emerald-300" : "text-amber-200"}>
+                          {candidate.resumeText ? "Resume" : "No resume"}
+                        </span>
+                      </button>
+                      {badges.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {badges.map((badge) => (
+                            <span key={badge} className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-[#c7c9ff]">{badge}</span>
+                          ))}
+                        </div>
+                      )}
+                      {!candidate.resumeText && (
+                        <label className="mt-1 inline-block cursor-pointer text-[11px] text-[#c7c9ff]">
+                          Attach resume
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.txt"
+                            className="hidden"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (file) uploadResume(candidate.id, file);
+                              event.target.value = "";
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -130,7 +255,7 @@ export function RoleSurface({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={addNote} className="inline-flex items-center gap-1 rounded-md border border-white/10 px-2 py-1.5 text-xs hover:bg-white/5">
+            <button type="button" onClick={addNote} title="Sticky notes are for your team. Agents do not read them." className="inline-flex items-center gap-1 rounded-md border border-white/10 px-2 py-1.5 text-xs hover:bg-white/5">
               <StickyNote className="h-3.5 w-3.5" /> HR note ({notes.length})
             </button>
             <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-white/10 px-2 py-1.5 text-xs hover:bg-white/5">
@@ -146,12 +271,30 @@ export function RoleSurface({
                 }}
               />
             </label>
+            <button type="button" onClick={() => setGreenhouseOpen(true)} className="rounded-md border border-white/10 px-2 py-1.5 text-xs hover:bg-white/5">
+              Import from Greenhouse
+            </button>
             <button type="button" onClick={onEditSetup} className="rounded-md bg-[#5e6ad2] px-2 py-1.5 text-xs font-medium">
               Edit role setup
             </button>
           </div>
+          <p className="text-[11px] leading-relaxed text-[#8b8fa8]">
+            HR notes are for your team. Agents do not read them. Attach a resume to a candidate, or connect the Resume step.
+          </p>
         </div>
       )}
+      <GreenhouseImportModal
+        isOpen={greenhouseOpen}
+        onClose={() => setGreenhouseOpen(false)}
+        roleId={roleId}
+        roleTitle={roleTitle}
+        onImportSuccess={() => {
+          setGreenhouseOpen(false);
+          refresh();
+        }}
+      />
     </div>
   );
 }
+
+const fieldClass = "w-full rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-white outline-none placeholder:text-[#707277] focus:border-[#5e6ad2]";

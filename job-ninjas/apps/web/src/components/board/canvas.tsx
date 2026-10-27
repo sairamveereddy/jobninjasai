@@ -11,7 +11,7 @@ import { getStroke } from 'perfect-freehand';
 import Link from 'next/link';
 import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Mail, Calendar, MessageSquare, Database, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles } from 'lucide-react';
 import { getNodeSpec } from '@/lib/agents/node-specs';
-import { collectUpstreamOutputs, dataTypeLabel, validateConnection } from '@/lib/agents/contracts';
+import { collectUpstreamOutputs, dataTypeLabel, localRunBlockers, plainLanguage, validateConnection } from '@/lib/agents/contracts';
 import { SelectionBox } from './selection-box';
 import { resizeBounds } from '@/lib/geometry';
 import { Side, XYWH } from '@/types/canvas';
@@ -145,14 +145,25 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     const layer = layers[layerId];
     if (!layer || layer.type !== LayerType.Agent) return false;
     
-    // Non-agent nodes (e.g. input nodes, human gates) succeed immediately
+    if (layer.agentRole === 'input-transcript') {
+      const text = String(layer.config?.transcriptText || layer.outputData || '').trim();
+      if (!text) {
+        updateLayer(layerId, {
+          status: 'error',
+          errorDetails: 'Paste the interview transcript on this step. Agents only score a transcript you provide.',
+        });
+        return false;
+      }
+      updateLayer(layerId, { status: 'success', outputData: text, errorDetails: undefined });
+      return true;
+    }
+
+    // Other input nodes and human gates succeed immediately
     if (!layer.agentRole?.startsWith('agent-')) {
        updateLayer(layerId, { status: 'success' });
        return true;
     }
 
-    updateLayer(layerId, { status: 'running', errorDetails: undefined });
-    
     const collected = collectUpstreamOutputs(layers, Object.values(edges), layerId);
     const upstreamNodeIds = collected.upstreamNodeIds;
     const clientUpstreamOutputs = collected.outputs;
@@ -167,6 +178,26 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         }
       }
     }
+
+    if (!activeCandId && layer.agentRole !== 'agent-jd-parser') {
+      updateLayer(layerId, {
+        status: 'error',
+        errorDetails: 'Pick a candidate on this role first. Use This role to add someone and attach a resume.',
+      });
+      return false;
+    }
+
+    const blockers = localRunBlockers(layer.agentRole, clientUpstreamOutputs, {
+      hasCandidate: !!activeCandId,
+      hasResume: true,
+      hasJobDescription: !!currentRole?.jobDescription,
+    });
+    if (blockers.length) {
+      updateLayer(layerId, { status: 'error', errorDetails: blockers.join(' ') });
+      return false;
+    }
+
+    updateLayer(layerId, { status: 'running', errorDetails: undefined });
 
     try {
       const response = await fetch('/api/agents/execute', {
@@ -883,7 +914,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                     </span>
                   )}
                   {layer.status === 'error' && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                    <span title={layer.errorDetails || 'This step failed'} className="flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                       ✕ Error
                     </span>
                   )}
@@ -901,17 +932,21 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                   <h4 className="font-bold text-slate-900 text-[14px] leading-tight mb-1">
                     {layer.value || nodeSpec.displayName}
                   </h4>
-                  <p className="text-[11px] text-slate-500 line-clamp-1 leading-snug">
-                    {layer.outputData ? (
+                  <p className={`text-[11px] leading-snug ${layer.status === 'error' ? 'line-clamp-3 text-rose-700' : 'line-clamp-2 text-slate-500'}`}>
+                    {layer.status === 'error' && layer.errorDetails
+                      ? layer.errorDetails
+                      : layer.outputData ? (
                       layer.agentRole === 'agent-resume' || layer.agentRole === 'agent-screen'
                         ? `Score: ${layer.outputData.overallMatch ?? layer.outputData.overallScore ?? "—"}`
                         : layer.agentRole === 'agent-interview-plan'
                         ? `${layer.outputData.sections?.length || 0} stages • ${layer.outputData.durationMinutes || 60}m`
                         : layer.agentRole === 'agent-outreach'
                         ? layer.outputData.subject || 'Email draft ready'
+                        : layer.agentRole === 'agent-decision'
+                        ? layer.outputData.recommendation || 'Recommendation ready'
                         : 'Output ready'
                     ) : (
-                      nodeSpec.subtitle
+                      plainLanguage(layer.agentRole)
                     )}
                   </p>
                   <p className="mt-1 truncate text-[10px] text-slate-500">
@@ -999,11 +1034,15 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                 className="h-2 w-full shrink-0"
                 style={{ backgroundColor: layer.fill ? `rgb(${layer.fill.r}, ${layer.fill.g}, ${layer.fill.b})` : '#fef08a' }}
               />
-              <div className="p-5 flex-1 flex flex-col bg-slate-50/30">
+              <div className="flex items-center justify-between px-3 pt-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Team note</span>
+                <span className="text-[10px] text-slate-400">Agents do not read this.</span>
+              </div>
+              <div className="px-5 pb-4 pt-1 flex-1 flex flex-col bg-slate-50/30">
                 <textarea
                   value={layer.value || ""}
                   onChange={(e) => updateLayer(layerId, { value: e.target.value })}
-                  placeholder={isSelected ? "Hiring note for this role…" : ""}
+                  placeholder={isSelected ? "Write a note for your team. Agents do not read this." : ""}
                   className={`w-full h-full bg-transparent border-none outline-none resize-none placeholder:text-slate-400 font-medium text-slate-700 text-[13px] leading-relaxed ${!isSelected && 'pointer-events-none'}`}
                   onPointerDown={(e) => isSelected ? e.stopPropagation() : undefined}
                   onKeyDown={(e) => e.stopPropagation()}
@@ -1409,6 +1448,12 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             const verdict = validateConnection(fromLayer, toLayer, [], { ignoreDuplicate: true });
             const carries = edge.carries?.length ? edge.carries : verdict.carries;
             const incompatible = !verdict.ok;
+            const edgeLabel = incompatible
+              ? "Incompatible"
+              : carries.length > 2
+                ? `${carries.slice(0, 2).join(" · ")} +${carries.length - 2}`
+                : carries.join(" · ");
+            const edgeTitle = incompatible ? verdict.message : `This connection carries ${carries.join(", ")}.`;
             const midX = (p1.x + p2.x) / 2;
             const midY = (p1.y + p2.y) / 2;
             
@@ -1417,6 +1462,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
             return (
               <g key={edgeId}>
+                <title>{edgeTitle}</title>
                 <path
                   d={pathD}
                   stroke={incompatible ? "#e11d48" : isSelected ? "#5e6ad2" : "#64748b"}
@@ -1436,7 +1482,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                     <div className={`mx-auto w-fit max-w-[160px] truncate rounded-full border px-2 py-0.5 text-center text-[10px] font-semibold ${
                       incompatible ? "border-red-200 bg-red-50 text-red-700" : "border-slate-200 bg-white text-slate-600"
                     }`}>
-                      {incompatible ? "Incompatible" : carries.join(" · ")}
+                      {edgeLabel}
                     </div>
                   </foreignObject>
                 )}

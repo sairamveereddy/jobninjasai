@@ -29,8 +29,11 @@ ${JSON.stringify(plan)}`,
     });
 
     return {
-      outputPayload: slots,
-      artifacts: [{ type: 'InterviewSlots', data: slots }],
+      outputPayload: { ...slots, InterviewPlan: plan },
+      artifacts: [
+        { type: 'InterviewSlots', data: slots },
+        { type: 'InterviewPlan', data: plan },
+      ],
       events: [{ type: 'interview.slots_drafted', payload: { count: slots.slots.length } }],
     };
   },

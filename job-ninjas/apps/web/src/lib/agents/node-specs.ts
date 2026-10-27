@@ -108,6 +108,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     ],
     outputs: [
       { name: 'Interview analysis', type: 'InterviewAnalysis', artifactType: 'InterviewAnalysis', description: 'Scores, quotes, red flags, and a hire / no-hire signal for this conversation.' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'The screening scorecard, forwarded so the hiring recommendation still has it.' },
     ],
     defaultModel: 'openai/gpt-oss-120b',
     defaultPrompt: 'Evaluate this interview transcript against the planned interview guide. Provide objective scores for technical depth and communication, citing exact quotes.',
@@ -126,9 +127,9 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
 
   'agent-decision': {
     role: 'agent-decision',
-    displayName: 'Candidate Decision',
-    subtitle: 'Synthesizes holistic evidence into final recommendation',
-    description: 'Combines resume intelligence and interview analysis artifacts into an executive recommendation with compensation guidelines and confidence ratings.',
+    displayName: 'Hiring Recommendation',
+    subtitle: 'Hire or no-hire advice from the scorecard and the interview',
+    description: 'Combines the scorecard and the interview analysis into advice for the recruiter. A person still makes the decision.',
     category: 'agent',
     color: 'text-amber-600',
     bg: 'bg-amber-50 border-amber-200',
@@ -284,6 +285,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     ],
     outputs: [
       { name: 'Email draft', type: 'EmailDraft', artifactType: 'EmailDraft', description: 'Subject, body, and the ask. Copy it into your mailbox.' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'The scorecard, forwarded so interview planning still has it.' },
     ],
     defaultPrompt: 'Write a short, specific recruiting email. Do not pretend an interview is already booked.',
   },
@@ -302,6 +304,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     ],
     outputs: [
       { name: 'Interview slots', type: 'InterviewSlots', artifactType: 'InterviewSlots', description: 'Suggested times, format, and a message you can send.' },
+      { name: 'Interview plan', type: 'InterviewPlan', artifactType: 'InterviewPlan', description: 'The same interview plan, forwarded so the transcript can be scored against it.' },
     ],
     defaultPrompt: 'Propose three interview options and a message the recruiter can send. Do not claim the time is booked.',
   },

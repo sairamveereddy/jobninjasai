@@ -36,8 +36,11 @@ ${scorecard ? JSON.stringify(scorecard) : 'None'}`,
     });
 
     return {
-      outputPayload: draft,
-      artifacts: [{ type: 'EmailDraft', data: draft }],
+      outputPayload: scorecard ? { ...draft, Scorecard: scorecard } : draft,
+      artifacts: [
+        { type: 'EmailDraft', data: draft },
+        ...(scorecard ? [{ type: 'Scorecard', data: scorecard }] : []),
+      ],
       events: [{ type: 'outreach.drafted', payload: { subject: draft.subject } }],
     };
   },

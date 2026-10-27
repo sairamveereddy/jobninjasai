@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { AgentRegistry } from '@/lib/agents/registry';
 import { AgentContext } from '@/lib/agents/types';
-import { applyArtifactAliases } from '@/lib/agents/contracts';
+import { applyArtifactAliases, explainMissingInputs } from '@/lib/agents/contracts';
 
 export async function POST(request: Request) {
   const startTime = Date.now();
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
           where: { id: run.id },
           data: {
             status: 'ERROR',
-            errorDetails: `Missing required inputs: ${missingInputs.join(', ')}`,
+            errorDetails: explainMissingInputs(missingInputs),
             completedAt: new Date(),
           },
         });
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
           missingInputs, 
           input: inputData,
           executionTimeMs: Date.now() - startTime,
-          error: `Missing required inputs: ${missingInputs.join(', ')}. Connect a step that produces them and run that step first.` 
+          error: explainMissingInputs(missingInputs), 
         },
         { status: 400 }
       );

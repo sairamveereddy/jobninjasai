@@ -115,29 +115,55 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
   loadScaffold: (intake) => {
     const plan = scaffoldFromIntake(intake);
-    const idByKey: Record<string, string> = {};
-    const layers: Record<string, Layer> = {};
-    const layerIds: string[] = [];
+    const state = get();
+    const tagged = state.layerIds.some((id) => (state.layers[id] as { config?: { fromIntake?: boolean } })?.config?.fromIntake);
+    const remove = new Set<string>();
+    for (const id of state.layerIds) {
+      const layer = state.layers[id] as { type?: LayerType; value?: string; config?: { fromIntake?: boolean } } | undefined;
+      if (!layer) continue;
+      if (layer.config?.fromIntake) {
+        remove.add(id);
+        continue;
+      }
+      if (tagged) continue;
+      if (layer.type === LayerType.Agent) remove.add(id);
+      else if (layer.type === LayerType.Note && String(layer.value || '').includes('Pipeline:')) remove.add(id);
+    }
 
+    const layers: Record<string, Layer> = { ...state.layers };
+    const layerIds = state.layerIds.filter((id) => !remove.has(id));
+    for (const id of remove) delete layers[id];
+
+    let shiftX = 0;
+    for (const id of layerIds) {
+      const layer = layers[id];
+      if (!layer) continue;
+      shiftX = Math.max(shiftX, (layer.x || 0) + (layer.width || 240) + 48);
+    }
+    const keptCount = layerIds.length;
+
+    const idByKey: Record<string, string> = {};
     for (const node of plan.nodes) {
       const id = Math.random().toString(36).substring(2, 9);
       idByKey[node.key] = id;
       layerIds.push(id);
+      const config = { fromIntake: true, scaffoldKey: node.key };
       if (node.kind === 'note') {
         layers[id] = {
           type: LayerType.Note,
-          x: node.x,
+          x: node.x + shiftX,
           y: node.y,
           width: 280,
           height: 320,
           fill: { r: 94, g: 106, b: 210 },
           value: node.text || '',
-        };
+          config,
+        } as Layer;
       } else {
         const spec = getNodeSpec(node.role);
         layers[id] = {
           type: LayerType.Agent,
-          x: node.x,
+          x: node.x + shiftX,
           y: node.y,
           width: 260,
           height: 176,
@@ -145,12 +171,19 @@ export const useBoardStore = create<BoardState>((set, get) => ({
           value: spec.displayName,
           agentRole: node.role,
           status: 'idle',
+          config,
         };
       }
     }
 
     const edges: Record<string, Edge> = {};
     const edgeIds: string[] = [];
+    for (const id of state.edgeIds) {
+      const edge = state.edges[id];
+      if (!edge || remove.has(edge.fromNodeId) || remove.has(edge.toNodeId)) continue;
+      edgeIds.push(id);
+      edges[id] = edge;
+    }
     for (const link of plan.edges) {
       const fromNodeId = idByKey[link.from];
       const toNodeId = idByKey[link.to];
@@ -167,6 +200,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       };
     }
 
+    const summary = keptCount > 0
+      ? `${plan.summary} Documents and team notes already on this board were kept.`
+      : plan.summary;
+
     set({
       layerIds,
       layers,
@@ -174,7 +211,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       edges,
       selections: { 'local-user': [] },
       inspectedNodeId: null,
-      connectionNotice: { tone: 'ok', message: plan.summary },
+      connectionNotice: { tone: 'ok', message: summary },
     });
   },
 

@@ -131,7 +131,7 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted text-muted-foreground">
         <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-500" />
-        <p>Loading your workflow...</p>
+        <p>Opening this role…</p>
       </div>
     );
   }

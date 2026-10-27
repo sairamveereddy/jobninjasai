@@ -5,6 +5,7 @@ import {
   RESUME_INPUT_HELP,
   dataTypeLabel,
   explainAgent,
+  plainLanguage,
   portLabel,
   portsCompatible,
   type FlowEdge,
@@ -30,6 +31,7 @@ export function AgentIoCard({
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <p className="text-xs font-bold text-slate-800">What this step produces</p>
+        <p className="mt-1 text-[11px] text-slate-600">{plainLanguage(agentRole)}</p>
         <p className="mt-1 text-[11px] text-slate-500">{explainAgent(agentRole)}</p>
         <ul className="mt-3 space-y-2">
           {spec.outputs.map((port) => (
@@ -51,6 +53,7 @@ export function AgentIoCard({
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <p className="text-xs font-bold text-slate-800">What this step needs</p>
+      <p className="mt-1 text-[11px] text-slate-600">{plainLanguage(agentRole)}</p>
       <p className="mt-1 text-[11px] text-slate-500">{explainAgent(agentRole)}</p>
       <ul className="mt-3 space-y-2">
         {spec.inputs.length === 0 && (

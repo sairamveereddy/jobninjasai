@@ -180,6 +180,30 @@ function isAgent(layer?: FlowLayer): boolean {
   return layer?.type === LayerType.Agent;
 }
 
+function suggestConnection(role: string | undefined, needed: string[]): string {
+  const need = needed.filter(Boolean).join(' or ') || 'the right input';
+  switch (role) {
+    case 'agent-schedule':
+      return 'Connect Interview Planning. This step needs an interview plan.';
+    case 'agent-interview-analysis':
+      return 'Connect the Transcript step and Interview Planning.';
+    case 'agent-decision':
+      return 'Connect Interview Analysis, and make sure a scorecard reaches this step from Screen or Shortlist.';
+    case 'agent-resume-parser':
+    case 'agent-resume':
+    case 'agent-screen':
+      return 'Connect the Resume step, or attach a resume to the selected candidate.';
+    case 'agent-interview-plan':
+      return 'Connect Screen and score or Shortlist. This step needs a scorecard.';
+    case 'agent-outreach':
+      return 'Pick a candidate on this role. A scorecard from Screen or Shortlist is optional.';
+    case 'agent-shortlist':
+      return 'Connect Screen and score and run it first.';
+    default:
+      return `Connect a step that sends ${need}.`;
+  }
+}
+
 export function validateConnection(
   from: FlowLayer | undefined,
   to: FlowLayer | undefined,
@@ -260,7 +284,7 @@ export function validateConnection(
     return {
       ok: false,
       carries: [],
-      message: `${toName} needs ${inputs.map(portLabel).join(', ')}. ${fromName} sends ${outputs.map(portLabel).join(', ')}. Those do not match, so this connection was not added.`,
+      message: `${fromName} sends ${outputs.map(portLabel).join(', ')}. ${toName} needs ${inputs.map(portLabel).join(', ')}. Nothing was connected. ${suggestConnection(toSpec?.role, inputs.map(portLabel))}`,
     };
   }
 
@@ -376,6 +400,106 @@ export function composeJobDescription(intake: BoardIntake): string {
   return parts.filter(Boolean).join('\n\n');
 }
 
+export const PIPELINE_TEMPLATES: { id: string; label: string; detail: string; stages: string[] }[] = [
+  {
+    id: 'full-loop',
+    label: 'Full hiring loop',
+    detail: 'Screen, shortlist, outreach, interview plan, times, transcript score, and a hiring recommendation.',
+    stages: ['parse-jd', 'parse-resume', 'screen', 'shortlist', 'outreach', 'interview-plan', 'schedule', 'interview-analysis', 'decision'],
+  },
+  {
+    id: 'screen-shortlist',
+    label: 'Screen and shortlist',
+    detail: 'Read resumes and decide who is worth a conversation.',
+    stages: ['parse-jd', 'parse-resume', 'screen', 'shortlist'],
+  },
+  {
+    id: 'outreach',
+    label: 'Screen then outreach',
+    detail: 'Score people and draft the email you send.',
+    stages: ['parse-jd', 'parse-resume', 'screen', 'shortlist', 'outreach'],
+  },
+  {
+    id: 'interview-loop',
+    label: 'Interview loop',
+    detail: 'Plan the interview, propose times, score the transcript, and recommend.',
+    stages: ['screen', 'interview-plan', 'schedule', 'interview-analysis', 'decision'],
+  },
+];
+
+export const AGENT_PLAIN_LANGUAGE: Record<string, string> = {
+  'input-job-details': 'The job this board is hiring for. Later steps read it from here.',
+  'input-resume': 'Points at the resume of the candidate you selected. Agents do not read sticky notes.',
+  'input-transcript': 'What was said in the interview. Paste it here, then connect this step.',
+  'input-candidate': 'The person you are evaluating on this role.',
+  'agent-jd-parser': 'Reads the job description and lists must-haves, seniority, and locations.',
+  'agent-resume-parser': 'Turns one resume into a profile other steps can use.',
+  'agent-resume': 'Checks a resume against the job and writes a scorecard.',
+  'agent-screen': 'Scores one person against this role and writes a scorecard.',
+  'agent-shortlist': 'Says whether this person should move forward, and why.',
+  'agent-outreach': 'Writes the email you can send. It does not send it.',
+  'agent-interview-plan': 'Builds the questions for the interview from the scorecard.',
+  'agent-schedule': 'Suggests times and a message. It does not book a calendar.',
+  'agent-interview-analysis': 'Scores the transcript against the interview plan.',
+  'agent-decision': 'Turns the scorecard and the interview into hire or no-hire advice. You still decide.',
+  'agent-concierge': 'Drafts travel after you have a hiring recommendation.',
+  'gate-shortlist': 'A person approves the scorecard before interviews start.',
+};
+
+export function plainLanguage(role?: string): string {
+  if (role && AGENT_PLAIN_LANGUAGE[role]) return AGENT_PLAIN_LANGUAGE[role];
+  return getNodeSpec(role).subtitle;
+}
+
+const MISSING_INPUT_HELP: Record<string, string> = {
+  InterviewPlan: 'Connect Interview Planning and run it first. This step needs an interview plan, not a resume.',
+  Scorecard: 'Connect Screen and score, run it for this candidate, then try again.',
+  ResumeAnalysis: 'Connect Screen and score or Resume Intelligence and run it first.',
+  InterviewAnalysis: 'Connect Interview Analysis, paste a transcript, run that step, then open Hiring Recommendation.',
+  Transcript: 'Open the Transcript step, paste what was said in the interview, and connect it. Agents do not read sticky notes.',
+  CandidateDecision: 'Connect Hiring Recommendation and run it first.',
+  ParsedJD: 'Connect JD Parser and run it, or rely on the job description saved on this role.',
+  Resume: 'Attach a resume to the selected candidate, or connect the Resume step.',
+  JobDescription: 'Add a job description in role setup.',
+  EmailDraft: 'Connect Outreach Draft and run it first.',
+  InterviewSlots: 'Connect Interview Schedule and run it first.',
+  Shortlist: 'Connect Shortlist and run it first.',
+};
+
+export function explainMissingInputs(missing: string[]): string {
+  if (!missing.length) return '';
+  return missing
+    .map((key) => MISSING_INPUT_HELP[key] || `Missing ${dataTypeLabel(key)}. Connect a step that produces it and run that step first.`)
+    .join(' ');
+}
+
+export function localRunBlockers(
+  agentRole: string | undefined,
+  upstream: Record<string, any>,
+  ctx: { hasCandidate: boolean; hasResume: boolean; hasJobDescription: boolean }
+): string[] {
+  if (!agentRole?.startsWith('agent-')) return [];
+  if (agentRole !== 'agent-jd-parser' && !ctx.hasCandidate) {
+    return ['Pick a candidate on this role first. Use This role to add someone and attach a resume.'];
+  }
+  const spec = getNodeSpec(agentRole);
+  const messages: string[] = [];
+  for (const input of spec.inputs) {
+    if (!input.required) continue;
+    const key = input.artifactType || input.type;
+    if (key === 'Transcript') continue;
+    const hasUpstream = upstream[key] != null || upstream[input.type] != null || upstream[input.name] != null;
+    if (input.type === 'Resume' && !ctx.hasResume && !hasUpstream) {
+      messages.push('This step needs a resume. Upload one for the selected candidate, or connect the Resume step.');
+    } else if (input.source === 'board' && !ctx.hasJobDescription && !hasUpstream) {
+      messages.push('Add a job description in role setup. This step reads the job, not a sticky note.');
+    } else if (input.source === 'edge' && !hasUpstream) {
+      messages.push(explainMissingInputs([key]));
+    }
+  }
+  return messages;
+}
+
 export function roleBriefText(intake: BoardIntake, stages: string[]): string {
   const stageLabels = stages
     .map((id) => HIRING_STAGES.find((stage) => stage.id === id)?.label)
@@ -384,11 +508,12 @@ export function roleBriefText(intake: BoardIntake, stages: string[]): string {
   return [
     intake.roleTitle || 'Open role',
     intake.seniority ? `Seniority: ${intake.seniority}` : '',
-    intake.locations ? `Locations: ${intake.locations}` : '',
+    intake.locations ? `Locations: ${intake.locations}` : 'Location: not set yet',
     intake.mustHaveSkills ? `Must-haves: ${intake.mustHaveSkills}` : '',
     intake.candidateVolume ? `Volume: ${intake.candidateVolume}` : '',
     intake.ats ? `ATS: ${intake.ats}` : '',
     stageLabels ? `Pipeline: ${stageLabels}` : '',
+    'Team note: agents do not read sticky notes. Attach resumes to candidates.',
   ]
     .filter(Boolean)
     .join('\n');
@@ -425,20 +550,15 @@ export function scaffoldFromIntake(intake: BoardIntake): ScaffoldPlan {
   if (has('parse-resume')) parsers.push({ key: 'rparse', role: 'agent-resume-parser' });
   if (parsers.length) columns.push(parsers);
 
-  if (has('screen')) columns.push([{ key: 'screen', role: 'agent-screen' }]);
-  if (has('shortlist')) columns.push([{ key: 'shortlist', role: 'agent-shortlist' }]);
-
-  const parallel: { key: string; role: string }[] = [];
-  if (has('outreach')) parallel.push({ key: 'outreach', role: 'agent-outreach' });
-  if (has('interview-plan')) parallel.push({ key: 'plan', role: 'agent-interview-plan' });
-  if (parallel.length) columns.push(parallel);
-
-  const follow: { key: string; role: string }[] = [];
-  if (has('schedule')) follow.push({ key: 'schedule', role: 'agent-schedule' });
-  if (has('interview-analysis')) follow.push({ key: 'analysis', role: 'agent-interview-analysis' });
-  if (follow.length) columns.push(follow);
-
-  if (has('decision')) columns.push([{ key: 'decision', role: 'agent-decision' }]);
+  const mainPath: { key: string; role: string }[] = [];
+  if (has('screen')) mainPath.push({ key: 'screen', role: 'agent-screen' });
+  if (has('shortlist')) mainPath.push({ key: 'shortlist', role: 'agent-shortlist' });
+  if (has('outreach')) mainPath.push({ key: 'outreach', role: 'agent-outreach' });
+  if (has('interview-plan')) mainPath.push({ key: 'plan', role: 'agent-interview-plan' });
+  if (has('schedule')) mainPath.push({ key: 'schedule', role: 'agent-schedule' });
+  if (has('interview-analysis')) mainPath.push({ key: 'analysis', role: 'agent-interview-analysis' });
+  if (has('decision')) mainPath.push({ key: 'decision', role: 'agent-decision' });
+  for (const step of mainPath) columns.push([step]);
 
   const nodes: ScaffoldNode[] = [
     {
@@ -473,13 +593,13 @@ export function scaffoldFromIntake(intake: BoardIntake): ScaffoldPlan {
   link('resume', has('parse-resume') ? 'rparse' : 'screen');
   link('rparse', 'screen');
   link('resume', 'screen');
-  link('screen', has('shortlist') ? 'shortlist' : 'outreach');
-  link('screen', 'plan');
-  link('screen', 'decision');
+  link('screen', has('shortlist') ? 'shortlist' : has('outreach') ? 'outreach' : has('interview-plan') ? 'plan' : 'decision');
   link('shortlist', 'outreach');
   link('shortlist', 'plan');
-  link('shortlist', 'decision');
+  link('outreach', 'plan');
+  link('screen', 'plan');
   link('plan', 'schedule');
+  link('schedule', 'analysis');
   link('plan', 'analysis');
   link('transcript', 'analysis');
   link('analysis', 'decision');

@@ -45,6 +45,15 @@ export async function GET(req: Request) {
             scheduledAt: true,
           },
         },
+        artifacts: {
+          orderBy: { createdAt: 'desc' as const },
+          take: 12,
+          select: {
+            artifactType: true,
+            data: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',

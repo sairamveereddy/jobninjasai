@@ -3,6 +3,8 @@ import { LayerType } from '../../types/canvas';
 import {
   applyArtifactAliases,
   collectUpstreamOutputs,
+  explainMissingInputs,
+  localRunBlockers,
   normalizeStages,
   scaffoldFromIntake,
   validateConnection,
@@ -21,7 +23,8 @@ assert.ok(resumeToParser.carries.includes('Resume'));
 
 const conciergeToParser = validateConnection(agent('agent-concierge'), agent('agent-resume-parser'));
 assert.equal(conciergeToParser.ok, false);
-assert.match(conciergeToParser.message, /do not match/);
+assert.match(conciergeToParser.message, /Nothing was connected/);
+assert.match(conciergeToParser.message, /Connect the Resume step/);
 
 const noteToAgent = validateConnection(note(), agent('agent-screen'));
 assert.equal(noteToAgent.ok, false);
@@ -73,4 +76,33 @@ assert.deepEqual(collected.upstreamNodeIds.includes('screen'), true);
 const aliased = applyArtifactAliases({ Scorecard: { overallMatch: 10 } });
 assert.equal(aliased.ResumeAnalysis.overallMatch, 10);
 
-console.log(`contracts ok (${plan.edges.length} scaffold edges)`);
+const full = scaffoldFromIntake({
+  roleTitle: 'Account Executive',
+  jobDescription: 'Sell the product.',
+  mustHaveSkills: 'discovery',
+  seniority: 'Mid-level',
+  locations: '',
+  candidateVolume: '11-50',
+  ats: 'None yet',
+  stages: ['screen', 'shortlist', 'outreach', 'interview-plan', 'schedule', 'interview-analysis', 'decision'],
+});
+const fullByKey = Object.fromEntries(full.nodes.map((node) => [node.key, node]));
+for (const edge of full.edges) {
+  const verdict = validateConnection(
+    fullByKey[edge.from].kind === 'note' ? note() : agent(fullByKey[edge.from].role || ''),
+    fullByKey[edge.to].kind === 'note' ? note() : agent(fullByKey[edge.to].role || '')
+  );
+  assert.equal(verdict.ok, true, `full ${edge.from} → ${edge.to}: ${verdict.message}`);
+}
+assert.ok(full.edges.some((edge) => edge.from === 'schedule' && edge.to === 'analysis'));
+assert.ok(full.edges.some((edge) => edge.from === 'outreach' && edge.to === 'plan'));
+assert.ok(full.edges.some((edge) => edge.from === 'analysis' && edge.to === 'decision'));
+
+assert.match(explainMissingInputs(['Transcript']), /sticky notes/i);
+const noCandidate = localRunBlockers('agent-screen', {}, { hasCandidate: false, hasResume: true, hasJobDescription: true });
+assert.match(noCandidate[0], /Pick a candidate/);
+const missingPlan = localRunBlockers('agent-interview-analysis', {}, { hasCandidate: true, hasResume: true, hasJobDescription: true });
+assert.match(missingPlan.join(' '), /interview plan/i);
+assert.equal(missingPlan.some((message) => /transcript/i.test(message)), false);
+
+console.log(`contracts ok (${plan.edges.length} scaffold edges, ${full.edges.length} full-loop edges)`);

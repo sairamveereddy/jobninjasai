@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { HIRING_STAGES, normalizeStages, type BoardIntake } from "@/lib/agents/contracts";
+import { HIRING_STAGES, PIPELINE_TEMPLATES, normalizeStages, type BoardIntake } from "@/lib/agents/contracts";
 
 const SENIORITY = ["Intern", "Junior", "Mid-level", "Senior", "Staff", "Manager", "Director"];
 const VOLUMES = [
@@ -20,7 +20,7 @@ const EMPTY: BoardIntake = {
   locations: "",
   candidateVolume: "11-50",
   ats: "None yet",
-  stages: ["parse-jd", "parse-resume", "screen", "shortlist", "outreach", "interview-plan", "decision"],
+  stages: [...PIPELINE_TEMPLATES[0].stages],
 };
 
 export function IntakeWizard({
@@ -46,10 +46,6 @@ export function IntakeWizard({
   const next = () => {
     if (step === 0 && !draft.roleTitle.trim()) {
       setError("Add the role title. One board is one job.");
-      return;
-    }
-    if (step === 0 && !draft.locations.trim()) {
-      setError("Add where this role can be hired.");
       return;
     }
     if (step === 1 && !draft.jobDescription.trim() && !draft.mustHaveSkills.trim()) {
@@ -105,6 +101,9 @@ export function IntakeWizard({
               </Field>
               <Field label="Locations">
                 <input className={inputClass} value={draft.locations} placeholder="New York, Remote US" onChange={(e) => set({ locations: e.target.value })} />
+                <button type="button" onClick={() => set({ locations: "" })} className="text-xs text-[#c7c9ff] hover:text-white">
+                  Location not decided
+                </button>
               </Field>
             </>
           )}
@@ -131,6 +130,7 @@ export function IntakeWizard({
                   ))}
                 </div>
               </Field>
+              <p className="text-xs text-[#8b8fa8]">These already have defaults. Continue if they look right.</p>
               <Field label="Applicant tracking system">
                 <div className="flex flex-wrap gap-2">
                   {ATS_OPTIONS.map((ats) => (
@@ -145,6 +145,24 @@ export function IntakeWizard({
 
           {step === 3 && (
             <>
+              <Field label="Start from a hiring template">
+                <div className="flex flex-wrap gap-2">
+                  {PIPELINE_TEMPLATES.map((template) => {
+                    const active = template.stages.every((id) => draft.stages.includes(id)) && draft.stages.length === template.stages.length;
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        title={template.detail}
+                        onClick={() => set({ stages: [...template.stages] })}
+                        className={chipClass(active)}
+                      >
+                        {template.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
               <Field label="Which stages should run?">
                 <div className="space-y-2">
                   {HIRING_STAGES.map((stage) => {
@@ -197,7 +215,7 @@ export function IntakeWizard({
             )}
             {step < 3 ? (
               <button type="button" onClick={next} className="rounded-md bg-[#5e6ad2] px-4 py-2 text-sm font-medium">
-                Continue
+                {step === 2 ? "Keep the defaults" : "Continue"}
               </button>
             ) : (
               <>
