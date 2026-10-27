@@ -512,8 +512,13 @@ export function summarizeAgentOutput(agentRole: string | undefined, output: any)
       return output.rankLabel ? `Shortlist · ${output.rankLabel}` : output.advance ? 'Shortlist · Advance' : 'Shortlist · Pass';
     case 'agent-outreach':
       return output.subject ? `Email · ${output.subject}` : 'Email draft ready';
-    case 'agent-schedule':
-      return Array.isArray(output.slots) && output.slots.length ? `${output.slots.length} time options` : 'Times drafted';
+    case 'agent-schedule': {
+      const slots = Array.isArray(output.slots) ? output.slots : [];
+      const preferred = slots[output.preferredSlot];
+      const countLabel = slots.length === 1 ? '1 time option' : `${slots.length} time options`;
+      if (preferred?.label) return `${countLabel} · ${preferred.label}`;
+      return slots.length ? countLabel : 'Times drafted';
+    }
     case 'agent-interview-analysis':
       return output.overallRecommendation ? `Interview · ${words(output.overallRecommendation)}` : 'Interview scored';
     case 'agent-decision':
@@ -527,6 +532,49 @@ export function summarizeAgentOutput(agentRole: string | undefined, output: any)
     default:
       return 'Result ready';
   }
+}
+
+export type InspectorTab = 'input' | 'parameters' | 'output';
+
+export function defaultInspectorTab(layer?: { agentRole?: string; status?: string; outputData?: unknown } | null): InspectorTab {
+  const role = layer?.agentRole || '';
+  if (role === 'input-transcript' || role === 'input-job-details' || role === 'input-resume') return 'parameters';
+  if (layer?.outputData != null && layer.outputData !== '') return 'output';
+  return 'input';
+}
+
+export function recommendationPresentation(recommendation?: string): { title: string; tone: 'yes' | 'maybe' | 'no'; nextStep: string } {
+  const key = String(recommendation || '').toUpperCase();
+  if (key === 'STRONG_HIRE') {
+    return { title: 'Strong yes', tone: 'yes', nextStep: 'Next: start the offer conversation, or set a final chat with the hiring manager.' };
+  }
+  if (key === 'HIRE') {
+    return { title: 'Yes', tone: 'yes', nextStep: 'Next: start the offer conversation, or set a final chat with the hiring manager.' };
+  }
+  if (key === 'NEEDS_REVIEW' || key === 'MAYBE' || key === 'HOLD') {
+    return { title: 'Maybe', tone: 'maybe', nextStep: 'Next: book one more interview on the open questions before you decide.' };
+  }
+  if (key === 'NO_HIRE' || key === 'REJECT') {
+    return { title: 'No', tone: 'no', nextStep: 'Next: send a respectful pass note. Do not advance this person.' };
+  }
+  return { title: recommendation ? String(recommendation).replace(/_/g, ' ') : 'Needs a decision', tone: 'maybe', nextStep: 'Next: read the criteria, then decide yourself. This is advice, not a hire.' };
+}
+
+export function formatInterviewSlots(data?: {
+  timezone?: string;
+  durationMinutes?: number;
+  format?: string;
+  slots?: { label?: string; interviewerRole?: string }[];
+  preferredSlot?: number;
+} | null): string {
+  const slots = data?.slots || [];
+  const lines = slots.map((slot, index) => {
+    const preferred = data?.preferredSlot === index ? ' (preferred)' : '';
+    const who = slot.interviewerRole ? ` · ${slot.interviewerRole}` : '';
+    return `${index + 1}. ${slot.label || 'Time'}${who}${preferred}`;
+  });
+  const meta = [data?.durationMinutes ? `${data.durationMinutes} min` : '', data?.format || '', data?.timezone || ''].filter(Boolean).join(' · ');
+  return [meta, ...lines].filter(Boolean).join('\n');
 }
 
 export function explainMissingInputs(missing: string[]): string {

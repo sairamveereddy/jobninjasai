@@ -10,7 +10,10 @@ import {
   PIPELINE_TEMPLATES,
   scaffoldFromIntake,
   composeJobDescription,
+  defaultInspectorTab,
   extractPortPayloads,
+  formatInterviewSlots,
+  recommendationPresentation,
   summarizeAgentOutput,
   validateConnection,
 } from './contracts';
@@ -170,6 +173,23 @@ const jd = composeJobDescription({
 });
 assert.match(jd, /Help customers/);
 assert.equal(extractPortPayloads('input-job-details', jd).JobDescription, jd);
+assert.equal(recommendationPresentation('STRONG_HIRE').title, 'Strong yes');
+assert.equal(recommendationPresentation('HIRE').tone, 'yes');
+assert.equal(recommendationPresentation('NEEDS_REVIEW').title, 'Maybe');
+assert.match(recommendationPresentation('NO_HIRE').nextStep, /pass note/i);
+assert.equal(defaultInspectorTab({ agentRole: 'agent-screen', status: 'success', outputData: { overallMatch: 80 } }), 'output');
+assert.equal(defaultInspectorTab({ agentRole: 'input-transcript', status: 'idle' }), 'parameters');
+assert.equal(defaultInspectorTab({ agentRole: 'agent-screen', status: 'idle' }), 'input');
+const times = formatInterviewSlots({
+  timezone: 'PT',
+  durationMinutes: 45,
+  format: 'Video',
+  slots: [{ label: 'Tue 10:00', interviewerRole: 'Manager' }],
+  preferredSlot: 0,
+});
+assert.match(times, /Tue 10:00/);
+assert.match(times, /preferred/);
+assert.equal(summarizeAgentOutput('agent-schedule', { slots: [{ label: 'Tue 10:00' }], preferredSlot: 0 }), '1 time option · Tue 10:00');
 assert.equal(documentKind('Senior_JD.pdf'), 'JD');
 assert.equal(documentKind('Ada-resume.pdf'), 'Resume');
 assert.equal(documentKind('deck.pptx'), 'Deck');

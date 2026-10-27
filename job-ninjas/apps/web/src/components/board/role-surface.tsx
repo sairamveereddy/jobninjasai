@@ -5,22 +5,23 @@ import { FileText, StickyNote, Users } from "lucide-react";
 import { useBoardStore } from "@/store/board";
 import { LayerType } from "@/types/canvas";
 import { GreenhouseImportModal } from "./greenhouse-import-modal";
-import { documentKind } from "@/lib/agents/contracts";
+import { documentKind, recommendationPresentation } from "@/lib/agents/contracts";
 import { ArtifactSheet, type ArtifactKind } from "./artifact-sheet";
+import { personResult, saveResultEdit } from "./result-edits";
 
 function latestArtifact(candidate: any, type: string) {
   return (candidate.artifacts || []).find((item: any) => item.artifactType === type)?.data;
 }
 
-function viewableResults(candidate: any, layers: Record<string, any>) {
+function viewableResults(candidate: any, layers: Record<string, any>, activeId: string | null) {
   const items: { key: string; kind: ArtifactKind; label: string; data: any }[] = [];
   const score = latestArtifact(candidate, "Scorecard") || latestArtifact(candidate, "ResumeAnalysis");
   if (score) {
     const label = score.overallMatch != null ? `Score ${score.overallMatch}` : "Scorecard";
     items.push({ key: "scorecard", kind: "scorecard", label, data: score });
   }
-  const shortlist = latestArtifact(candidate, "Shortlist");
-  if (shortlist) {
+  const shortlist = personResult(layers, candidate.id, activeId, "agent-shortlist", latestArtifact(candidate, "Shortlist"), "shortlistByCandidate");
+  if (shortlist?.rankLabel || typeof shortlist?.advance === "boolean") {
     items.push({
       key: "shortlist",
       kind: "shortlist",
@@ -28,10 +29,14 @@ function viewableResults(candidate: any, layers: Record<string, any>) {
       data: shortlist,
     });
   }
-  const outreachNode = Object.values(layers).find((layer) => layer?.agentRole === "agent-outreach" && layer.outputData?.subject);
-  const outreach = outreachNode?.outputData || latestArtifact(candidate, "EmailDraft");
+  const outreach = personResult(layers, candidate.id, activeId, "agent-outreach", latestArtifact(candidate, "EmailDraft"), "outreachByCandidate");
   if (outreach?.subject || outreach?.body) {
     items.push({ key: "outreach", kind: "outreach", label: "Outreach", data: outreach });
+  }
+  const schedule = personResult(layers, candidate.id, activeId, "agent-schedule", latestArtifact(candidate, "InterviewSlots"), "scheduleByCandidate");
+  if (Array.isArray(schedule?.slots) && schedule.slots.length) {
+    const preferred = schedule.slots[schedule.preferredSlot];
+    items.push({ key: "schedule", kind: "schedule", label: preferred?.label ? `Times · ${preferred.label}` : "Times", data: schedule });
   }
   const interview = latestArtifact(candidate, "InterviewAnalysis");
   if (interview) items.push({ key: "interview", kind: "interview", label: "Interview", data: interview });
@@ -40,7 +45,7 @@ function viewableResults(candidate: any, layers: Record<string, any>) {
     items.push({
       key: "recommendation",
       kind: "recommendation",
-      label: String(decision.recommendation || "Recommendation").replace(/_/g, " "),
+      label: recommendationPresentation(decision.recommendation).title,
       data: decision,
     });
   }
@@ -70,7 +75,7 @@ export function RoleSurface({
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "" });
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [sheet, setSheet] = useState<{ kind: ArtifactKind; data: any } | null>(null);
+  const [sheet, setSheet] = useState<{ kind: ArtifactKind; data: any; candidateId: string; candidateName: string } | null>(null);
 
   const refresh = () => {
     if (!roleId) return;
@@ -277,7 +282,7 @@ export function RoleSurface({
             ) : (
               <div className="flex max-h-40 flex-col gap-1 overflow-y-auto">
                 {candidates.map((candidate) => {
-                  const results = viewableResults(candidate, layers);
+                  const results = viewableResults(candidate, layers, activeId);
                   const active = candidate.id === activeId;
                   return (
                     <div
@@ -301,8 +306,12 @@ export function RoleSurface({
                               type="button"
                               aria-label={`View ${item.label} for ${candidate.firstName}`}
                               onClick={() => {
-                                selectCandidate(candidate);
-                                setSheet({ kind: item.kind, data: item.data });
+                                setSheet({
+                                  kind: item.kind,
+                                  data: item.data,
+                                  candidateId: candidate.id,
+                                  candidateName: `${candidate.firstName || ""} ${candidate.lastName || ""}`.trim(),
+                                });
                               }}
                               className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-[#c7c9ff] hover:bg-white/20"
                             >
@@ -389,19 +398,26 @@ export function RoleSurface({
       )}
       {sheet && (
         <ArtifactSheet
+          key={`${sheet.kind}-${sheet.candidateId}`}
           kind={sheet.kind}
           data={sheet.data}
+          candidateName={sheet.candidateName}
+          candidateSelected={sheet.candidateId === activeId}
+          onSelectCandidate={() => {
+            const person = candidates.find((item) => item.id === sheet.candidateId);
+            if (person) selectCandidate(person);
+          }}
           onClose={() => setSheet(null)}
           onSaveOutreach={(next) => {
-            const state = useBoardStore.getState();
-            const outreachId = state.layerIds.find((id) => {
-              const layer = state.layers[id] as { agentRole?: string; outputData?: unknown };
-              return layer?.agentRole === "agent-outreach" && layer.outputData && typeof layer.outputData === "object";
-            });
-            if (outreachId) {
-              const current = (state.layers[outreachId] as { outputData?: object }).outputData || {};
-              updateLayer(outreachId, { outputData: { ...current, subject: next.subject, body: next.body } } as any);
-            }
+            saveResultEdit("outreach", sheet.candidateId, next);
+            setSheet((open) => (open ? { ...open, data: { ...open.data, ...next } } : open));
+          }}
+          onSaveShortlist={(next) => {
+            saveResultEdit("shortlist", sheet.candidateId, next);
+            setSheet((open) => (open ? { ...open, data: { ...open.data, ...next } } : open));
+          }}
+          onSaveSchedule={(next) => {
+            saveResultEdit("schedule", sheet.candidateId, next);
             setSheet((open) => (open ? { ...open, data: { ...open.data, ...next } } : open));
           }}
         />
