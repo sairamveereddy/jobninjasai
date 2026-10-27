@@ -70,6 +70,8 @@ export async function POST(req: Request) {
       // If still empty but candidate has name/experience, build fallback profile text
       if (!extractedResumeText) {
         extractedResumeText = `${c.firstName} ${c.lastName}\n${c.email}\nLocation: ${c.location || 'Remote'}\nATS Candidate ID: ${c.candidateId}\nCurrent Stage: ${c.stage}\n\nExperience:\nStaff / Senior Engineer with extensive track record in modern software delivery, scalable cloud systems, and cross-functional leadership.\n\nSkills:\nTypeScript, React, Next.js, Node.js, Python, PostgreSQL, Distributed Systems, Cloud Architecture.`;
+      } else {
+        extractedResumeText = extractedResumeText.replace(/\0/g, '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ' ').trim();
       }
 
       // Upsert candidate in Prisma

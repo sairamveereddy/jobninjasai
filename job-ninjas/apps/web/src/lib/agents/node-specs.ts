@@ -309,6 +309,63 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     defaultPrompt: 'Propose three interview options and a message the recruiter can send. Do not claim the time is booked.',
   },
 
+  'agent-offer-draft': {
+    role: 'agent-offer-draft',
+    displayName: 'Offer & Comp Draft',
+    subtitle: 'Drafts a formal offer letter and compensation terms',
+    description: 'Generates a ready-to-review formal offer letter, base salary, bonus, equity, and benefits terms based on the hiring recommendation and role requirements.',
+    category: 'agent',
+    color: 'text-emerald-700',
+    bg: 'bg-emerald-50 border-emerald-200',
+    inputs: [
+      { name: 'Hiring recommendation', type: 'CandidateDecision', artifactType: 'CandidateDecision', description: 'Decision and compensation guidance from the hiring recommendation step.', required: true, source: 'edge' },
+      { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'The role this offer is for.', required: false, source: 'board' },
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Candidate the offer is for.', required: true, source: 'candidate' },
+    ],
+    outputs: [
+      { name: 'Offer draft', type: 'OfferDraft', artifactType: 'OfferDraft', description: 'Formal offer letter and compensation terms.' },
+    ],
+    defaultPrompt: 'Draft an executive-ready formal job offer letter with compensation, equity, and benefits.',
+  },
+
+  'agent-rejection-draft': {
+    role: 'agent-rejection-draft',
+    displayName: 'Rejection & Update Draft',
+    subtitle: 'Warm, respectful candidate update and feedback',
+    description: 'Drafts a thoughtful candidate rejection or update email with constructive feedback, respecting candidate time and keeping positive brand sentiment.',
+    category: 'agent',
+    color: 'text-rose-700',
+    bg: 'bg-rose-50 border-rose-200',
+    inputs: [
+      { name: 'Hiring recommendation', type: 'CandidateDecision', artifactType: 'CandidateDecision', description: 'Decision rationale and interview feedback.', required: false, source: 'edge' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Scorecard if rejecting at screening stage.', required: false, source: 'edge' },
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Who the update is for.', required: true, source: 'candidate' },
+    ],
+    outputs: [
+      { name: 'Rejection draft', type: 'RejectionDraft', artifactType: 'RejectionDraft', description: 'Respectful update email and constructive feedback.' },
+    ],
+    defaultPrompt: 'Draft a respectful, clear rejection update acknowledging the candidate’s time and strengths.',
+  },
+
+  'agent-onboarding-handoff': {
+    role: 'agent-onboarding-handoff',
+    displayName: 'Onboarding & Reference Prep',
+    subtitle: 'Prepares reference checks and first-week onboarding plan',
+    description: 'Prepares reference check verification focus areas, first-week orientation schedule, and HR onboarding checklist for accepted candidates.',
+    category: 'agent',
+    color: 'text-teal-700',
+    bg: 'bg-teal-50 border-teal-200',
+    inputs: [
+      { name: 'Hiring recommendation', type: 'CandidateDecision', artifactType: 'CandidateDecision', description: 'Decision and interview evidence.', required: false, source: 'edge' },
+      { name: 'Offer draft', type: 'OfferDraft', artifactType: 'OfferDraft', description: 'Confirmed offer details.', required: false, source: 'edge' },
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Candidate to onboard.', required: true, source: 'candidate' },
+    ],
+    outputs: [
+      { name: 'Onboarding handoff', type: 'OnboardingHandoff', artifactType: 'OnboardingHandoff', description: 'Checklist, reference check guide, and first-week plan.' },
+    ],
+    defaultPrompt: 'Generate a comprehensive onboarding handoff and reference check guide for this candidate.',
+  },
+
   // ─── INPUT NODES ───
   'input-job-details': {
     role: 'input-job-details',
@@ -391,10 +448,12 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-blue-600',
     bg: 'bg-blue-50 border-blue-200',
     inputs: [
-      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Candidate who interviewed.', required: false, source: 'candidate' }
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Candidate who interviewed.', required: false, source: 'candidate' },
+      { name: 'Interview slots', type: 'InterviewSlots', artifactType: 'InterviewSlots', description: 'Scheduled interview times.', required: false, source: 'edge' },
     ],
     outputs: [
-      { name: 'Transcript', type: 'Transcript', artifactType: 'Transcript', description: 'Verbatim transcript text' }
+      { name: 'Transcript', type: 'Transcript', artifactType: 'Transcript', description: 'Verbatim transcript text' },
+      { name: 'Interview plan', type: 'InterviewPlan', artifactType: 'InterviewPlan', description: 'Interview guide forwarded for analysis.' },
     ]
   },
 

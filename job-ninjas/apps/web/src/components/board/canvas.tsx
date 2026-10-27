@@ -271,6 +271,39 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         return false;
       }
       updateLayer(layerId, { status: 'success', outputData: text, errorDetails: undefined });
+
+      const activeCandId = lockedCandidateId !== undefined
+        ? lockedCandidateId
+        : (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') || '' : '');
+
+      if (activeCandId && boardId) {
+        fetch('/api/candidates', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidateId: activeCandId,
+            transcriptText: text,
+          }),
+        }).catch(() => undefined);
+      }
+
+      // Auto-advance showcase path: connect and run Interview Analysis
+      const currentStore = useBoardStore.getState();
+      let analysisId = Object.keys(currentStore.layers).find(k => (currentStore.layers[k] as any).agentRole === 'agent-interview-analysis');
+      if (!analysisId) {
+        analysisId = insertLayer(
+          LayerType.Agent,
+          { x: layer.x + 320, y: layer.y },
+          { r: 255, g: 255, b: 255 },
+          undefined,
+          'agent-interview-analysis'
+        );
+        insertEdge(layerId, analysisId);
+      }
+      setConnectionNotice({ tone: 'ok', message: 'Transcript saved. Running Interview Analysis...' });
+      setTimeout(() => {
+        if (analysisId) handleRunSingleAgent(analysisId, activeCandId);
+      }, 150);
       return true;
     }
 
@@ -324,7 +357,8 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           roleId: currentRole?.id || boardId, 
           candidateId: activeCandId,
           upstreamNodeIds,
-          clientUpstreamOutputs
+          clientUpstreamOutputs,
+          existingAgentRoles: Object.values(layers).map((l: any) => l.agentRole).filter(Boolean)
         })
       });
 
@@ -344,6 +378,41 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('candidateChanged'));
+        }
+
+        // Auto-branching triggers on step completion
+        if (Array.isArray(data.autoBranchActions) && data.autoBranchActions.length > 0) {
+          const freshLayers = useBoardStore.getState().layers;
+          const currentLayer = freshLayers[layerId];
+          for (const action of data.autoBranchActions) {
+            if (action.action === 'CREATE_NODE' && action.targetRole) {
+              const alreadyExists = Object.values(useBoardStore.getState().layers).some((l: any) => l.agentRole === action.targetRole);
+              if (!alreadyExists) {
+                const posX = (currentLayer?.x ?? 400) + 320;
+                const posY = (currentLayer?.y ?? 100);
+                const newId = insertLayer(
+                  LayerType.Agent,
+                  { x: posX, y: posY },
+                  { r: 255, g: 255, b: 255 },
+                  undefined,
+                  action.targetRole
+                );
+                insertEdge(layerId, newId);
+                if (action.prompt) {
+                  useBoardStore.getState().setInspectedNodeId(newId);
+                  setConnectionNotice({
+                    tone: 'ok',
+                    message: `${action.prompt} for ${personLabel(notePeopleRef.current, activeCandId)}.`,
+                  });
+                }
+                if (action.autoRun) {
+                  setTimeout(() => {
+                    handleRunSingleAgent(newId, activeCandId);
+                  }, 200);
+                }
+              }
+            }
+          }
         }
         return true;
       } else {

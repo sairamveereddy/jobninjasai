@@ -14,24 +14,26 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     let extractedText = '';
 
-    let pdfParse: any = null;
     try {
-      pdfParse = require('pdf-parse');
-    } catch (e) {
-      console.warn('pdf-parse failed to load, falling back to text parsing');
+      const pdfPkg: any = require('pdf-parse');
+      if (typeof pdfPkg === 'function') {
+        const pdfData = await pdfPkg(buffer);
+        extractedText = pdfData?.text || '';
+      } else if (pdfPkg?.PDFParse) {
+        const parser = new pdfPkg.PDFParse({ data: buffer });
+        const pdfData = await parser.getText();
+        extractedText = pdfData?.text || '';
+      }
+    } catch (e: any) {
+      console.warn('pdf-parse fallback:', e?.message);
     }
 
-    if (file.type === 'application/pdf' && pdfParse) {
-      try {
-        const pdfData = await pdfParse(buffer);
-        extractedText = pdfData?.text || '';
-      } catch (parseErr) {
-        console.warn('PDF parsing error, falling back to buffer string:', parseErr);
-        extractedText = buffer.toString('utf-8');
-      }
-    } else {
+    if (!extractedText) {
       extractedText = buffer.toString('utf-8');
     }
+
+    // Strip null bytes and non-printable control chars that break Postgres UTF8 storage
+    extractedText = extractedText.replace(/\0/g, '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ' ').trim();
 
     const updatedCandidate = await prisma.candidate.update({
       where: { id: candidateId },

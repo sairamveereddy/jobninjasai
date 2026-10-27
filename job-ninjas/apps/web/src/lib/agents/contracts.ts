@@ -27,6 +27,9 @@ export const DATA_TYPE_LABELS: Record<string, string> = {
   resumeText: 'Resume',
   transcript: 'Transcript',
   ConciergeItinerary: 'Travel itinerary',
+  OfferDraft: 'Offer draft',
+  RejectionDraft: 'Rejection draft',
+  OnboardingHandoff: 'Onboarding handoff',
 };
 
 /** Types that may legally flow into each other. */
@@ -597,6 +600,12 @@ export function summarizeAgentOutput(agentRole: string | undefined, output: any)
       return output.fullName ? `Profile · ${output.fullName}` : 'Candidate profile ready';
     case 'agent-interview-plan':
       return `${output.sections?.length || 0} sections · ${output.durationMinutes || 60}m`;
+    case 'agent-offer-draft':
+      return output.baseSalary ? `Offer: ${output.baseSalary}` : 'Offer draft ready';
+    case 'agent-rejection-draft':
+      return output.subject ? `Update: ${output.subject}` : 'Rejection draft ready';
+    case 'agent-onboarding-handoff':
+      return Array.isArray(output.checklist) ? `Onboarding · ${output.checklist.length} tasks` : 'Onboarding plan ready';
     default:
       return 'Result ready';
   }

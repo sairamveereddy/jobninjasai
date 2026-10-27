@@ -10,6 +10,9 @@ import { ScreenScoreAgent } from './implementations/screen-score';
 import { OutreachDraftAgent } from './implementations/outreach-draft';
 import { InterviewScheduleAgent } from './implementations/interview-schedule';
 import { ShortlistAgent } from './implementations/shortlist';
+import { OfferDraftAgent } from './implementations/offer-draft';
+import { RejectionDraftAgent } from './implementations/rejection-draft';
+import { OnboardingHandoffAgent } from './implementations/onboarding-handoff';
 
 export const AgentRegistry: Record<string, AgentDefinition> = {
   'agent-jd-parser': JdParserAgent,
@@ -45,4 +48,13 @@ export const AgentRegistry: Record<string, AgentDefinition> = {
   
   'agent-concierge': CandidateConciergeAgent,
   'candidate-concierge': CandidateConciergeAgent,
+
+  'agent-offer-draft': OfferDraftAgent,
+  'offer-draft': OfferDraftAgent,
+
+  'agent-rejection-draft': RejectionDraftAgent,
+  'rejection-draft': RejectionDraftAgent,
+
+  'agent-onboarding-handoff': OnboardingHandoffAgent,
+  'onboarding-handoff': OnboardingHandoffAgent,
 };

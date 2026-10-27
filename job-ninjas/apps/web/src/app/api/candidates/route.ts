@@ -132,13 +132,41 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const data = await req.json();
-    const { id, firstName, lastName, email, location, resumeText, resumeUrl, stage, travelBudget } = data;
+    const { id: rawId, candidateId, firstName, lastName, email, location, resumeText, resumeUrl, stage, travelBudget, transcriptText } = data;
+    const id = rawId || candidateId;
 
     if (!id) {
       return NextResponse.json(
         { success: false, error: 'Candidate ID is required' },
         { status: 400 }
       );
+    }
+
+    if (transcriptText) {
+      const cand = await prisma.candidate.findUnique({ where: { id } });
+      if (cand) {
+        const existingInterview = await prisma.interview.findFirst({
+          where: { candidateId: id, roleId: cand.roleId },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (existingInterview) {
+          await prisma.interview.update({
+            where: { id: existingInterview.id },
+            data: { transcriptText, status: 'COMPLETED' },
+          });
+        } else {
+          await prisma.interview.create({
+            data: {
+              candidateId: id,
+              roleId: cand.roleId,
+              round: 'Round 1',
+              type: 'Interview Screen',
+              transcriptText,
+              status: 'COMPLETED',
+            },
+          });
+        }
+      }
     }
 
     const updated = await prisma.candidate.update({

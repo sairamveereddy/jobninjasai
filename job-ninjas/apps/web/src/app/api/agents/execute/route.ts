@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { AgentRegistry } from '@/lib/agents/registry';
 import { AgentContext } from '@/lib/agents/types';
 import { applyArtifactAliases, explainMissingInputs } from '@/lib/agents/contracts';
+import { getMiniStorage, writeMiniStorage, evaluateAutoBranchTriggers } from '@/lib/agents/mini-storage';
 
 export async function POST(request: Request) {
   const startTime = Date.now();

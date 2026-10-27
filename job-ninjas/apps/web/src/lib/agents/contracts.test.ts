@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { evaluateAutoBranchTriggers } from './mini-storage';
 import { LayerType } from '../../types/canvas';
 import {
   activityLine,
@@ -242,5 +243,81 @@ assert.equal(jobDescriptionText({
   file: { type: LayerType.Slide, docKind: 'jd', value: 'Senior_JD.pdf', fileName: 'Senior_JD.pdf' },
 }), '');
 assert.match(conciergeToParser.message, /To fix this/);
+
+
+// Expanded working agents contract validation
+const decisionToOffer = validateConnection(agent('agent-decision'), agent('agent-offer-draft'));
+assert.equal(decisionToOffer.ok, true);
+assert.ok(decisionToOffer.carries.includes('Hiring recommendation'));
+
+const decisionToRejection = validateConnection(agent('agent-decision'), agent('agent-rejection-draft'));
+assert.equal(decisionToRejection.ok, true);
+
+const offerToOnboarding = validateConnection(agent('agent-offer-draft'), agent('agent-onboarding-handoff'));
+assert.equal(offerToOnboarding.ok, true);
+assert.ok(offerToOnboarding.carries.includes('Offer draft'));
+
+const scheduleToTranscript = validateConnection(agent('agent-schedule'), agent('input-transcript'));
+assert.equal(scheduleToTranscript.ok, true);
+assert.ok(scheduleToTranscript.carries.includes('Interview slots'));
+
+const transcriptToAnalysis = validateConnection(agent('input-transcript'), agent('agent-interview-analysis'));
+assert.equal(transcriptToAnalysis.ok, true);
+assert.ok(transcriptToAnalysis.carries.includes('Transcript'));
+
+// Summaries for expanded working agents
+assert.equal(summarizeAgentOutput('agent-offer-draft', { baseSalary: '$190,000 / year' }), 'Offer: $190,000 / year');
+assert.equal(summarizeAgentOutput('agent-rejection-draft', { subject: 'Update on Engineering Role' }), 'Update: Update on Engineering Role');
+assert.equal(summarizeAgentOutput('agent-onboarding-handoff', { checklist: [{}, {}, {}] }), 'Onboarding · 3 tasks');
+
+// Auto-branching showcase path triggers
+const scheduleTriggers = evaluateAutoBranchTriggers({
+  completedAgentRole: 'agent-schedule',
+  nodeId: 'sched-1',
+  output: { slots: [] },
+  existingAgentRoles: ['agent-schedule'],
+});
+assert.equal(scheduleTriggers.length, 1);
+assert.equal(scheduleTriggers[0].action, 'CREATE_NODE');
+assert.equal(scheduleTriggers[0].targetRole, 'input-transcript');
+assert.match(scheduleTriggers[0].prompt || '', /transcript/i);
+
+const transcriptTriggers = evaluateAutoBranchTriggers({
+  completedAgentRole: 'input-transcript',
+  nodeId: 'trans-1',
+  output: 'Candidate interview dialogue',
+  existingAgentRoles: ['agent-schedule', 'input-transcript'],
+});
+assert.equal(transcriptTriggers.length, 1);
+assert.equal(transcriptTriggers[0].targetRole, 'agent-interview-analysis');
+assert.equal(transcriptTriggers[0].autoRun, true);
+
+const analysisTriggers = evaluateAutoBranchTriggers({
+  completedAgentRole: 'agent-interview-analysis',
+  nodeId: 'analysis-1',
+  output: { technicalScore: 9 },
+  existingAgentRoles: ['agent-schedule', 'input-transcript', 'agent-interview-analysis'],
+});
+assert.equal(analysisTriggers.length, 1);
+assert.equal(analysisTriggers[0].targetRole, 'agent-decision');
+assert.equal(analysisTriggers[0].autoRun, true);
+
+const decisionTriggersHire = evaluateAutoBranchTriggers({
+  completedAgentRole: 'agent-decision',
+  nodeId: 'dec-1',
+  output: { recommendation: 'STRONG_HIRE' },
+  existingAgentRoles: ['agent-schedule', 'input-transcript', 'agent-interview-analysis', 'agent-decision'],
+});
+assert.equal(decisionTriggersHire.length, 1);
+assert.equal(decisionTriggersHire[0].targetRole, 'agent-offer-draft');
+
+const decisionTriggersNoHire = evaluateAutoBranchTriggers({
+  completedAgentRole: 'agent-decision',
+  nodeId: 'dec-1',
+  output: { recommendation: 'NO_HIRE' },
+  existingAgentRoles: ['agent-schedule', 'input-transcript', 'agent-interview-analysis', 'agent-decision'],
+});
+assert.equal(decisionTriggersNoHire.length, 1);
+assert.equal(decisionTriggersNoHire[0].targetRole, 'agent-rejection-draft');
 
 console.log(`contracts ok (${plan.edges.length} scaffold edges, ${full.edges.length} full-loop edges)`);

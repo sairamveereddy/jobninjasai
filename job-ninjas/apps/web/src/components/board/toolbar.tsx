@@ -5,7 +5,7 @@ import {
   MousePointer2, LayoutTemplate, Square, Circle, Type, Bot, Pen, ArrowUpRight, 
   StickyNote, Briefcase, MessageSquare, FileText, Image as ImageIcon,
   Database, Building, Plug, ShieldCheck, Presentation,
-  PlaneTakeoff, UserCheck, ScanText, FileSearch, ClipboardCheck, Mail, CalendarClock, ListChecks
+  PlaneTakeoff, UserCheck, ScanText, FileSearch, ClipboardCheck, Mail, CalendarClock, ListChecks, Award
 } from "lucide-react";
 import { CanvasMode, LayerType } from "@/types/canvas";
 import { plainLanguage } from "@/lib/agents/contracts";
@@ -31,6 +31,9 @@ export const NODE_CATEGORIES = [
       { icon: Bot, label: "Hiring Recommendation", role: "agent-decision", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
       { icon: Bot, label: "Resume Intelligence", role: "agent-resume", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
       { icon: PlaneTakeoff, label: "Candidate Concierge", role: "agent-concierge", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
+      { icon: Award, label: "Offer & Comp Draft", role: "agent-offer-draft", color: "text-emerald-700", bg: "bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300" },
+      { icon: Mail, label: "Rejection Draft", role: "agent-rejection-draft", color: "text-rose-700", bg: "bg-rose-100 dark:bg-rose-900/30 dark:text-rose-300" },
+      { icon: ListChecks, label: "Onboarding Handoff", role: "agent-onboarding-handoff", color: "text-teal-700", bg: "bg-teal-100 dark:bg-teal-900/30 dark:text-teal-300" },
     ]
   },
   {
