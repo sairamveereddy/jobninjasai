@@ -14,7 +14,7 @@ import {
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDemoStore } from "@/lib/store";
 import { getNodeSpec, NodeDescription } from "@/lib/agents/node-specs";
-import { collectUpstreamOutputs, dataTypeLabel, defaultInspectorTab, isSharedStep, localRunBlockers, outputForCandidate, plainLanguage, portsCompatible, summarizeAgentOutput } from "@/lib/agents/contracts";
+import { collectUpstreamOutputs, dataTypeLabel, defaultInspectorTab, isSharedStep, localRunBlockers, outputForCandidate, plainLanguage, portsCompatible, recommendationPresentation, summarizeAgentOutput } from "@/lib/agents/contracts";
 import { AgentIoCard } from "./agent-io-card";
 import { ArtifactSheet, artifactKind, artifactTitle } from "./artifact-sheet";
 import { markCandidateRun, recordCandidateRun, saveResultEdit } from "./result-edits";
@@ -375,6 +375,11 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
     layer as { agentRole?: string; outputData?: unknown },
     isSharedStep((layer as { agentRole?: string }).agentRole) ? undefined : activeCandidateId,
   );
+  const stepRole = (layer as { agentRole?: string }).agentRole;
+  const forThisPerson = !!stepRole?.startsWith("agent-") && !isSharedStep(stepRole);
+  const scopedError = forThisPerson
+    ? ((layer as { config?: { errorsByCandidate?: Record<string, string> } }).config?.errorsByCandidate?.[activeCandidateId || ""] || "")
+    : (layer.status === "error" ? ((layer as { errorDetails?: string }).errorDetails || "Something went wrong. Check the person, the resume, and the steps connected in front of this one.") : "");
   const executionTimeSec = (layer as any).executionTimeMs ? ((layer as any).executionTimeMs / 1000).toFixed(2) + 's' : null;
 
   return (
@@ -785,7 +790,7 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                   </span>
                   {Object.keys(clientUpstreamOutputs).length === 0 ? (
                     <div className="text-xs text-slate-400 py-3 text-center border border-dashed border-slate-200 rounded-lg">
-                      No previous step outputs yet. Run upstream nodes to pass data here.
+                      Nothing from earlier steps for this person yet. Run the previous step, then come back.
                     </div>
                   ) : (
                     Object.entries(clientUpstreamOutputs).map(([key, val]) => (
@@ -982,14 +987,14 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
             </div>
 
             {/* Error Display */}
-            {layer.status === 'error' && (
+            {scopedError && (
               <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-rose-800 font-bold text-xs">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                   This step needs a fix
                 </div>
                 <p className="text-sm text-rose-800 font-sans leading-relaxed bg-white/70 p-3 rounded-lg border border-rose-100">
-                  {(layer as any).errorDetails || 'Something went wrong. Check the person, the resume, and the steps connected in front of this one.'}
+                  {scopedError}
                 </p>
                 {executionOutput && (
                   <p className="text-xs text-slate-600">Last result: {summarizeAgentOutput((layer as { agentRole?: string }).agentRole, executionOutput)}</p>
@@ -998,7 +1003,7 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                   onClick={handleRunAgent}
                   className="self-start mt-1 text-xs font-bold text-rose-800 hover:text-rose-950 flex items-center gap-1"
                 >
-                  <RefreshCw className="w-3 h-3" /> Retry Evaluation
+                  <RefreshCw className="w-3 h-3" /> Run this step again
                 </button>
               </div>
             )}
@@ -1101,15 +1106,15 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                       {/* Overall recommendation badge */}
                       <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                         <div>
-                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Interviewer Recommendation</p>
-                          <p className="text-xl font-black text-slate-800">{executionOutput.recommendation || 'ADVANCE'}</p>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Interview signal</p>
+                          <p className="text-xl font-black text-slate-800">{(executionOutput.overallRecommendation || executionOutput.recommendation) ? recommendationPresentation(executionOutput.overallRecommendation || executionOutput.recommendation).title : 'No signal yet'}</p>
                         </div>
                         <span className={`px-3 py-1.5 rounded-xl font-bold text-xs ${
-                          executionOutput.recommendation === 'REJECT' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                          executionOutput.recommendation === 'HOLD' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                          recommendationPresentation(executionOutput.overallRecommendation || executionOutput.recommendation).tone === 'no' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          recommendationPresentation(executionOutput.overallRecommendation || executionOutput.recommendation).tone === 'maybe' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
                           'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         }`}>
-                          {executionOutput.recommendation || 'ADVANCE TO NEXT ROUND'}
+                          {(executionOutput.overallRecommendation || executionOutput.recommendation) ? recommendationPresentation(executionOutput.overallRecommendation || executionOutput.recommendation).title : 'No signal yet'}
                         </span>
                       </div>
 
@@ -1162,29 +1167,29 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                       <div className="p-5 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hiring Committee Verdict</p>
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hiring recommendation</p>
                             <h3 className="text-2xl font-black text-slate-900 mt-0.5">
-                              {executionOutput.decision || executionOutput.finalDecision || 'HIRE'}
+                              {recommendationPresentation(executionOutput.recommendation).title}
                             </h3>
                           </div>
-                          <div className="text-right">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Confidence</p>
-                            <p className="text-xl font-black text-indigo-600">{executionOutput.confidence || '92'}%</p>
-                          </div>
+                          {typeof executionOutput.confidence === 'number' && (
+                            <div className="text-right">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase">Confidence</p>
+                              <p className="text-xl font-black text-indigo-600">{executionOutput.confidence}%</p>
+                            </div>
+                          )}
                         </div>
 
-                        {executionOutput.justification && (
+                        {(executionOutput.rationale || executionOutput.justification) && (
                           <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed">
-                            {executionOutput.justification}
+                            {executionOutput.rationale || executionOutput.justification}
                           </div>
                         )}
 
-                        {executionOutput.nextSteps && (
-                          <div className="flex flex-col gap-1">
-                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Recommended Next Action</p>
-                            <p className="text-xs font-semibold text-slate-800">{executionOutput.nextSteps}</p>
-                          </div>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Next step</p>
+                          <p className="text-xs font-semibold text-slate-800">{executionOutput.nextSteps || recommendationPresentation(executionOutput.recommendation).nextStep}</p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1257,11 +1262,11 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                   <pre>{JSON.stringify(executionOutput, null, 2)}</pre>
                 </div>
               )
-            ) : layer.status !== 'error' && (
+            ) : !scopedError && (
               <div className="p-8 text-center bg-white rounded-xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
                 <Sparkles className="w-8 h-8 text-slate-300" />
                 <p className="text-xs font-bold text-slate-700">No result on this step yet</p>
-                <p className="text-[11px] text-slate-400 max-w-xs">
+                <p className="text-[11px] text-slate-600 max-w-xs">
                   {activeCandidateId
                     ? 'No result for the selected person yet. Run this step for them. Another person’s result stays on their row in This role.'
                     : 'Select a person in This role, then run this step.'}

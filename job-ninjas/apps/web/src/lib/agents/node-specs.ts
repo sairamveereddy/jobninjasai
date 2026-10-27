@@ -68,7 +68,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-violet-600',
     bg: 'bg-violet-50 border-violet-200',
     inputs: [
-      { name: 'Scorecard', type: 'Scorecard', artifactType: 'ResumeAnalysis', description: 'Screening scorecard or resume analysis. Connect Screen and score or Resume Intelligence.', required: true, source: 'edge' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'ResumeAnalysis', description: 'Screening scorecard or resume analysis. Connect Screen & Score or Resume Intelligence.', required: true, source: 'edge' },
       { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'Role the interview is hiring for.', required: true, source: 'board' },
     ],
     outputs: [
@@ -235,7 +235,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
 
   'agent-screen': {
     role: 'agent-screen',
-    displayName: 'Screen and Score',
+    displayName: 'Screen & Score',
     subtitle: 'Writes a scorecard for one candidate',
     description: 'Compares a resume or candidate profile to the parsed job and returns a scorecard: match score, strengths, gaps, and advance / hold / reject.',
     category: 'agent',
@@ -261,7 +261,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     color: 'text-emerald-700',
     bg: 'bg-emerald-50 border-emerald-200',
     inputs: [
-      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Connect Screen and score or Resume Intelligence.', required: true, source: 'edge' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Connect Screen & Score or Resume Intelligence.', required: true, source: 'edge' },
     ],
     outputs: [
       { name: 'Shortlist', type: 'Shortlist', artifactType: 'Shortlist', description: 'Whether this person moves forward, and why.' },
@@ -272,7 +272,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
 
   'agent-outreach': {
     role: 'agent-outreach',
-    displayName: 'Outreach Draft',
+    displayName: 'Outreach',
     subtitle: 'Writes the email you send',
     description: 'Drafts a recruiting email for the active candidate using the role and, when connected, the scorecard or candidate profile. You send it.',
     category: 'agent',

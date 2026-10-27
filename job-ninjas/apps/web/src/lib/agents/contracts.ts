@@ -83,7 +83,7 @@ export const HIRING_STAGES: HiringStage[] = [
   },
   {
     id: 'screen',
-    label: 'Screen and score',
+    label: 'Screen & Score',
     detail: 'Scores each person against this role and writes a scorecard.',
     agent: 'agent-screen',
   },
@@ -95,7 +95,7 @@ export const HIRING_STAGES: HiringStage[] = [
   },
   {
     id: 'outreach',
-    label: 'Draft outreach',
+    label: 'Outreach',
     detail: 'Writes the email you send to people you want to talk to.',
     agent: 'agent-outreach',
   },
@@ -194,11 +194,11 @@ function suggestConnection(role: string | undefined, needed: string[]): string {
     case 'agent-screen':
       return 'Connect the Resume step, or attach a resume to the selected candidate.';
     case 'agent-interview-plan':
-      return 'Connect Screen and score or Shortlist. This step needs a scorecard.';
+      return 'Connect Screen & Score or Shortlist. This step needs a scorecard.';
     case 'agent-outreach':
       return 'Pick a candidate on this role. A scorecard from Screen or Shortlist is optional.';
     case 'agent-shortlist':
-      return 'Connect Screen and score and run it first.';
+      return 'Connect Screen & Score and run it first.';
     default:
       return `Connect a step that sends ${need}.`;
   }
@@ -515,15 +515,15 @@ export function plainLanguage(role?: string): string {
 
 const MISSING_INPUT_HELP: Record<string, string> = {
   InterviewPlan: 'Connect Interview Planning and run it first. This step needs an interview plan, not a resume.',
-  Scorecard: 'Connect Screen and score, run it for this candidate, then try again.',
-  ResumeAnalysis: 'Connect Screen and score or Resume Intelligence and run it first.',
+  Scorecard: 'Connect Screen & Score, run it for this person, then try again.',
+  ResumeAnalysis: 'Connect Screen & Score or Resume Intelligence and run it first.',
   InterviewAnalysis: 'Connect Interview Analysis, paste a transcript, run that step, then open Hiring Recommendation.',
   Transcript: 'Open the Transcript step, paste what was said in the interview, and connect it. Agents do not read sticky notes.',
   CandidateDecision: 'Connect Hiring Recommendation and run it first.',
   ParsedJD: 'Connect JD Parser and run it, or rely on the job description saved on this role.',
   Resume: 'Attach a resume to the selected candidate, or connect the Resume step.',
   JobDescription: 'Add a job description in role setup.',
-  EmailDraft: 'Connect Outreach Draft and run it first.',
+  EmailDraft: 'Connect Outreach and run it first.',
   InterviewSlots: 'Connect Interview Schedule and run it first.',
   Shortlist: 'Connect Shortlist and run it first.',
 };
@@ -608,8 +608,8 @@ export function recommendationPresentation(recommendation?: string): { title: st
   if (key === 'STRONG_HIRE') {
     return { title: 'Strong yes', tone: 'yes', nextStep: 'Next: start the offer conversation, or set a final chat with the hiring manager.' };
   }
-  if (key === 'HIRE') {
-    return { title: 'Yes', tone: 'yes', nextStep: 'Next: start the offer conversation, or set a final chat with the hiring manager.' };
+  if (key === 'HIRE' || key === 'LEAN_HIRE') {
+    return { title: key === 'LEAN_HIRE' ? 'Lean yes' : 'Yes', tone: key === 'LEAN_HIRE' ? 'maybe' : 'yes', nextStep: key === 'LEAN_HIRE' ? 'Next: book one more interview on the open questions before you decide.' : 'Next: start the offer conversation, or set a final chat with the hiring manager.' };
   }
   if (key === 'NEEDS_REVIEW' || key === 'MAYBE' || key === 'HOLD') {
     return { title: 'Maybe', tone: 'maybe', nextStep: 'Next: book one more interview on the open questions before you decide.' };

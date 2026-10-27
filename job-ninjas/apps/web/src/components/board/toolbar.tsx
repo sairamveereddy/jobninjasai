@@ -28,14 +28,14 @@ export const NODE_CATEGORIES = [
     ]
   },
   {
-    category: "Real AI Agents",
+    category: "Hiring agents",
     items: [
       { icon: Bot, label: "Resume Intelligence", role: "agent-resume", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
       { icon: ScanText, label: "JD Parser", role: "agent-jd-parser", color: "text-sky-700", bg: "bg-sky-100 dark:bg-sky-900/30 dark:text-sky-300" },
       { icon: FileSearch, label: "Resume Parser", role: "agent-resume-parser", color: "text-cyan-700", bg: "bg-cyan-100 dark:bg-cyan-900/30 dark:text-cyan-300" },
-      { icon: ClipboardCheck, label: "Screen and Score", role: "agent-screen", color: "text-indigo-700", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300" },
+      { icon: ClipboardCheck, label: "Screen & Score", role: "agent-screen", color: "text-indigo-700", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300" },
       { icon: ListChecks, label: "Shortlist", role: "agent-shortlist", color: "text-emerald-700", bg: "bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300" },
-      { icon: Mail, label: "Outreach Draft", role: "agent-outreach", color: "text-fuchsia-700", bg: "bg-fuchsia-100 dark:bg-fuchsia-900/30 dark:text-fuchsia-300" },
+      { icon: Mail, label: "Outreach", role: "agent-outreach", color: "text-fuchsia-700", bg: "bg-fuchsia-100 dark:bg-fuchsia-900/30 dark:text-fuchsia-300" },
       { icon: Bot, label: "Interview Planning", role: "agent-interview-plan", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
       { icon: CalendarClock, label: "Interview Schedule", role: "agent-schedule", color: "text-violet-700", bg: "bg-violet-100 dark:bg-violet-900/30 dark:text-violet-300" },
       { icon: Bot, label: "Interview Analysis", role: "agent-interview-analysis", color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400" },
@@ -239,7 +239,7 @@ export const Toolbar = ({ canvasState, setCanvasState, onOpenTemplates }: Toolba
           
           {activeMenu === 'agents' && (
             <div className="absolute left-full bottom-0 ml-2 bg-card shadow-xl border border-border rounded-xl p-2 flex flex-col gap-1 w-80 max-h-[80vh] overflow-y-auto scrollbar-thin animate-in fade-in slide-in-from-left-2">
-              <div className="text-xs font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider mb-1 sticky top-0 bg-card z-10">Workflow Nodes</div>
+              <div className="text-xs font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider mb-1 sticky top-0 bg-card z-10">Hiring steps</div>
               {NODE_CATEGORIES.map((group) => (
                 <div key={group.category} className="mb-2">
                   <div className="text-[10px] font-bold text-muted-foreground/70 px-2 py-1 uppercase tracking-wider">

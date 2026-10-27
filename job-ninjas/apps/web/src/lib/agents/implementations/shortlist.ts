@@ -10,7 +10,7 @@ export const ShortlistAgent: AgentDefinition = {
   execute: async (context) => {
     const scorecard = context.upstreamOutputs?.Scorecard || context.upstreamOutputs?.ResumeAnalysis;
     if (!scorecard) {
-      throw new Error('Scorecard required. Connect Screen and score, or Resume Intelligence, and run it first.');
+      throw new Error('Scorecard required. Connect Screen & Score, or Resume Intelligence, and run it first.');
     }
 
     const decision = await generateStructuredOutput({

@@ -196,8 +196,9 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
       )}
       {roleId && !wizardOpen && !layerIds.some((id) => layers[id]?.type === LayerType.Agent) && (
         <div className="absolute left-1/2 top-[34%] z-30 w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-white/10 bg-[#111214]/95 p-4 text-white shadow-xl">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">Start this role</p>
-          <p className="mt-1 text-sm text-[#b1b3b8]">Pick a hiring template. You still name the job before the steps are placed.</p>
+          <p className="text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">This role</p>
+          <p className="mt-1 text-sm text-white">No hiring pipeline yet</p>
+          <p className="mt-1 text-sm text-[#b1b3b8]">Pick a template and name the job. Then add a person in This role and run the steps. Nothing is scored until someone is selected.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {PIPELINE_TEMPLATES.map((template) => (
               <button

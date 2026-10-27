@@ -229,7 +229,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   const [isMcpPanelOpen, setIsMcpPanelOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleRunSingleAgent = async (layerId: string): Promise<boolean> => {
+  const handleRunSingleAgent = async (layerId: string, lockedCandidateId?: string): Promise<boolean> => {
     const store = useBoardStore.getState();
     const layers = store.layers;
     const edges = store.edges;
@@ -279,7 +279,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
        return true;
     }
 
-    const activeCandIdEarly = typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') || '' : '';
+    const activeCandIdEarly = lockedCandidateId !== undefined
+      ? lockedCandidateId
+      : (typeof window !== 'undefined' ? window.localStorage.getItem('activeCandidateId') || '' : '');
     const collected = collectUpstreamOutputs(layers, Object.values(edges), layerId, activeCandIdEarly);
     const upstreamNodeIds = collected.upstreamNodeIds;
     const clientUpstreamOutputs = collected.outputs;
@@ -594,6 +596,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       state.setConnectionNotice({ tone: 'error', message: 'Select a person on this role, then run the pipeline. Every step scores whoever is selected.' });
       return;
     }
+    const startedName = personLabel(notePeopleRef.current, candId);
     stopPipelineRef.current = false;
     setIsRunning(true);
     const failed = new Set<string>();
@@ -614,7 +617,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         failed.add(currentId);
         continue;
       }
-      const success = await handleRunSingleAgent(currentId);
+      const success = await handleRunSingleAgent(currentId, candId);
       if (stopPipelineRef.current) {
         stopped = true;
         break;
@@ -627,11 +630,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     const notice = useBoardStore.getState().setConnectionNotice;
     if (stopped) {
       pushActivity(candId, 'Pipeline stopped');
-      notice({ tone: 'ok', message: 'Pipeline stopped. Earlier results for this person stay on the steps.' });
+      notice({ tone: 'ok', message: `Pipeline stopped for ${startedName}. Earlier results stay on the steps.` });
     } else if (failed.size) {
-      notice({ tone: 'error', message: `${failed.size} step${failed.size === 1 ? '' : 's'} need a fix. Read the message on the step. Earlier results stay where they are.` });
+      notice({ tone: 'error', message: `${failed.size} step${failed.size === 1 ? '' : 's'} need a fix for ${startedName}. Read the message on the step. Earlier results stay where they are.` });
     } else {
-      notice({ tone: 'ok', message: 'Pipeline finished for the selected person. Their results stay on the steps when you switch people.' });
+      notice({ tone: 'ok', message: `Pipeline finished for ${startedName}. Their results stay on the steps when you switch people.` });
     }
     if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('candidateChanged'));
   };
@@ -686,7 +689,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const active = document.activeElement;
-      if (active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.closest('[role="dialog"]') || document.querySelector('[role="dialog"]')) return;
+      if (presentationMode.active || active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.closest('[role="dialog"]') || document.querySelector('[role="dialog"]')) return;
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const selected = selections['local-user'];
         if (selected && selected.length > 0) {
@@ -706,7 +709,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selections, deleteLayers, deleteEdge, setSelection, layerIds, edgeIds]);
+  }, [selections, deleteLayers, deleteEdge, setSelection, layerIds, edgeIds, presentationMode.active]);
 
   const onWheel = useCallback((e: React.WheelEvent) => {
     e.stopPropagation();
@@ -1244,22 +1247,25 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                       </button>
                     )}
 
-                    {layer.agentRole?.startsWith('agent-') && (
+                    {layer.agentRole?.startsWith('agent-') && (() => {
+                      const runningHere = layer.status === 'running' && (isSharedStep(layer.agentRole) || !layer.config?.lastRunCandidateId || layer.config.lastRunCandidateId === activeCandidateId);
+                      return (
                       <button 
                         type="button"
-                        aria-label="Test this step"
+                        aria-label="Run this step for the selected person"
                         onClick={(e) => { 
                           e.stopPropagation(); 
                           handleRunSingleAgent(layerId); 
                         }}
-                        disabled={layer.status === 'running'}
+                        disabled={runningHere}
                         className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 pointer-events-auto cursor-pointer"
-                        title="Test step"
+                        title="Run this step for the selected person"
                       >
-                        {layer.status === 'running' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />}
-                        Test step
+                        {runningHere ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />}
+                        Run step
                       </button>
-                    )}
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1584,14 +1590,12 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       >
       
       {/* === FEATURE 1.5: Blank Canvas Onboarding === */}
-      {layerIds.length === 0 && !isDragOver && (
+      {boardId === 'new-workflow' && layerIds.length === 0 && !isDragOver && (
         <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-4 text-slate-400">
-            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center">
-              <Plus className="w-8 h-8 text-slate-300" />
-            </div>
-            <p className="text-xl font-bold text-slate-300">No pipeline on this role yet</p>
-            <p className="text-sm max-w-sm text-center px-4">Pick a hiring template for this job. Add people from This role, then run the steps. Sticky notes stay with your team.</p>
+          <div className="flex max-w-sm flex-col items-center gap-3 rounded-lg border border-white/10 bg-[#111214] px-6 py-5 text-center shadow-xl">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#8b8fa8]">JobNinjas</p>
+            <p className="text-base font-medium text-white">No hiring pipeline yet</p>
+            <p className="text-sm text-[#b1b3b8]">Add a hiring step from the left, or open a role and start from a template.</p>
           </div>
         </div>
       )}
@@ -1621,7 +1625,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       />
 
       {connectionNotice && (
-        <div className={`absolute top-20 left-1/2 z-[80] flex w-[min(520px,calc(100%-2rem))] -translate-x-1/2 items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-xl ${
+        <div className={`absolute bottom-8 left-1/2 z-[80] flex w-[min(520px,calc(100%-2rem))] -translate-x-1/2 items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-xl ${
           connectionNotice.tone === 'error'
             ? 'border-red-400/40 bg-[#1a1214] text-red-100'
             : 'border-white/10 bg-[#111214] text-white'
@@ -1635,18 +1639,18 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
 
       {/* MCP connectors */}
       {isMcpPanelOpen && (
-        <div className="absolute top-0 right-0 h-full w-80 z-[100] bg-white border-l border-slate-200 shadow-2xl flex flex-col">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50">
+        <div className="absolute top-0 right-0 h-full w-80 z-[100] bg-[#111214] border-l border-white/10 shadow-2xl flex flex-col text-white">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
             <div className="flex items-center gap-2">
-              <Plug className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-slate-800">MCP Connectors</h3>
+              <Plug className="w-5 h-5 text-[#c7c9ff]" />
+              <h3 className="font-medium text-white">Connectors</h3>
             </div>
-            <button onClick={() => setIsMcpPanelOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+            <button type="button" aria-label="Close connectors" onClick={() => setIsMcpPanelOpen(false)} className="text-[#8b8fa8] hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-2">Click to add a connector to the canvas</p>
+            <p className="text-xs text-[#b1b3b8] mb-2">Greenhouse import is in This role. These connectors are not live. Adding one only places a step. It does not sign in or send data.</p>
             {MCP_CONNECTORS.map((conn) => (
               <button
                 key={conn.agentRole}
@@ -1656,20 +1660,20 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
                   insertLayer(LayerType.Agent, { x: cx, y: cy }, { r: 255, g: 255, b: 255 }, undefined, conn.agentRole);
                   setIsMcpPanelOpen(false);
                 }}
-                className="w-full text-left flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all group"
+                className="w-full text-left flex items-start gap-3 p-3 rounded-xl border border-white/10 hover:border-[#5e6ad2] bg-black/20 transition-all group"
               >
                 <div className={`p-2 rounded-lg ${conn.bg} ${conn.color} shrink-0 group-hover:scale-110 transition-transform`}>
                   <conn.icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-800 text-sm">{conn.label}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{conn.desc}</p>
+                  <p className="font-medium text-white text-sm">{conn.label}</p>
+                  <p className="text-xs text-[#b1b3b8] mt-0.5">{conn.desc}</p>
                 </div>
               </button>
             ))}
           </div>
-          <div className="p-4 border-t border-slate-200 bg-slate-50">
-            <p className="text-xs text-slate-400 text-center">More connectors coming soon. Connect via custom MCP API.</p>
+          <div className="p-4 border-t border-white/10">
+            <p className="text-xs text-[#8b8fa8] text-center">Nothing here sends email, books a calendar, or writes back to an ATS.</p>
           </div>
         </div>
       )}
@@ -1702,7 +1706,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2">
             <Workflow className="w-4 h-4 text-indigo-500" />
             <h1 className="font-semibold text-slate-800 text-sm">
-              New AI Workflow
+              New hiring pipeline
             </h1>
           </div>
         </div>

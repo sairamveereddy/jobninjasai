@@ -4,7 +4,7 @@ import { EmailDraftSchema } from '../schemas/email-draft';
 
 export const OutreachDraftAgent: AgentDefinition = {
   id: 'agent-outreach',
-  name: 'Outreach Draft',
+  name: 'Outreach',
   description: 'Writes a recruiter email for one candidate on this role.',
   requiredInputs: [],
   execute: async (context) => {

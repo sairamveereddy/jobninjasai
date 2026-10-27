@@ -328,7 +328,7 @@ export function RoleSurface({
                           ))}
                         </div>
                       ) : active ? (
-                        <p className="mt-1 text-[10px] leading-snug text-[#8b8fa8]">No results yet. Run the pipeline to see a scorecard here.</p>
+                        <p className="mt-1 text-[10px] leading-snug text-[#8b8fa8]">{candidate.resumeText ? "No results yet. Run the pipeline for this person." : "No resume yet, so Screen & Score stays blocked. Attach one, then run the pipeline."}</p>
                       ) : null}
                       <label className="mt-1 inline-block cursor-pointer text-[11px] text-[#c7c9ff]">
                         {candidate.resumeText ? "Replace resume" : "Attach resume"}
@@ -452,4 +452,4 @@ export function RoleSurface({
   );
 }
 
-const fieldClass = "w-full rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-white outline-none placeholder:text-[#707277] focus:border-[#5e6ad2]";
+const fieldClass = "w-full rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-xs text-white outline-none placeholder:text-[#94969c] focus:border-[#5e6ad2]";

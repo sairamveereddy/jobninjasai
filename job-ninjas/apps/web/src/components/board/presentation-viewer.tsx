@@ -19,8 +19,7 @@ export const PresentationViewer: React.FC<PresentationViewerProps> = ({ layers, 
     baseName = baseName.split(' - Slide ')[0];
   }
 
-  // Find all slide layers on the board that belong to this presentation
-  // We sort them by X position to determine slide order (like Miro's horizontal layout)
+  // Find slides from this file and order them left to right.
   const slideLayers = Object.entries(layers)
     .filter(([_, layer]) => layer.type === 7 /* LayerType.Slide */)
     .map(([id, layer]) => ({ id, layer: layer as SlideLayer }))
@@ -72,27 +71,23 @@ export const PresentationViewer: React.FC<PresentationViewerProps> = ({ layers, 
   if (!slideLayers.length) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-black flex flex-col pointer-events-auto">
+    <div className="fixed inset-0 z-[99999] bg-black flex flex-col pointer-events-auto" role="dialog" aria-modal="true" aria-label="JobNinjas presentation">
       {/* Top Header */}
       <div className="absolute top-0 inset-x-0 z-50 h-14 bg-[#111]/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
         <div className="flex items-center gap-4">
           <button onClick={onClose} className="text-slate-400 hover:text-white flex items-center gap-2 text-sm font-medium transition-colors">
-            <X className="w-4 h-4" /> Back to canvas
+            <X className="w-4 h-4" /> Back to this role
           </button>
         </div>
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
           <h3 className="text-white font-medium text-sm">
-            {currentSlide?.fileName || 'Company Presentation'}
+            {currentSlide?.fileName || 'JobNinjas presentation'}
           </h3>
           <span className="text-slate-500 text-xs px-2 py-0.5 bg-white/5 rounded-full">
             Slide {currentIndex + 1} of {slideLayers.length}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-sm font-medium transition-colors">
-            Share
-          </button>
-        </div>
+        <div className="w-24" />
       </div>
 
       {/* Main Content Area */}

@@ -179,6 +179,7 @@ assert.match(jd, /Help customers/);
 assert.equal(extractPortPayloads('input-job-details', jd).JobDescription, jd);
 assert.equal(recommendationPresentation('STRONG_HIRE').title, 'Strong yes');
 assert.equal(recommendationPresentation('HIRE').tone, 'yes');
+assert.equal(recommendationPresentation('LEAN_HIRE').title, 'Lean yes');
 assert.equal(recommendationPresentation('NEEDS_REVIEW').title, 'Maybe');
 assert.match(recommendationPresentation('NO_HIRE').nextStep, /pass note/i);
 assert.equal(defaultInspectorTab({ agentRole: 'agent-screen', status: 'success', outputData: { overallMatch: 80 } }), 'output');
@@ -205,7 +206,7 @@ const leaked = collectUpstreamOutputs(
   'ben',
 );
 assert.equal(leaked.outputs.Scorecard, undefined);
-assert.equal(activityLine('agent-screen', { overallMatch: 82, recommendation: 'ADVANCE' }, true), 'Screen and Score · Scorecard 82 · ADVANCE');
+assert.equal(activityLine('agent-screen', { overallMatch: 82, recommendation: 'ADVANCE' }, true), 'Screen & Score · Scorecard 82 · ADVANCE');
 assert.equal(activityLine('agent-shortlist', null, false), 'Shortlist needs a fix');
 const hidden = collectUpstreamOutputs(
   { screen: ada, plan: { type: LayerType.Agent, agentRole: 'agent-interview-plan' } },

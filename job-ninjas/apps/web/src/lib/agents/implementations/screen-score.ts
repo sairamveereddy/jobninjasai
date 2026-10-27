@@ -4,7 +4,7 @@ import { ScorecardSchema } from '../schemas/scorecard';
 
 export const ScreenScoreAgent: AgentDefinition = {
   id: 'agent-screen',
-  name: 'Screen and Score',
+  name: 'Screen & Score',
   description: 'Scores one candidate against this role and returns a scorecard.',
   requiredInputs: [],
   execute: async (context) => {

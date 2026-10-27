@@ -255,7 +255,7 @@ export function IntakeWizard({
   );
 }
 
-const inputClass = "w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-[#707277] focus:border-[#5e6ad2]";
+const inputClass = "w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-[#94969c] focus:border-[#5e6ad2]";
 
 function chipClass(active: boolean) {
   return `rounded-md border px-3 py-1.5 text-sm ${active ? "border-[#5e6ad2] bg-[#5e6ad2]/20 text-white" : "border-white/10 text-[#b1b3b8] hover:border-white/20"}`;
