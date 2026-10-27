@@ -256,16 +256,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     const upstreamNodeIds = collected.upstreamNodeIds;
     const clientUpstreamOutputs = collected.outputs;
 
-    let activeCandId = activeCandIdEarly;
-    if (!activeCandId) {
-      for (const upId of upstreamNodeIds) {
-        const upLayer = layers[upId] as any;
-        if (upLayer?.config?.candidateId) {
-          activeCandId = upLayer.config.candidateId;
-          break;
-        }
-      }
-    }
+    const activeCandId = activeCandIdEarly;
 
     if (!activeCandId && layer.agentRole !== 'agent-jd-parser') {
       const message = 'Pick a candidate on this role first. Use This role to add someone and attach a resume.';
