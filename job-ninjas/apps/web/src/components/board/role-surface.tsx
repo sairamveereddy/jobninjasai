@@ -192,6 +192,9 @@ export function RoleSurface({
               </div>
             )}
             {formError && <p className="mb-2 text-xs text-red-300">{formError}</p>}
+            {candidates.length > 0 && !candidates.some((candidate) => candidate.id === activeId) && (
+              <p className="mb-2 text-[11px] text-amber-200">Select a person before you run the pipeline. The steps score whoever is selected.</p>
+            )}
             {candidates.length === 0 ? (
               <p className="text-xs text-[#b1b3b8]">No candidates yet. Add a person here, import from Greenhouse, or drop a resume on the board.</p>
             ) : (
