@@ -9,7 +9,7 @@ import { ZoomControls } from './zoom-controls';
 import { LibraryModal } from './library-modal';
 import { getStroke } from 'perfect-freehand';
 import Link from 'next/link';
-import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles, Square } from 'lucide-react';
+import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles, Square , Maximize2 } from 'lucide-react';
 import { getNodeSpec } from '@/lib/agents/node-specs';
 import { collectUpstreamOutputs, dataTypeLabel, documentKind, isSharedStep, jobDescriptionText, localRunBlockers, outputForCandidate, plainLanguage, stepHealth, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
 import { SelectionBox } from './selection-box';
@@ -22,6 +22,7 @@ import { PresentationViewer } from './presentation-viewer';
 import { CandidateConciergeNode } from './candidate-concierge-node';
 import { CandidateNodeBlock } from './candidate-node-block';
 import { BoardHelp } from './board-help';
+import { cleanDocTitle, getPdfViewerSrc } from '@/lib/document-utils';
 import { ArtifactSheet, artifactKind, artifactTitle } from './artifact-sheet';
 import { markCandidateRun, recordCandidateRun, saveResultEdit, settleStoppedRun } from './result-edits';
 
@@ -940,7 +941,14 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         onPointerUp={(e) => onLayerPointerUp(e, layerId)}
         onDoubleClick={(e) => {
           e.stopPropagation();
-          setInspectedNodeId(layerId);
+          if (layer.type === LayerType.Slide || layer.type === LayerType.Image || (layer as any).fileSrc || (layer as any).src) {
+            setPresentationMode({ active: true, layerId });
+            try { document.documentElement.requestFullscreen(); } catch (err) {}
+          } else if (layer.type === LayerType.Agent && artifactKind(layer.agentRole, outputForCandidate(layer, isSharedStep(layer.agentRole) ? undefined : activeCandidateId))) {
+            setOpenResultId(layerId);
+          } else {
+            setInspectedNodeId(layerId);
+          }
         }}
       >
         {layer.type === LayerType.Slide && (
@@ -953,62 +961,89 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           >
             <div 
               className={`w-full h-full flex flex-col ${
-                isSelected ? 'ring-2 ring-indigo-500' : 'ring-1 ring-slate-300'
-              } bg-transparent pointer-events-none rounded-xl relative`}
-            >
-              <div className="absolute -top-12 left-0 flex items-center gap-2 pointer-events-auto">
-                <div 
-                  className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors group/play"
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    if ((layer as any).fileSrc) {
-                      setPresentationMode({ active: true, layerId });
-                      try { document.documentElement.requestFullscreen(); } catch(e) {}
-                    }
-                  }}
-                >
-                  <Play className={`w-4 h-4 ${(layer as any).fileSrc ? 'text-indigo-600 fill-indigo-600 group-hover/play:scale-110' : 'text-slate-400'} transition-transform`} />
-                  <span className="text-sm font-semibold text-slate-700">{(layer as any).fileName || layer.value || 'Slide / Presentation'}</span>
-                </div>
-              </div>
-              
-              <div className="w-full h-full border-2 border-dashed border-slate-300/50 bg-slate-50/80 rounded-xl flex items-center justify-center pointer-events-auto overflow-hidden group/slide" onPointerDown={(e) => {
-                if (!isSelected) {
-                   onLayerPointerDown(e, layerId);
-                } else {
-                   e.stopPropagation(); // allow interacting with contents if selected
+                isSelected ? 'ring-2 ring-indigo-500 shadow-xl' : 'ring-1 ring-slate-300 shadow-md'
+              } bg-white rounded-2xl overflow-hidden relative group/slide`}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                if ((layer as any).fileSrc) {
+                  setPresentationMode({ active: true, layerId });
+                  try { document.documentElement.requestFullscreen(); } catch(err) {}
                 }
-              }}>
+              }}
+            >
+              {/* Card Header inside the node: truncates ugly hashes & provides fullscreen button */}
+              <div className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 border-b border-slate-200 z-10 shrink-0">
+                <div className="flex items-center gap-2 min-w-0 pr-2">
+                  <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 truncate" title={(layer as any).fileName || layer.value || 'Document'}>
+                    {cleanDocTitle((layer as any).fileName || layer.value || 'Document')}
+                  </span>
+                </div>
+                {(layer as any).fileSrc && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPresentationMode({ active: true, layerId });
+                      try { document.documentElement.requestFullscreen(); } catch(err) {}
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold border border-indigo-200 transition-colors shrink-0 cursor-pointer pointer-events-auto"
+                    title="Open fullscreen (Double-click)"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Fullscreen</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Main Content Area */}
+              <div 
+                className="w-full flex-1 bg-slate-100/60 flex items-center justify-center relative overflow-hidden"
+                onPointerDown={(e) => {
+                  if (!isSelected) {
+                    onLayerPointerDown(e, layerId);
+                  } else {
+                    e.stopPropagation();
+                  }
+                }}
+              >
                 {(layer as any).fileSrc ? (
                   <div className="w-full h-full relative flex flex-col items-center justify-center bg-white">
-                    {/* Render Image or iframe for PDF */}
-                    {((layer as any).fileSrc.startsWith('data:image') || (layer as any).fileSrc.match(/\.(jpeg|jpg|gif|png)$/)) ? (
-                       <img src={(layer as any).fileSrc} alt="Presentation Slide" className="w-full h-full object-contain bg-white" />
-                    ) : ((layer as any).fileSrc.startsWith('data:application/pdf') || (layer as any).fileSrc.endsWith('.pdf')) ? (
-                       <iframe src={(layer as any).fileSrc} className="w-full h-full bg-white border-none" title="Presentation Viewer" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-slate-900 to-violet-900 text-white relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-violet-500"></div>
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent blur-2xl pointer-events-none"></div>
-                            <div className="z-10 flex flex-col items-center text-center p-12">
-                              <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mb-6 shadow-2xl border border-white/20 backdrop-blur-md">
-                                <FileText className="w-10 h-10 text-blue-300 drop-shadow-md" />
-                              </div>
-                              <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-md bg-gradient-to-br from-white to-blue-200 bg-clip-text text-transparent">{(layer as any).fileName?.replace(/\.[^/.]+$/, "") || 'Presentation'}</h2>
-                              <p className="text-blue-200/80 text-lg mb-8 font-medium max-w-lg">JobNinjas presentation</p>
-                            </div>
-                         </div>
+                    {/* Render Image or iframe for PDF with #navpanes=0 to eliminate side numbers */}
+                    {((layer as any).fileSrc.startsWith('data:image') || (layer as any).fileSrc.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)) ? (
+                      <img src={(layer as any).fileSrc} alt="Document preview" className="w-full h-full object-contain bg-white" />
+                    ) : ((layer as any).fileSrc.startsWith('data:application/pdf') || (layer as any).fileSrc.includes('.pdf')) ? (
+                      <iframe 
+                        src={getPdfViewerSrc((layer as any).fileSrc, { hideNavPanes: true, hideToolbar: true })} 
+                        className="w-full h-full bg-white border-none" 
+                        title="Document Viewer" 
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-slate-900 to-violet-900 text-white relative overflow-hidden p-6 text-center">
+                        <FileText className="w-12 h-12 text-indigo-300 mb-3" />
+                        <h4 className="text-xl font-bold text-white mb-1 truncate max-w-sm">{cleanDocTitle((layer as any).fileName || 'Document')}</h4>
+                        <p className="text-xs text-indigo-200">Double-click to open fullscreen</p>
+                      </div>
                     )}
-                    <div className="absolute inset-0 bg-transparent" /> {/* Event shield */}
+                    {/* Transparent Event shield so double-click opens fullscreen directly */}
+                    <div 
+                      className="absolute inset-0 bg-transparent cursor-pointer" 
+                      title="Double-click to open fullscreen"
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        setPresentationMode({ active: true, layerId });
+                        try { document.documentElement.requestFullscreen(); } catch(err) {}
+                      }}
+                    />
                   </div>
                 ) : (
                   <label className="flex flex-col items-center justify-center p-8 w-full h-full cursor-pointer hover:bg-slate-100/50 transition-colors">
                     <Presentation className="w-10 h-10 text-indigo-400 mb-3" />
-                    <span className="font-semibold text-slate-600 mb-1">Upload Presentation</span>
-                    <span className="text-xs text-slate-400">PDF, PPTX, or Images</span>
+                    <span className="font-semibold text-slate-600 mb-1">Upload Presentation or Document</span>
+                    <span className="text-xs text-slate-400">PDF, PPTX, DOCX, or Images</span>
                     <input 
                       type="file" 
-                      accept=".pdf,.pptx,image/*" 
+                      accept=".pdf,.pptx,.doc,.docx,image/*" 
                       className="hidden" 
                       onChange={(e) => {
                         const file = e.target.files?.[0];
@@ -1498,6 +1533,12 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
             height={layer.height || 100}
             href={(layer as any).src}
             preserveAspectRatio="none"
+            className="cursor-pointer"
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              setPresentationMode({ active: true, layerId });
+              try { document.documentElement.requestFullscreen(); } catch(err) {}
+            }}
           />
         )}
         
@@ -1721,8 +1762,6 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           onClose={() => setPresentationMode({ active: false })} 
         />
       )}
-
-      <BoardHelp />
       <Toolbar canvasState={canvasState} setCanvasState={setCanvasState} onOpenTemplates={() => {
         if (boardId && boardId !== 'new-workflow') {
           window.dispatchEvent(new CustomEvent('openRoleSetup'));
@@ -1755,6 +1794,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       
       {/* Top Bar Actions: Positioned at top-right to never overlap candidate selector */}
       <div className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto">
+        <BoardHelp />
         {runQueue && (
           <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/95 px-3 py-2 text-xs text-indigo-900 shadow-sm backdrop-blur-md animate-pulse">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
