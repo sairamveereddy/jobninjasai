@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { X, Send, Calendar, Video, Loader2, CheckCircle2, Copy } from "lucide-react";
 import { formatInterviewSlots, recommendationPresentation } from "@/lib/agents/contracts";
 
 export type ArtifactKind = "scorecard" | "shortlist" | "outreach" | "schedule" | "interview" | "recommendation";
@@ -92,6 +92,13 @@ export function ArtifactSheet({
   const [rankLabel, setRankLabel] = useState(data?.rankLabel || (data?.advance ? "Advance" : "Pass"));
   const [advance, setAdvance] = useState(!!data?.advance);
   const [preferred, setPreferred] = useState<number>(typeof data?.preferredSlot === "number" ? data.preferredSlot : -1);
+
+  // Live integration states
+  const [sendingGmail, setSendingGmail] = useState(false);
+  const [gmailSent, setGmailSent] = useState(false);
+  const [bookingGCal, setBookingGCal] = useState(false);
+  const [bookedMeeting, setBookedMeeting] = useState<any>(null);
+
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -121,6 +128,66 @@ export function ArtifactSheet({
     }
   };
 
+  const handleSendGmail = async () => {
+    setSendingGmail(true);
+    try {
+      const res = await fetch('/api/integrations/gmail/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: data?.candidateEmail || 'candidate@example.com',
+          subject,
+          body,
+          candidateName,
+        }),
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        setGmailSent(true);
+        onSaveOutreach?.({ subject, body });
+      }
+    } catch {} finally {
+      setSendingGmail(false);
+    }
+  };
+
+  const handleBookGCal = async () => {
+    const selectedSlot = slots[preferred >= 0 ? preferred : 0];
+    setBookingGCal(true);
+    try {
+      const res = await fetch('/api/integrations/gcal/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'book',
+          candidateName: candidateName || 'Candidate',
+          candidateEmail: data?.candidateEmail || 'candidate@example.com',
+          slotLabel: selectedSlot?.label || 'Tomorrow at 10:00 AM EDT',
+        }),
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        setBookedMeeting(resData);
+      }
+    } catch {} finally {
+      setBookingGCal(false);
+    }
+  };
+
+  const notifySlack = async (title: string, text: string) => {
+    try {
+      await fetch('/api/integrations/slack/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          text,
+          candidateName,
+        }),
+      });
+    } catch {}
+  };
+
   const finishEmail = () => {
     onSaveOutreach?.({ subject, body });
     onClose();
@@ -130,6 +197,7 @@ export function ArtifactSheet({
     setAdvance(choice.advance);
     setRankLabel(choice.rankLabel);
     onSaveShortlist?.({ advance: choice.advance, rankLabel: choice.rankLabel, rationale });
+    notifySlack(`Shortlist Decision: ${choice.rankLabel}`, `${candidateName} marked as ${choice.rankLabel}. Rationale: ${rationale || 'None provided'}`);
   };
 
   const saveReason = () => {
@@ -147,7 +215,7 @@ export function ArtifactSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="artifact-title"
-        className="max-h-[min(85vh,720px)] w-[min(540px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 text-slate-800 shadow-2xl outline-none font-sans"
+        className="max-h-[min(85vh,720px)] w-[min(560px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 text-slate-800 shadow-2xl outline-none font-sans"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
@@ -217,7 +285,7 @@ export function ArtifactSheet({
 
         {kind === "outreach" && (
           <div className="space-y-3.5">
-            <p className="text-xs text-slate-500">Edit the email, copy it, then mark it done. Nothing is sent.</p>
+            <p className="text-xs text-slate-500">Review or edit the AI outreach email. Send directly via Gmail or copy text.</p>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
               Subject
               <input
@@ -237,12 +305,37 @@ export function ArtifactSheet({
               />
             </label>
             {data.callToAction && <p className="text-xs font-medium text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">Ask: {data.callToAction}</p>}
-            <div className="flex gap-2 pt-1">
-              <button type="button" onClick={() => copyText(`${subject}\n\n${body}`, "email")} aria-label="Copy outreach email" className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer">
-                {copied === "email" ? "Copied" : copied === "blocked" ? "Copy blocked" : "Copy email"}
-              </button>
-              <button type="button" onClick={finishEmail} aria-label="Save outreach draft" className="rounded-xl bg-[#5e6ad2] px-4 py-2 text-sm font-semibold text-white hover:bg-[#4f59b6] transition-colors shadow-xs cursor-pointer">
-                Done
+            
+            {gmailSent && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Dispatched to candidate inbox via Gmail!</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => copyText(`${subject}\n\n${body}`, "email")}
+                  className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  {copied === "email" ? "Copied" : "Copy"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendGmail}
+                  disabled={sendingGmail || gmailSent}
+                  className="rounded-xl bg-rose-600 hover:bg-rose-500 text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                  title="Send directly via connected Gmail"
+                >
+                  {sendingGmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  <span>{gmailSent ? "Sent via Gmail" : "Send via Gmail"}</span>
+                </button>
+              </div>
+              <button type="button" onClick={finishEmail} aria-label="Save outreach draft" className="rounded-xl bg-[#5e6ad2] px-4 py-2 text-xs font-bold text-white hover:bg-[#4f59b6] transition-colors shadow-xs cursor-pointer">
+                Save Draft
               </button>
             </div>
           </div>
@@ -253,7 +346,7 @@ export function ArtifactSheet({
             <p className="font-semibold text-slate-700">
               {[data.durationMinutes ? `${data.durationMinutes} min` : null, data.format, data.timezone].filter(Boolean).join(" · ") || "Proposed times"}
             </p>
-            <p className="text-xs text-slate-500">These are suggestions. Nothing is booked.</p>
+            <p className="text-xs text-slate-500">Pick a preferred interview slot to book directly on Google Calendar.</p>
             <ul className="space-y-2">
               {slots.map((slot: { label?: string; interviewerRole?: string }, index: number) => (
                 <li key={`${slot.label}-${index}`}>
@@ -279,14 +372,42 @@ export function ArtifactSheet({
               ))}
             </ul>
             {data.candidateMessage && <p className="leading-relaxed text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">{data.candidateMessage}</p>}
-            <button
-              type="button"
-              aria-label="Copy interview times"
-              onClick={() => copyText(formatInterviewSlots({ ...data, preferredSlot: preferred >= 0 ? preferred : undefined }), "times")}
-              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
-            >
-              {copied === "times" ? "Copied" : copied === "blocked" ? "Copy blocked" : "Copy times"}
-            </button>
+
+            {bookedMeeting && (
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs space-y-1.5 text-emerald-900">
+                <div className="font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Interview Booked on Google Calendar!</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Video className="w-4 h-4 text-indigo-600" />
+                  <a href={bookedMeeting.meetUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-700 underline">
+                    {bookedMeeting.meetUrl}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handleBookGCal}
+                disabled={bookingGCal || !!bookedMeeting}
+                className="rounded-xl bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                title="Book on Google Calendar with Google Meet video link"
+              >
+                {bookingGCal ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Calendar className="w-3.5 h-3.5" />}
+                <span>{bookedMeeting ? "Calendar Invite Created" : "Book on Google Calendar"}</span>
+              </button>
+              <button
+                type="button"
+                aria-label="Copy interview times"
+                onClick={() => copyText(formatInterviewSlots({ ...data, preferredSlot: preferred >= 0 ? preferred : undefined }), "times")}
+                className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              >
+                {copied === "times" ? "Copied" : "Copy times"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -311,14 +432,23 @@ export function ArtifactSheet({
             {data.compensationRecommendation?.notes && <p className="text-xs text-slate-500">{data.compensationRecommendation.notes}</p>}
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
               <p className="text-xs font-semibold text-indigo-700">{decision.nextStep}</p>
-              <button
-                type="button"
-                aria-label="Copy next step"
-                onClick={() => copyText(decision.nextStep, "next")}
-                className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
-              >
-                {copied === "next" ? "Copied" : copied === "blocked" ? "Copy blocked" : "Copy next step"}
-              </button>
+              <div className="mt-2.5 flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Copy next step"
+                  onClick={() => copyText(decision.nextStep, "next")}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                >
+                  {copied === "next" ? "Copied" : "Copy next step"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => notifySlack(`Hiring Recommendation: ${decision.title}`, `${candidateName} has completed interview loop. Recommendation: ${decision.title}. Next: ${decision.nextStep}`)}
+                  className="rounded-lg bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                >
+                  <span>Post to Slack</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
