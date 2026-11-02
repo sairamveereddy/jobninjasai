@@ -656,7 +656,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       };
     });
     setPipelineSteps(initialSteps);
-    setPipelineLogs([[] Pipeline started for ]);
+    setPipelineLogs(['Pipeline started for ' + startedName]);
     const failed = new Set<string>();
     let stopped = false;
     for (let index = 0; index < order.length; index += 1) {
@@ -672,7 +672,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       );
       setPipelineLogs((prev) => [
         ...prev,
-        [] Executing  for ...,
+        'Executing ' + stepName(currentId) + ' for ' + startedName + '...',
       ]);
       const freshEdges = Object.values(useBoardStore.getState().edges);
       const blockerId = freshEdges.find((edge) => edge.toNodeId === currentId && failed.has(edge.fromNodeId))?.fromNodeId;
@@ -695,7 +695,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         );
         setPipelineLogs((prev) => [
           ...prev,
-          [] ✓ Finished : ,
+        '✓ Finished ' + stepName(currentId) + ': ' + (summary || 'Saved to mini-storage'),
         ]);
       } else {
         failed.add(currentId);
@@ -704,7 +704,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         );
         setPipelineLogs((prev) => [
           ...prev,
-          [] ⏸  waiting for input (check card),
+        '⏸ ' + stepName(currentId) + ' waiting for input (check card)',
         ]);
       }
     }
