@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FileText, StickyNote, Users } from "lucide-react";
+import { FileText, StickyNote, Users, Upload, Building2, Sparkles, Printer, FileDown } from "lucide-react";
 import { useBoardStore } from "@/store/board";
 import { LayerType } from "@/types/canvas";
-import { GreenhouseImportModal } from "./greenhouse-import-modal";
+import { AtsSyncModal } from "./ats-sync-modal";
+import { BulkResumeModal } from "./bulk-resume-modal";
+import { DossierExportModal } from "./dossier-export-modal";
 import { MUST_ASK_NOTE, documentKind, isMustAskNote, recommendationPresentation } from "@/lib/agents/contracts";
 import { ArtifactSheet, type ArtifactKind } from "./artifact-sheet";
 import { personResult, saveResultEdit } from "./result-edits";
@@ -69,7 +71,9 @@ export function RoleSurface({
   const [open, setOpen] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
-  const [greenhouseOpen, setGreenhouseOpen] = useState(false);
+  const [atsOpen, setAtsOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [dossierOpen, setDossierOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "" });
@@ -148,8 +152,28 @@ export function RoleSurface({
     event.preventDefault();
     event.stopPropagation();
     setDragOver(false);
-    const file = event.dataTransfer.files?.[0];
-    if (!file) return;
+    const droppedFiles = event.dataTransfer.files ? Array.from(event.dataTransfer.files) : [];
+    if (droppedFiles.length === 0) return;
+
+    if (droppedFiles.length > 1) {
+      // Multiple files dropped -> Bulk intake
+      const formData = new FormData();
+      formData.append("roleId", roleId);
+      droppedFiles.forEach((f) => formData.append("files", f));
+      try {
+        const res = await fetch("/api/resumes/bulk-upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.candidates?.length) {
+          refresh();
+          selectCandidate(data.candidates[0]);
+        }
+      } catch (err) {
+        console.error("Bulk drop error:", err);
+      }
+      return;
+    }
+
+    const file = droppedFiles[0];
     const kind = documentKind(file.name) === "JD" ? "jd" : "resume";
     addDocument(file, kind);
     if (kind === "jd") {
@@ -157,7 +181,20 @@ export function RoleSurface({
       return;
     }
     if (!activeId) {
-      setFormError("Select a person, then drop the resume again. The file is already on this role.");
+      // Auto-create candidate from single resume drop
+      const formData = new FormData();
+      formData.append("roleId", roleId);
+      formData.append("files", file);
+      try {
+        const res = await fetch("/api/resumes/bulk-upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.candidates?.length) {
+          refresh();
+          selectCandidate(data.candidates[0]);
+        }
+      } catch {
+        setFormError("Select a person, then drop the resume again. The file is already on this role.");
+      }
       return;
     }
     await uploadResume(activeId, file);
@@ -258,6 +295,9 @@ export function RoleSurface({
                     />
                   </label>
                 )}
+                <button type="button" onClick={() => setBulkOpen(true)} className="text-[11px] font-semibold text-[#5e6ad2] hover:underline cursor-pointer">
+                  + Bulk resumes
+                </button>
                 <button type="button" onClick={() => { setAdding((value) => !value); setFormError(""); }} className="text-[11px] font-semibold text-[#5e6ad2] hover:underline cursor-pointer">
                   {adding ? "Cancel" : "+ Add person"}
                 </button>
@@ -399,9 +439,17 @@ export function RoleSurface({
                 }}
               />
             </label>
-            <button type="button" onClick={() => setGreenhouseOpen(true)} className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer">
-              Import Greenhouse
+            <button type="button" onClick={() => setAtsOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer">
+              <Building2 className="h-3.5 w-3.5 text-emerald-600" /> Sync ATS
             </button>
+            <button type="button" onClick={() => setBulkOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer">
+              <Upload className="h-3.5 w-3.5 text-indigo-600" /> Bulk intake
+            </button>
+            {selected && (
+              <button type="button" onClick={() => setDossierOpen(true)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Dossier
+              </button>
+            )}
             <button type="button" onClick={onEditSetup} className="rounded-lg bg-[#5e6ad2] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#4f59b6] transition-colors shadow-xs cursor-pointer">
               Edit role setup
             </button>
@@ -437,9 +485,9 @@ export function RoleSurface({
           }}
         />
       )}
-      <GreenhouseImportModal
-        isOpen={greenhouseOpen}
-        onClose={() => setGreenhouseOpen(false)}
+      <AtsSyncModal
+        isOpen={atsOpen}
+        onClose={() => setAtsOpen(false)}
         roleId={roleId}
         roleTitle={roleTitle}
         onImportSuccess={(people) => {
@@ -452,6 +500,32 @@ export function RoleSurface({
           refresh();
         }}
       />
+      <BulkResumeModal
+        isOpen={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        roleId={roleId}
+        roleTitle={roleTitle}
+        onUploadSuccess={(people) => {
+          const first = people?.[0];
+          if (first?.id) {
+            window.localStorage.setItem('activeCandidateId', first.id);
+            setActiveId(first.id);
+            window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: first } }));
+          }
+          refresh();
+        }}
+      />
+      {selected && (
+        <DossierExportModal
+          isOpen={dossierOpen}
+          onClose={() => setDossierOpen(false)}
+          roleTitle={roleTitle}
+          candidate={selected}
+          scorecard={latestArtifact(selected, "Scorecard") || latestArtifact(selected, "ResumeAnalysis")}
+          interviewAnalysis={latestArtifact(selected, "InterviewAnalysis")}
+          decision={latestArtifact(selected, "CandidateDecision")}
+        />
+      )}
     </div>
   );
 }

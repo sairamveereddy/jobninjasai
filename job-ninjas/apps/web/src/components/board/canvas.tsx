@@ -24,6 +24,7 @@ import { CandidateNodeBlock } from './candidate-node-block';
 import { BoardHelp } from './board-help';
 import { cleanDocTitle, getPdfViewerSrc } from '@/lib/document-utils';
 import { ArtifactSheet, artifactKind, artifactTitle } from './artifact-sheet';
+import { PipelineExecutionDrawer, type PipelineStep } from './pipeline-execution-drawer';
 import { markCandidateRun, recordCandidateRun, saveResultEdit, settleStoppedRun } from './result-edits';
 
 type BoardPerson = { id: string; firstName?: string; lastName?: string; resumeText?: string | null };
@@ -587,6 +588,9 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
   }, [camera, insertLayer, updateLayer, boardId, currentRole, pushActivity]);
 
   const [runQueue, setRunQueue] = useState<{ active: string; next: string[]; who: string } | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>([]);
+  const [pipelineLogs, setPipelineLogs] = useState<string[]>([]);
   const [openResultId, setOpenResultId] = useState<string | null>(null);
   const [notePeople, setNotePeople] = useState<BoardPerson[]>([]);
   notePeopleRef.current = notePeople;
@@ -641,6 +645,18 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
     const startedName = personLabel(notePeopleRef.current, candId);
     stopPipelineRef.current = false;
     setIsRunning(true);
+    setDrawerOpen(true);
+    const initialSteps: PipelineStep[] = order.map((id) => {
+      const l = state.layers[id] as { value?: string; agentRole?: string } | undefined;
+      return {
+        id,
+        name: l?.value || getNodeSpec(l?.agentRole).displayName,
+        role: l?.agentRole || 'agent',
+        status: 'pending' as const,
+      };
+    });
+    setPipelineSteps(initialSteps);
+    setPipelineLogs([[] Pipeline started for ]);
     const failed = new Set<string>();
     let stopped = false;
     for (let index = 0; index < order.length; index += 1) {
@@ -651,6 +667,13 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       const currentId = order[index];
       const upcoming = order.slice(index + 1, index + 4).map(stepName);
       setRunQueue({ active: stepName(currentId), next: upcoming, who: startedName });
+      setPipelineSteps((prev) =>
+        prev.map((s) => (s.id === currentId ? { ...s, status: 'running' as const } : s))
+      );
+      setPipelineLogs((prev) => [
+        ...prev,
+        [] Executing  for ...,
+      ]);
       const freshEdges = Object.values(useBoardStore.getState().edges);
       const blockerId = freshEdges.find((edge) => edge.toNodeId === currentId && failed.has(edge.fromNodeId))?.fromNodeId;
       if (blockerId) {
@@ -664,7 +687,26 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
         stopped = true;
         break;
       }
-      if (!success) failed.add(currentId);
+      if (success) {
+        const updatedLayer = useBoardStore.getState().layers[currentId] as any;
+        const summary = summarizeAgentOutput(updatedLayer?.agentRole, outputForCandidate(updatedLayer, candId));
+        setPipelineSteps((prev) =>
+          prev.map((s) => (s.id === currentId ? { ...s, status: 'completed' as const, outputSnippet: summary } : s))
+        );
+        setPipelineLogs((prev) => [
+          ...prev,
+          [] ✓ Finished : ,
+        ]);
+      } else {
+        failed.add(currentId);
+        setPipelineSteps((prev) =>
+          prev.map((s) => (s.id === currentId ? { ...s, status: 'gate' as const, error: 'Requires human input or verification' } : s))
+        );
+        setPipelineLogs((prev) => [
+          ...prev,
+          [] ⏸  waiting for input (check card),
+        ]);
+      }
     }
     setIsRunning(false);
     setRunQueue(null);
@@ -2144,6 +2186,18 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           onSaveSchedule={(next) => saveResultEdit('schedule', window.localStorage.getItem('activeCandidateId'), next)}
         />
       )}
+      <PipelineExecutionDrawer
+        isOpen={drawerOpen}
+        isRunning={isRunning}
+        activeCandidateName={personLabel(notePeople, activeCandidateId)}
+        steps={pipelineSteps}
+        logs={pipelineLogs}
+        onStop={() => {
+          stopPipelineRef.current = true;
+          abortRef.current?.abort();
+        }}
+        onClose={() => setDrawerOpen(false)}
+      />
     </main>
   );
 };
