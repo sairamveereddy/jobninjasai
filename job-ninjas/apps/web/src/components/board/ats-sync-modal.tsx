@@ -42,8 +42,32 @@ export function AtsSyncModal({
 
   // General state
   const [isImporting, setIsImporting] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleSimulate = async () => {
+    setIsSimulating(true);
+    setErrorMessage(null);
+    try {
+      const res = await fetch("/api/integrations/webhooks/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roleId }),
+      });
+      const data = await res.json();
+      if (data.success && data.candidate) {
+        setStatusMessage(data.message);
+        onImportSuccess([data.candidate]);
+      } else {
+        setErrorMessage(data.error || "Simulation failed");
+      }
+    } catch {
+      setErrorMessage("Could not simulate webhook application");
+    } finally {
+      setIsSimulating(false);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -440,7 +464,7 @@ export function AtsSyncModal({
 
           {/* Tab 3: Webhook */}
           {activeTab === "webhook" && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <p className="text-xs text-slate-600 leading-relaxed">
                 Connect external systems like <strong>Lever</strong>, <strong>Ashby</strong>, or proprietary application forms to this role via our real-time webhook endpoint:
               </p>
@@ -450,6 +474,22 @@ export function AtsSyncModal({
               <p className="text-[11px] text-slate-400">
                 Include <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-700">roleId: "{roleId}"</code> in the JSON payload to automatically direct applications straight into this board.
               </p>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <span className="block text-xs font-semibold text-slate-800">Quick Test / Simulator</span>
+                  <span className="block text-[11px] text-slate-400">Inject a realistic test applicant to test this pipeline immediately</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSimulate}
+                  disabled={isSimulating}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-[#5e6ad2] hover:bg-indigo-100 text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50"
+                >
+                  {isSimulating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                  Simulate Applicant
+                </button>
+              </div>
             </div>
           )}
         </div>

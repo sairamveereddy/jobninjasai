@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {
   Plus, X, LayoutGrid, List, ChevronDown,
-  Star, MoreHorizontal, Users, Clock, Search, Filter, Loader2
+  Star, MoreHorizontal, Users, Clock, Search, Filter, Loader2, Sparkles
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -54,6 +54,31 @@ export default function RolesPage() {
   const [roles, setRoles] = useState<RoleRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [generatingJD, setGeneratingJD] = useState(false);
+
+  const handleGenerateJD = async () => {
+    if (!formData.title) return;
+    setGeneratingJD(true);
+    try {
+      const res = await fetch("/api/roles/generate-jd", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.title,
+          department: formData.department,
+          notes: formData.jobDescription,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.jobDescription) {
+        setFormData((prev) => ({ ...prev, jobDescription: data.jobDescription }));
+      }
+    } catch (err) {
+      console.error("Failed to generate JD:", err);
+    } finally {
+      setGeneratingJD(false);
+    }
+  };
 
   const fetchRoles = async () => {
     try {
@@ -354,11 +379,22 @@ export default function RolesPage() {
               </div>
 
               <div>
-                <label className="block text-[12px] font-semibold text-slate-700 mb-1.5">Job Description & Requirements</label>
-                <textarea rows={3} value={formData.jobDescription}
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[12px] font-semibold text-slate-700">Job Description & Requirements</label>
+                  <button
+                    type="button"
+                    onClick={handleGenerateJD}
+                    disabled={generatingJD || !formData.title.trim()}
+                    className="flex items-center gap-1 text-[11px] font-bold text-[#5e6ad2] hover:text-[#4f59c0] disabled:opacity-50 cursor-pointer transition-colors"
+                  >
+                    {generatingJD ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-amber-500" />}
+                    {generatingJD ? "Drafting with AI..." : "AI Generate Spec"}
+                  </button>
+                </div>
+                <textarea rows={4} value={formData.jobDescription}
                   onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
-                  className="w-full px-3 py-2 text-[13px] text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder-slate-400"
-                  placeholder="Summarize key requirements and qualifications..." />
+                  className="w-full px-3 py-2 text-[13px] text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder-slate-400 font-sans"
+                  placeholder="Summarize key requirements or click 'AI Generate Spec' above..." />
               </div>
 
               <div className="flex justify-end gap-3 pt-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Check, Loader2, Webhook, AlertCircle, CheckCircle2, Copy } from "lucide-react";
+import { X, Check, Loader2, Webhook, AlertCircle, CheckCircle2, Copy, Sparkles } from "lucide-react";
 
 interface WebhookConfigModalProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ export function WebhookConfigModal({ isOpen, onClose, onSuccess }: WebhookConfig
   const [outboundUrl, setOutboundUrl] = useState("https://hooks.zapier.com/hooks/catch/...");
   const [copied, setCopied] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [status, setStatus] = useState<"ACTIVE" | "READY">("ACTIVE");
@@ -44,6 +45,26 @@ export function WebhookConfigModal({ isOpen, onClose, onSuccess }: WebhookConfig
     navigator.clipboard.writeText(text);
     setCopied(label);
     setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleSimulate = async () => {
+    setError(null);
+    setSuccess(null);
+    setIsSimulating(true);
+    try {
+      const res = await fetch("/api/integrations/webhooks/simulate", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess(data.message);
+        onSuccess?.();
+      } else {
+        setError(data.error || "Simulation failed");
+      }
+    } catch {
+      setError("Failed to run webhook simulation");
+    } finally {
+      setIsSimulating(false);
+    }
   };
 
   const handleSave = async () => {
@@ -131,9 +152,20 @@ export function WebhookConfigModal({ isOpen, onClose, onSuccess }: WebhookConfig
               value={endpointUrl}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-100 text-slate-600 font-mono select-all cursor-pointer"
             />
-            <p className="text-[11px] text-slate-400">
-              POST candidate applications here with JSON: <code>firstName, lastName, email, resumeText</code>.
-            </p>
+            <div className="flex items-center justify-between pt-1">
+              <p className="text-[11px] text-slate-400">
+                POST candidate applications here with JSON: <code>firstName, lastName, email, resumeText</code>.
+              </p>
+              <button
+                type="button"
+                onClick={handleSimulate}
+                disabled={isSimulating}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50"
+              >
+                {isSimulating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                Simulate Inbound Application
+              </button>
+            </div>
           </div>
 
           {/* Outbound Webhook Destination */}
