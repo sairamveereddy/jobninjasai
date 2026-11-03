@@ -43,7 +43,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     outputs: [
       { name: 'Scorecard', type: 'Scorecard', artifactType: 'ResumeAnalysis', description: 'Match score, verified skills, gaps, and what to probe in an interview.' },
     ],
-    defaultModel: 'openai/gpt-oss-120b',
+    defaultModel: 'llama-3.3-70b-versatile',
     defaultPrompt: 'You are an expert technical recruiter. Analyze the candidate resume against job requirements. Extract verified skills, flag discrepancies, and suggest interview probe questions.',
     sampleOutput: {
       candidateSummary: "5+ years experienced ML engineer specializing in RAG architectures and Python production systems.",
@@ -74,7 +74,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     outputs: [
       { name: 'Interview plan', type: 'InterviewPlan', artifactType: 'InterviewPlan', description: 'Agenda, questions, and what a good answer looks like.' },
     ],
-    defaultModel: 'openai/gpt-oss-120b',
+    defaultModel: 'llama-3.3-70b-versatile',
     defaultPrompt: 'Design a targeted 60-minute technical interview plan. Base your questions specifically on the candidate gaps and focus areas identified by Resume Intelligence.',
     sampleOutput: {
       objective: "Verify depth of production RAG deployment and evaluate system reliability leadership.",
@@ -110,7 +110,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
       { name: 'Interview analysis', type: 'InterviewAnalysis', artifactType: 'InterviewAnalysis', description: 'Scores, quotes, red flags, and a hire / no-hire signal for this conversation.' },
       { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'The screening scorecard, forwarded so the hiring recommendation still has it.' },
     ],
-    defaultModel: 'openai/gpt-oss-120b',
+    defaultModel: 'llama-3.3-70b-versatile',
     defaultPrompt: 'Evaluate this interview transcript against the planned interview guide. Provide objective scores for technical depth and communication, citing exact quotes.',
     sampleOutput: {
       technicalScore: 8,
@@ -140,7 +140,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     outputs: [
       { name: 'Hiring recommendation', type: 'CandidateDecision', artifactType: 'CandidateDecision', description: 'Advisory hire / no-hire, rationale, and compensation notes. A person still decides.' },
     ],
-    defaultModel: 'openai/gpt-oss-120b',
+    defaultModel: 'llama-3.3-70b-versatile',
     defaultPrompt: 'Synthesize all evidence from resume screening and interview evaluation into a decisive hiring recommendation with compensation guidance.',
     sampleOutput: {
       overallScore: 88,
@@ -174,7 +174,7 @@ export const NODE_SPECS: Record<string, NodeDescription> = {
     outputs: [
       { name: 'Travel itinerary', type: 'Itinerary', artifactType: 'ConciergeItinerary', description: 'Hotel, travel, and a welcome note.' },
     ],
-    defaultModel: 'openai/gpt-oss-120b',
+    defaultModel: 'llama-3.3-70b-versatile',
     defaultPrompt: 'Plan candidate travel, luxury hotel stay, and welcome dining within the allocated travel budget.',
     sampleOutput: {
       status: "BOOKED",

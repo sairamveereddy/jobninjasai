@@ -52,7 +52,7 @@ Evaluate this transcript and provide a structured analysis.`;
       systemPrompt,
       input,
       schema: InterviewAnalysisSchema,
-      modelName: 'openai/gpt-oss-120b',
+      modelName: 'llama-3.3-70b-versatile',
     });
 
     const scorecard = context.upstreamOutputs['Scorecard'] || context.upstreamOutputs['ResumeAnalysis'];

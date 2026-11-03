@@ -63,7 +63,7 @@ Explain why you selected the hotel based on the budget and location.`;
       systemPrompt,
       input,
       schema: ConciergeItinerarySchema,
-      modelName: 'openai/gpt-oss-120b',
+      modelName: 'llama-3.3-70b-versatile',
     });
 
     // Let's attach the raw Ophelia results to the artifact so the UI can render them for human approval!

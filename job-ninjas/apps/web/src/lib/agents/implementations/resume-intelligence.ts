@@ -33,7 +33,7 @@ ${candidate.resumeText}
       systemPrompt,
       input,
       schema: ResumeAnalysisSchema,
-      modelName: 'openai/gpt-oss-120b',
+      modelName: 'llama-3.3-70b-versatile',
     });
 
     return {
