@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { FAQS } from "@/lib/marketing/site";
 
 export function FaqList() {
@@ -14,7 +14,7 @@ export function FaqList() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 font-sans">
       {FAQS.map((item, index) => {
         const isOpen = open === index;
         const panelId = `faq-panel-${index}`;
@@ -24,8 +24,8 @@ export function FaqList() {
             key={item.q}
             className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
               isOpen 
-                ? "border-[#ff6d5a]/40 bg-[#0e1017] shadow-lg shadow-black/40" 
-                : "border-white/[0.08] bg-[#0c0d14]/60 hover:border-white/20 hover:bg-[#0e1017]/80"
+                ? "border-neutral-300 bg-white shadow-xs" 
+                : "border-neutral-200/90 bg-white hover:border-neutral-300"
             }`}
           >
             <h3 className="text-sm sm:text-base font-bold">
@@ -35,7 +35,7 @@ export function FaqList() {
                   buttons.current[index] = node;
                 }}
                 type="button"
-                className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left text-white cursor-pointer"
+                className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left text-neutral-900 cursor-pointer"
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => setOpen(isOpen ? -1 : index)}
@@ -55,18 +55,17 @@ export function FaqList() {
                   }
                 }}
               >
-                <span className="font-semibold">{item.q}</span>
+                <span className="font-semibold text-neutral-900">{item.q}</span>
                 <ChevronDown
-                  aria-hidden
-                  className={`size-4 shrink-0 transition-transform duration-200 ${
-                    isOpen ? "rotate-180 text-[#ff7a68]" : "text-slate-400"
+                  className={`size-4 shrink-0 text-neutral-400 transition-transform duration-200 ${
+                    isOpen ? "rotate-180 text-[#ea4b71]" : ""
                   }`}
                 />
               </button>
             </h3>
             {isOpen && (
-              <div id={panelId} role="region" aria-labelledby={buttonId} className="px-6 pb-5 pt-1">
-                <p className="text-xs sm:text-sm leading-relaxed text-slate-300">{item.a}</p>
+              <div id={panelId} role="region" aria-labelledby={buttonId} className="px-6 pb-5 pt-1 text-xs sm:text-sm text-neutral-500 leading-relaxed border-t border-neutral-100">
+                {item.a}
               </div>
             )}
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRight, AlertCircle } from "lucide-react";
 
 export function LoginForm() {
   const [ssoMessage, setSsoMessage] = useState(false);
@@ -8,7 +9,7 @@ export function LoginForm() {
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
       <div>
-        <label htmlFor="email-address" className="block text-xs font-medium text-slate-300 mb-1.5">
+        <label htmlFor="email-address" className="block text-xs font-semibold text-neutral-800 mb-1.5 font-sans">
           Work Email
         </label>
         <input
@@ -16,13 +17,13 @@ export function LoginForm() {
           name="email"
           type="email"
           autoComplete="email"
-          defaultValue="admin@jobninjas.org"
+          defaultValue="recruiter@jobninjas.ai"
           placeholder="you@company.com"
-          className="w-full rounded-xl border border-white/[0.1] bg-black/40 px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:border-[#ff6d5a] focus:ring-1 focus:ring-[#ff6d5a] outline-none transition-all"
+          className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-[#ea4b71] focus:ring-1 focus:ring-[#ea4b71] outline-none transition-all shadow-2xs"
         />
       </div>
       <div>
-        <label htmlFor="password" className="block text-xs font-medium text-slate-300 mb-1.5">
+        <label htmlFor="password" className="block text-xs font-semibold text-neutral-800 mb-1.5 font-sans">
           Password
         </label>
         <input
@@ -31,20 +32,21 @@ export function LoginForm() {
           type="password"
           autoComplete="current-password"
           placeholder="••••••••••••"
-          className="w-full rounded-xl border border-white/[0.1] bg-black/40 px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:border-[#ff6d5a] focus:ring-1 focus:ring-[#ff6d5a] outline-none transition-all"
+          className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-[#ea4b71] focus:ring-1 focus:ring-[#ea4b71] outline-none transition-all shadow-2xs"
         />
       </div>
       <button
         type="button"
         onClick={() => setSsoMessage(true)}
-        className="flex h-11 w-full items-center justify-center rounded-xl border border-white/[0.15] bg-white/[0.04] text-xs font-semibold text-slate-300 hover:bg-white/[0.08] hover:text-white transition-all cursor-pointer"
+        className="flex h-11 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white text-xs font-semibold text-neutral-800 hover:bg-neutral-50 transition-all cursor-pointer shadow-2xs"
       >
-        Sign in with Enterprise SSO
+        Sign in with Enterprise SSO / SAML
       </button>
       {ssoMessage && (
-        <p className="text-[11px] text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl text-center">
-          Direct SSO sign-in is rolling out to enterprise teams. Use the demo sandbox button above for instant access.
-        </p>
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+          <AlertCircle className="size-4 shrink-0 text-amber-600 mt-0.5" />
+          <span>Direct SAML sign-in is rolling out to enterprise workspaces. Use the Instant Demo Workspace button above for immediate access.</span>
+        </div>
       )}
     </form>
   );

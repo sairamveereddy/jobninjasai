@@ -1,131 +1,166 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MarketingShell } from "@/components/marketing-layout";
-import { FaqList } from "@/components/marketing/faq-list";
-import { pageSeo, PLANS } from "@/lib/marketing/site";
-import { CheckCircle2, Sparkles, ArrowRight, ShieldCheck, Zap, HelpCircle } from "lucide-react";
+import { CheckCircle2, ArrowRight, Sparkles, HelpCircle, Shield, Zap } from "lucide-react";
+import { pageSeo, TRIAL_HREF } from "@/lib/marketing/site";
 
 export const metadata: Metadata = pageSeo(
-  "Pricing",
-  "Transparent pricing for JobNinjas AI recruiting platform. Starter is free for 1 role. Team is $49/mo flat with no per-seat fees.",
+  "Transparent Pricing for Modern Hiring Teams",
+  "Fair-code pricing for JobNinjas. Run autonomous AI recruiting agents on your requisitions without per-seat recruiter penalties.",
 );
+
+const TIERS = [
+  {
+    name: "Starter",
+    badge: "Free Forever",
+    price: "$0",
+    period: "to open one active requisition",
+    desc: "Perfect for founders or hiring managers validating autonomous AI agent pipelines on a single role.",
+    cta: "Start Free",
+    ctaHref: TRIAL_HREF,
+    popular: false,
+    features: [
+      "1 active requisition at a time",
+      "JD Parser, Resume Parser & Rubric builder",
+      "Objective 0-100 scoring scorecard",
+      "Advisory hiring recommendation",
+      "Deterministic mock execution engine",
+      "Community support",
+    ],
+  },
+  {
+    name: "Team Pro",
+    badge: "Most Popular",
+    price: "$49",
+    period: "per open role / month",
+    desc: "For growing teams running end-to-end multi-stage interview loops with real ATS and Slack integrations.",
+    cta: "Launch Team Workspace",
+    ctaHref: TRIAL_HREF,
+    popular: true,
+    features: [
+      "Unlimited active requisitions",
+      "All 15 Specialized Autonomous Agents",
+      "Llama 3.3 70B & DeepSeek R1 model routing",
+      "Greenhouse, Lever & Ashby 2-way sync",
+      "Live Slack channel alerts & voting cards",
+      "Google Calendar automatic slot scheduling",
+      "Interview transcript scoring with timestamp citations",
+      "VIP candidate flight & hotel concierge",
+      "Shared team workspace & role transfer",
+    ],
+  },
+  {
+    name: "Enterprise",
+    badge: "Custom Security",
+    price: "Custom",
+    period: "billed annually",
+    desc: "For security-conscious enterprises requiring on-prem VPC deployment, custom models, and audit logs.",
+    cta: "Contact Enterprise Team",
+    ctaHref: "mailto:enterprise@jobninjas.ai",
+    popular: false,
+    features: [
+      "Custom ATS integrations (Workday, SuccessFactors)",
+      "Dedicated private VPC or self-hosted container",
+      "Custom fine-tuned LLM evaluators & proprietary rubrics",
+      "SSO SAML, LDAP, Okta, & advanced RBAC",
+      "Full audit trail & EEOC bias compliance reports",
+      "99.9% uptime SLA with dedicated TAM",
+      "Automated NDA & reference checking workflows",
+    ],
+  },
+];
 
 export default function PricingPage() {
   return (
-    <MarketingShell>
-      <main className="relative mx-auto max-w-7xl px-6 py-16 sm:py-24">
-        {/* Glow backdrop */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-[#ff6d5a]/15 via-[#7d52ff]/10 to-transparent blur-3xl pointer-events-none" />
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 font-sans">
+      <div className="text-center max-w-3xl mx-auto">
+        <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 text-xs font-mono font-semibold text-neutral-700">
+          <Sparkles className="size-3 text-[#ea4b71]" /> FAIR-CODE PRICING
+        </span>
+        <h1 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight text-neutral-950">
+          Scale your hiring pipeline, <br className="hidden sm:inline" />
+          not your per-seat software bill.
+        </h1>
+        <p className="mt-4 text-sm sm:text-base text-neutral-600 leading-relaxed">
+          JobNinjas charges per active requisition, never per recruiter or hiring manager seat. 
+          Invite your whole engineering and executive team without surprise surcharges.
+        </p>
+      </div>
 
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#ff6d5a]/30 bg-[#ff6d5a]/10 px-3.5 py-1.5 text-xs font-semibold text-[#ff806f] mb-4">
-            <Zap className="size-3.5 text-[#ff6d5a]" />
-            <span>Fair & Predictable Pricing</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            One role to start. A flat plan when you scale.
-          </h1>
-          <p className="mt-4 text-base sm:text-lg leading-relaxed text-slate-300">
-            Never pay per-seat recruiter penalties. Unlimited teammates, full access to 15 autonomous agents, and zero credit card required to start.
-          </p>
-        </div>
+      <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        {TIERS.map((tier) => (
+          <div
+            key={tier.name}
+            className={`relative flex flex-col justify-between rounded-3xl p-8 sm:p-10 transition-all ${
+              tier.popular
+                ? "border-2 border-[#ea4b71] bg-white shadow-xl shadow-neutral-200/60 ring-1 ring-[#ea4b71]/20"
+                : "border border-neutral-200/90 bg-white shadow-xs hover:border-neutral-300"
+            }`}
+          >
+            {tier.popular && (
+              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#ea4b71] px-4 py-1 text-[11px] font-bold text-white shadow-xs">
+                {tier.badge}
+              </span>
+            )}
 
-        {/* Pricing Cards Grid */}
-        <div className="relative z-10 mt-14 grid gap-8 lg:grid-cols-3 items-stretch">
-          {PLANS.map((plan) => {
-            const isFeatured = plan.featured;
-            return (
-              <article
-                key={plan.name}
-                className={`relative flex flex-col justify-between rounded-3xl p-8 transition-all duration-200 backdrop-blur-xl ${
-                  isFeatured
-                    ? "border-2 border-[#ff6d5a] bg-gradient-to-b from-[#181a29] to-[#10121d] shadow-2xl shadow-[#ff6d5a]/20 scale-105 z-20"
-                    : "border border-white/[0.1] bg-[#0e1017]/90 shadow-xl shadow-black/40 hover:border-white/20"
+            <div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-neutral-950">{tier.name}</h3>
+                {!tier.popular && (
+                  <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-0.5 text-[11px] font-mono text-neutral-600">
+                    {tier.badge}
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-6 flex items-baseline gap-1.5">
+                <span className="text-4xl sm:text-5xl font-extrabold text-neutral-950 font-mono tracking-tight">
+                  {tier.price}
+                </span>
+                <span className="text-xs font-medium text-neutral-500">{tier.period}</span>
+              </div>
+
+              <p className="mt-4 text-xs text-neutral-500 leading-relaxed min-h-[36px]">
+                {tier.desc}
+              </p>
+
+              <div className="mt-8 border-t border-neutral-100 pt-6">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-400">
+                  Included capabilities:
+                </span>
+                <ul className="mt-4 space-y-3">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-xs text-neutral-700">
+                      <CheckCircle2 className="size-4 shrink-0 text-emerald-600 mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4">
+              <Link
+                href={tier.ctaHref}
+                className={`flex h-12 w-full items-center justify-center gap-2 rounded-full text-sm font-semibold transition-all shadow-xs cursor-pointer ${
+                  tier.popular
+                    ? "bg-[#ea4b71] hover:bg-[#df3860] text-white shadow-md shadow-[#ea4b71]/20 active:scale-95"
+                    : "border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-900"
                 }`}
               >
-                {isFeatured && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#ff6d5a] to-[#ff4732] px-4 py-1 text-xs font-extrabold text-white uppercase tracking-wider shadow-md">
-                    Most Popular
-                  </div>
-                )}
-
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-white tracking-tight">{plan.name}</h2>
-                    {isFeatured && <Sparkles className="size-4 text-[#ff7a68]" />}
-                  </div>
-
-                  <div className="mt-5 flex items-baseline gap-1">
-                    <span className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">{plan.price}</span>
-                    <span className="text-xs text-slate-400 font-medium">{plan.period}</span>
-                  </div>
-
-                  <p className="mt-4 text-xs sm:text-sm text-slate-300 leading-relaxed min-h-[40px]">
-                    {plan.blurb}
-                  </p>
-
-                  <div className="my-6 border-t border-white/[0.08]" />
-
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Included Capabilities</p>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-200">
-                        <CheckCircle2 className={`size-4 shrink-0 mt-0.5 ${isFeatured ? "text-[#ff7a68]" : "text-emerald-400"}`} />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <Link
-                  href={plan.href}
-                  className={`mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${
-                    isFeatured
-                      ? "bg-gradient-to-r from-[#ff6d5a] to-[#ff4732] text-white shadow-lg shadow-[#ff6d5a]/30 hover:brightness-110"
-                      : "border border-white/20 bg-white/[0.06] text-white hover:bg-white/[0.1] hover:border-white/30"
-                  }`}
-                >
-                  <span>{plan.cta}</span>
-                  <ArrowRight className="size-4" />
-                </Link>
-              </article>
-            );
-          })}
-        </div>
-
-        {/* Clear Rules & Guarantees */}
-        <div className="mt-20 rounded-2xl border border-white/[0.1] bg-[#0c0d14]/80 p-8 backdrop-blur-md">
-          <div className="flex items-center gap-2.5 text-sm font-bold uppercase tracking-wider text-[#ff7a68] mb-3">
-            <ShieldCheck className="size-4" />
-            <span>The JobNinjas Honest Pricing Guarantee</span>
+                <span>{tier.cta}</span>
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight mb-4">
-            No tricks, no hidden seat penalties.
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs sm:text-sm text-slate-400 leading-relaxed">
-            <p>
-              <strong>Starter is 100% free forever:</strong> Holds one active requisition. Once you fill or close the role, the slot immediately frees up for your next hiring search.
-            </p>
-            <p>
-              <strong>Team is flat $49/mo for the workspace:</strong> Invite your entire hiring loop, recruiters, and engineering managers without paying an extra dollar per seat.
-            </p>
-            <p>
-              <strong>Zero surprise API invoices:</strong> Llama 3.3 70B inference is included in your plan with intelligent rate caching and token windowing.
-            </p>
-            <p>
-              <strong>You always make the call:</strong> Agents provide evidence, scorecards, and drafts. Human approval gates ensure no outreach or offer is dispatched without your sign-off.
-            </p>
-          </div>
-        </div>
+        ))}
+      </div>
 
-        {/* FAQ Section */}
-        <div className="mt-20 max-w-4xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-8 text-center">
-            Frequently Asked Questions
-          </h2>
-          <FaqList />
-        </div>
-      </main>
-    </MarketingShell>
+      <div className="mt-16 rounded-2xl border border-neutral-200 bg-white p-8 sm:p-10 text-center shadow-xs max-w-4xl mx-auto">
+        <h3 className="text-lg font-bold text-neutral-950">Enterprise Data Residency & Compliance</h3>
+        <p className="mt-2 text-xs sm:text-sm text-neutral-500 leading-relaxed max-w-2xl mx-auto">
+          Need private VPC hosting in EU, US, or APAC regions? All enterprise tiers include custom data retention, automated PII redaction, and SOC2 compliance audits.
+        </p>
+      </div>
+    </div>
   );
 }

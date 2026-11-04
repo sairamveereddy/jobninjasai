@@ -20,7 +20,7 @@ export function DashboardTopBar({ onMenuClick }: { onMenuClick?: () => void }) {
         </button>
         <Link
           href="/roles"
-          className="flex items-center gap-1.5 bg-gradient-to-r from-[#ff6d5a] to-[#ff4732] hover:brightness-110 text-white text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-all shadow-sm shadow-[#ff6d5a]/20 active:scale-95">
+          className="flex items-center gap-1.5 bg-[#ea4b71] hover:bg-[#df3860] text-white text-[13px] font-semibold px-4 py-2 rounded-full transition-all shadow-xs active:scale-95">
           <Plus className="w-4 h-4" />
           Create new
         </Link>

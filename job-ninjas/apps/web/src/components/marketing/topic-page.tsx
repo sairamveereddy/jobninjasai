@@ -8,38 +8,35 @@ export function TopicPage({ section, slug }: { section: string; slug: string[] }
 
   return (
     <MarketingShell>
-      <main className="relative mx-auto max-w-4xl px-6 py-16 sm:py-24">
-        {/* Glow backdrop */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-[#ff6d5a]/15 via-[#7d52ff]/10 to-transparent blur-3xl pointer-events-none" />
-
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#ff6d5a]/30 bg-[#ff6d5a]/10 px-3.5 py-1.5 text-xs font-semibold text-[#ff806f] mb-4">
-            <Sparkles className="size-3.5 text-[#ff6d5a]" />
+      <main className="relative mx-auto max-w-4xl px-4 sm:px-6 py-12 sm:py-20 font-sans">
+        <div>
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-mono font-semibold text-neutral-700 mb-4">
+            <Sparkles className="size-3 text-[#ea4b71]" />
             <span>{topic.kicker}</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-neutral-950 leading-tight">
             {topic.title}
           </h1>
-          <p className="mt-4 text-base sm:text-lg leading-relaxed text-slate-300">
+          <p className="mt-4 text-sm sm:text-base leading-relaxed text-neutral-600">
             {topic.lede}
           </p>
 
-          <div className="mt-12 space-y-4">
+          <div className="mt-10 space-y-4">
             {topic.points.map((point) => (
               <article
                 key={point.title}
-                className="group rounded-2xl border border-white/[0.1] bg-[#0e1017]/90 p-6 backdrop-blur-md shadow-lg shadow-black/40 hover:border-white/20 hover:bg-[#121420] transition-all"
+                className="group rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs hover:border-neutral-300 hover:shadow-md transition-all"
               >
                 <div className="flex items-start gap-3.5">
-                  <div className="size-8 rounded-lg bg-[#ff6d5a]/15 border border-[#ff6d5a]/30 flex items-center justify-center text-[#ff7a68] shrink-0 mt-0.5">
+                  <div className="size-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5">
                     <CheckCircle2 className="size-4" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white group-hover:text-[#ff806f] transition-colors tracking-tight">
+                    <h2 className="text-base font-bold text-neutral-900 group-hover:text-[#ea4b71] transition-colors tracking-tight">
                       {point.title}
                     </h2>
-                    <p className="mt-2 text-sm text-slate-300 leading-relaxed">
+                    <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 leading-relaxed">
                       {point.body}
                     </p>
                   </div>
@@ -48,19 +45,19 @@ export function TopicPage({ section, slug }: { section: string; slug: string[] }
             ))}
           </div>
 
-          <div className="mt-12 flex flex-col sm:flex-row items-center gap-4 pt-8 border-t border-white/[0.08]">
+          <div className="mt-12 flex flex-col sm:flex-row items-center gap-3.5 pt-8 border-t border-neutral-200">
             <Link
               href={TRIAL_HREF}
-              className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff6d5a] to-[#ff4732] px-6 text-sm font-bold text-white shadow-lg shadow-[#ff6d5a]/25 hover:brightness-110 active:scale-95 transition-all"
+              className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-[#ea4b71] hover:bg-[#df3860] px-6 text-sm font-semibold text-white shadow-xs transition-all hover:shadow-md active:scale-95 cursor-pointer"
             >
               <span>Test This Workflow on Role Canvas</span>
               <ArrowRight className="size-4" />
             </Link>
             <Link
               href="/#pipeline"
-              className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.06] px-6 text-sm font-semibold text-white hover:bg-white/[0.1] transition-all"
+              className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white hover:bg-neutral-50 px-6 text-sm font-semibold text-neutral-800 shadow-2xs transition-colors cursor-pointer"
             >
-              <Workflow className="size-4 text-[#ff7a68]" />
+              <Workflow className="size-4 text-[#ea4b71]" />
               <span>Explore All 15 Agents</span>
             </Link>
           </div>
