@@ -192,6 +192,24 @@ export function CopilotChat() {
     }
   };
 
+  // Do not render Copilot chatbot on landing page or marketing pages
+  const isMarketingPage =
+    !pathname ||
+    pathname === '/' ||
+    pathname.startsWith('/pricing') ||
+    pathname.startsWith('/templates') ||
+    pathname.startsWith('/solutions') ||
+    pathname.startsWith('/product') ||
+    pathname.startsWith('/resources') ||
+    pathname.startsWith('/privacy') ||
+    pathname.startsWith('/terms') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/use-cases');
+
+  if (isMarketingPage) {
+    return null;
+  }
+
   return (
     <>
       {/* Floating Launcher Pill */}
