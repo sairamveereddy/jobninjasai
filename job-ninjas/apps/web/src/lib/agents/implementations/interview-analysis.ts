@@ -2,16 +2,17 @@ import { AgentDefinition } from '../types';
 import { generateStructuredOutput } from '../../ai/client';
 import { InterviewAnalysisSchema } from '../schemas/interview-analysis';
 import { InterviewPlan } from '../schemas/interview-plan';
-import prisma from '../../prisma';
+import prisma from '@/lib/prisma';
 
 export const InterviewAnalysisAgent: AgentDefinition = {
   id: 'agent-interview-analysis',
   name: 'Interview Analysis Agent',
-  description: 'Analyzes interview transcripts to score the candidate based on the interview plan.',
+  description: 'Analyzes interview transcripts to score the candidate based on the interview plan and job requirements.',
   requiredInputs: ['InterviewPlan'],
   execute: async (context) => {
-    const { candidate } = context;
+    const { candidate, role } = context;
     const interviewPlan = context.upstreamOutputs['InterviewPlan'] as InterviewPlan;
+
     if (!interviewPlan) {
       throw new Error('Interview plan required. Connect Interview Planning, run it, then connect it to this step.');
     }
@@ -36,23 +37,37 @@ export const InterviewAnalysisAgent: AgentDefinition = {
       throw new Error('Transcript required. Open the Transcript step, paste what was said in the interview, and connect that step here. Agents do not read sticky notes.');
     }
 
+    // Window transcript to fit within Groq token limits while preserving introduction and technical depth
+    const windowedTranscript = transcriptText.length > 7000
+      ? transcriptText.slice(0, 3500) + '\n\n[... Technical conversation continues ...]\n\n' + transcriptText.slice(-3500)
+      : transcriptText;
+
     const systemPrompt = `You are an expert interviewer evaluating a candidate for a recruiter.
-Grade the transcript against the interview plan. Cite what was said. Do not invent quotes.
+Grade the interview dialogue against the interview plan and the actual requirements of the role. Cite actual quotes and topics discussed. Do not invent quotes.
+
+Role Title: ${role.title}
+Job Description:
+${(role.jobDescription || role.title).slice(0, 2000)}
+
+Candidate:
+Name: ${candidate.firstName} ${candidate.lastName}
 
 INTERVIEW PLAN:
-${JSON.stringify(interviewPlan, null, 2)}
+${JSON.stringify(interviewPlan, null, 2).slice(0, 2000)}
 `;
 
-    const input = `CANDIDATE TRANSCRIPT:
-${transcriptText}
+    const input = `ROLE: ${role.title}
+CANDIDATE: ${candidate.firstName} ${candidate.lastName}
+CANDIDATE TRANSCRIPT:
+${windowedTranscript}
 
-Evaluate this transcript and provide a structured analysis.`;
+Evaluate this transcript specifically for the ${role.title} position and provide a structured analysis.`;
 
     const analysis = await generateStructuredOutput({
       systemPrompt,
       input,
       schema: InterviewAnalysisSchema,
-      modelName: 'llama-3.3-70b-versatile',
+      modelName: 'openai/gpt-oss-120b',
     });
 
     const scorecard = context.upstreamOutputs['Scorecard'] || context.upstreamOutputs['ResumeAnalysis'];
@@ -69,10 +84,9 @@ Evaluate this transcript and provide a structured analysis.`;
       events: [
         {
           type: 'interview.analysis_completed',
-          payload: { recommendation: analysis.overallRecommendation },
+          payload: { candidateId: candidate.id, recommendation: analysis.overallRecommendation },
         },
       ],
-      nextActions: ['Candidate Decision'],
     };
   },
 };

@@ -861,12 +861,13 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
               </label>
               <select
                 className="w-full px-3.5 py-2.5 text-xs font-semibold text-slate-900 bg-white border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
-                value={(layer as any).config?.model || nodeSpec.defaultModel || 'llama-3.3-70b-versatile'}
+                value={(layer as any).config?.model || nodeSpec.defaultModel || 'openai/gpt-oss-120b'}
                 onChange={(e) => handleConfigChange('model', e.target.value)}
               >
-                <option value="llama-3.3-70b-versatile">Groq: Llama 3.3 70B Versatile (Recommended - High Reasoning & Deep Analysis)</option>
-                <option value="llama-3.1-8b-instant">Groq: Llama 3.1 8B Instant (Ultra Fast Screening & Inference)</option>
-                <option value="mixtral-8x7b-32768">Groq: Mixtral 8x7B (Large Context 32k)</option>
+                <option value="openai/gpt-oss-120b">Groq: OpenAI GPT-OSS 120B (Recommended - Deep Reasoning)</option>
+                <option value="openai/gpt-oss-20b">Groq: OpenAI GPT-OSS 20B (Ultra Fast Screening)</option>
+                <option value="qwen/qwen3.8-27b">Groq: Qwen 3.8 27B (High Context)</option>
+                <option value="llama-3.3-70b-versatile">Groq: Llama 3.3 70B Versatile</option>
               </select>
               <p className="text-[11px] text-slate-400">Strict structured evaluation with Zod schema verification enabled.</p>
             </div>

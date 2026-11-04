@@ -15,32 +15,38 @@ export const CandidateDecisionAgent: AgentDefinition = {
     const interviewAnalysis = context.upstreamOutputs['InterviewAnalysis'] as InterviewAnalysis;
 
     const systemPrompt = `You are an expert hiring committee advisor for JobNinjas.
-Your job is to synthesize all available evidence for a candidate and provide a comprehensive recommendation to the human recruiter.
-You do NOT make the final decision. You provide advisory support (STRONG_HIRE, HIRE, NEEDS_REVIEW, or NO_HIRE).
+Synthesize all available evidence for this candidate and provide an objective recommendation to the recruiter.
+Provide an honest advisory verdict: STRONG_HIRE, HIRE, NEEDS_REVIEW, or NO_HIRE based on direct alignment between the candidate background and the actual job requirements.
 
 Role Requirements:
 Title: ${role.title}
 Department: ${role.department || 'Engineering'}
-Required Skills: ${(role.requirements as string[])?.join(', ') || 'Not specified'}
+Job Description:
+${(role.jobDescription || role.title).slice(0, 2500)}
 
 Candidate Context:
 Name: ${candidate.firstName} ${candidate.lastName}
-Resume match: ${(resumeAnalysis as { overallMatch?: number; overallScore?: number } | undefined)?.overallMatch ?? (resumeAnalysis as { overallScore?: number } | undefined)?.overallScore ?? "n/a"} / 100
-Interview signal: ${(interviewAnalysis as { overallRecommendation?: string; overallScore?: number } | undefined)?.overallRecommendation ?? "n/a"}
+Resume on file:
+${(candidate.resumeText || '').slice(0, 2500)}
 
-Resume Analysis:
-${JSON.stringify(resumeAnalysis, null, 2)}
+Resume Screening Findings:
+${JSON.stringify(resumeAnalysis || {}, null, 2).slice(0, 2000)}
 
-Interview Analysis:
-${JSON.stringify(interviewAnalysis, null, 2)}`;
+Interview Analysis & Transcript Evaluation:
+${JSON.stringify(interviewAnalysis || {}, null, 2).slice(0, 2500)}`;
 
-    const input = `Evaluate the candidate and provide a final synthesis recommendation. Are they a good fit?`;
+    const input = `ROLE: ${role.title}
+JOB DESCRIPTION: ${(role.jobDescription || role.title).slice(0, 1500)}
+CANDIDATE: ${candidate.firstName} ${candidate.lastName}
+RESUME: ${(candidate.resumeText || '').slice(0, 1500)}
+
+Evaluate whether ${candidate.firstName} ${candidate.lastName} meets the requirements for ${role.title}. Return a structured hiring recommendation strictly citing their actual experience and any skill gaps for this specific position.`;
 
     const decision = await generateStructuredOutput({
       systemPrompt,
       input,
       schema: CandidateDecisionSchema,
-      modelName: 'llama-3.3-70b-versatile',
+      modelName: 'openai/gpt-oss-120b',
     });
 
     return {
