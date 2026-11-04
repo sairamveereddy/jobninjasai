@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Send, Calendar, Video, Loader2, CheckCircle2, Copy } from "lucide-react";
+import { X, Send, Calendar, Video, Loader2, CheckCircle2, Copy, AlertCircle, ExternalLink } from "lucide-react";
 import { formatInterviewSlots, recommendationPresentation } from "@/lib/agents/contracts";
 
 export type ArtifactKind = "scorecard" | "shortlist" | "outreach" | "schedule" | "interview" | "recommendation";
@@ -98,6 +98,8 @@ export function ArtifactSheet({
   const [gmailSent, setGmailSent] = useState(false);
   const [bookingGCal, setBookingGCal] = useState(false);
   const [bookedMeeting, setBookedMeeting] = useState<any>(null);
+  const [postingSlack, setPostingSlack] = useState(false);
+  const [slackNotice, setSlackNotice] = useState<{ text: string; simulated?: boolean } | null>(null);
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -175,8 +177,10 @@ export function ArtifactSheet({
   };
 
   const notifySlack = async (title: string, text: string) => {
+    setPostingSlack(true);
+    setSlackNotice(null);
     try {
-      await fetch('/api/integrations/slack/notify', {
+      const res = await fetch('/api/integrations/slack/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -185,7 +189,28 @@ export function ArtifactSheet({
           candidateName,
         }),
       });
-    } catch {}
+      const resData = await res.json();
+      if (resData.simulated) {
+        setSlackNotice({
+          text: 'Alert logged to simulator. Connect live webhook in Settings > Integrations to notify your Slack workspace.',
+          simulated: true,
+        });
+      } else if (resData.success) {
+        setSlackNotice({
+          text: '✓ Posted directly to your Slack channel!',
+          simulated: false,
+        });
+      } else {
+        setSlackNotice({
+          text: resData.error || 'Failed to post to Slack',
+          simulated: false,
+        });
+      }
+    } catch {
+      setSlackNotice({ text: 'Unable to reach Slack service', simulated: false });
+    } finally {
+      setPostingSlack(false);
+    }
   };
 
   const finishEmail = () => {
@@ -374,14 +399,25 @@ export function ArtifactSheet({
             {data.candidateMessage && <p className="leading-relaxed text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">{data.candidateMessage}</p>}
 
             {bookedMeeting && (
-              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs space-y-1.5 text-emerald-900">
-                <div className="font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Interview Booked on Google Calendar!</span>
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs space-y-2 text-emerald-950">
+                <div className="font-bold flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-emerald-900">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Interview Calendar Invite Generated!
+                  </span>
+                  <a
+                    href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('JobNinjas Technical Interview: ' + (candidateName || 'Candidate'))}&details=${encodeURIComponent('Technical Interview for ' + (candidateName || 'Candidate') + '\nVideo Link: ' + (bookedMeeting.meetUrl || 'Online') + '\nScheduled via JobNinjas AI')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition-colors"
+                  >
+                    <span>Open in Google Calendar</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Video className="w-4 h-4 text-indigo-600" />
-                  <a href={bookedMeeting.meetUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-700 underline">
+                  <Video className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <a href={bookedMeeting.meetUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-700 underline truncate">
                     {bookedMeeting.meetUrl}
                   </a>
                 </div>
@@ -443,12 +479,20 @@ export function ArtifactSheet({
                 </button>
                 <button
                   type="button"
+                  disabled={postingSlack}
                   onClick={() => notifySlack(`Hiring Recommendation: ${decision.title}`, `${candidateName} has completed interview loop. Recommendation: ${decision.title}. Next: ${decision.nextStep}`)}
-                  className="rounded-lg bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                  className="rounded-lg bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
                 >
-                  <span>Post to Slack</span>
+                  {postingSlack ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  <span>{postingSlack ? "Posting..." : "Post to Slack"}</span>
                 </button>
               </div>
+              {slackNotice && (
+                <div className={`mt-2.5 p-2.5 rounded-lg text-xs flex items-start gap-2 ${slackNotice.simulated ? 'bg-amber-50 text-amber-900 border border-amber-200' : 'bg-emerald-50 text-emerald-900 border border-emerald-200'}`}>
+                  {slackNotice.simulated ? <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" /> : <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />}
+                  <span className="leading-relaxed">{slackNotice.text}</span>
+                </div>
+              )}
             </div>
           </div>
         )}

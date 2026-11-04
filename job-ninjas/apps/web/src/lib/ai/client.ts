@@ -1,5 +1,5 @@
 import { createGroq } from '@ai-sdk/groq';
-import { generateObject } from 'ai';
+import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 
 export interface GenerateStructuredOutputOptions<T> {
@@ -290,6 +290,36 @@ export async function generateStructuredOutput<T>({
         ? input.slice(0, 4000) + '\n\n[... Input truncated for token limits ...]\n\n' + input.slice(-4000)
         : input;
 
+      // Method 1: Direct JSON completion with schema validation (immune to Groq strict JSON schema required[] limitations)
+      try {
+        const textResult = await generateText({
+          model: groq(primaryModel),
+          system: `${windowedSystemPrompt}\n\nIMPORTANT: Return ONLY a valid JSON object matching the required schema. No markdown backticks, no explanatory text, just the raw JSON object.`,
+          prompt: windowedInput,
+        });
+
+        let cleaned = textResult.text.trim();
+        if (cleaned.startsWith('```')) {
+          cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+        }
+        const firstBrace = cleaned.indexOf('{');
+        const lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+        }
+
+        const parsedJson = JSON.parse(cleaned);
+        const validated = schema.safeParse(parsedJson);
+        if (validated.success) {
+          return validated.data;
+        } else {
+          console.warn('[AI Gateway] Schema validation warning, attempting standard generateObject:', validated.error.message);
+        }
+      } catch (jsonErr: any) {
+        console.warn(`[AI Gateway] Direct JSON parse notice: ${jsonErr?.message}. Retrying with generateObject...`);
+      }
+
+      // Method 2: generateObject fallback
       try {
         const { object } = await generateObject({
           model: groq(primaryModel),
