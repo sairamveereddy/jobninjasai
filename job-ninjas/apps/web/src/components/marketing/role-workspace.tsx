@@ -449,8 +449,8 @@ export function RoleWorkspace() {
           </div>
 
           {/* Right Multi-Branch Graph Simulator (n8n Multi-Branch Node Map) */}
-          <div className="w-full lg:w-auto flex-1 overflow-x-auto pb-4">
-            <div className="min-w-[620px] flex items-center justify-between gap-3 py-4">
+          <div className="w-full lg:w-auto flex-1 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="min-w-[620px] flex items-center justify-between gap-3 py-2">
               
               {/* Trigger */}
               <div className="flex flex-col items-center text-center w-28">

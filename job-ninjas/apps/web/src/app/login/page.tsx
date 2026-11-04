@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { pageSeo, TRIAL_HREF } from "@/lib/marketing/site";
 import { LoginForm } from "./login-form";
@@ -27,9 +28,18 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-xl shadow-sky-100/60">
         <div className="flex flex-col items-center text-center">
-          <Link href="/" className="mb-4 inline-flex items-center gap-2 group">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white font-mono text-sm font-bold shadow-xs group-hover:scale-105 transition-transform">
-              JN
+          <Link href="/" className="mb-4 inline-flex items-center gap-2.5 group">
+            <Image
+              src="/logo.png"
+              alt="JobNinjas"
+              width={40}
+              height={40}
+              className="size-10 object-contain transition-transform group-hover:scale-105"
+              unoptimized
+            />
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-xl font-bold tracking-tight text-slate-900 font-sans">jobNinjas</span>
+              <span className="text-sm font-bold text-sky-600 font-mono">.ai</span>
             </div>
           </Link>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 font-sans">

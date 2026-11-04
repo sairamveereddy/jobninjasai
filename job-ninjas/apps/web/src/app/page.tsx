@@ -211,22 +211,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. Trusted By Bar */}
-      <section className="border-y border-slate-200/80 bg-white py-10 px-4">
-        <div className="mx-auto max-w-6xl">
-          <p className="text-center text-xs font-mono font-medium uppercase tracking-wider text-slate-400">
-            Trusted by modern engineering leaders and recruiting teams to orchestrate high-conviction hiring
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-70 grayscale hover:grayscale-0 transition-all">
-            <span className="font-mono text-sm font-bold tracking-tighter text-slate-800">LINEAR</span>
-            <span className="font-mono text-sm font-bold tracking-tighter text-slate-800">RAMP</span>
-            <span className="font-mono text-sm font-bold tracking-tighter text-slate-800">VERCEL</span>
-            <span className="font-mono text-sm font-bold tracking-tighter text-slate-800">RETOOL</span>
-            <span className="font-mono text-sm font-bold tracking-tighter text-slate-800">GREENHOUSE</span>
-            <span className="font-mono text-sm font-bold tracking-tighter text-slate-800">ASHBY</span>
-          </div>
-        </div>
-      </section>
+
 
       {/* 3. Social Proof Metrics */}
       <section className="px-4 sm:px-6 lg:px-8">

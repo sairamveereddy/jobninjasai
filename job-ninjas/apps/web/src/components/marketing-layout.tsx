@@ -87,12 +87,17 @@ export function MarketingNav() {
         {/* Left: Brand */}
         <div className="flex items-center gap-4 sm:gap-7">
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group" onClick={() => setOpen(false)}>
-            <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
-              <span className="font-mono text-xs font-black tracking-tight">JN</span>
-            </div>
-            <div className="flex items-baseline gap-1">
+            <Image 
+              src="/logo.png" 
+              alt="JobNinjas" 
+              width={32} 
+              height={32} 
+              className="size-8 object-contain transition-transform group-hover:scale-105" 
+              unoptimized 
+            />
+            <div className="flex items-baseline gap-0.5">
               <span className="text-[17px] font-bold tracking-tight text-slate-900 font-sans">jobNinjas</span>
-              <span className="size-1.5 rounded-full bg-sky-500" />
+              <span className="text-[12px] font-bold text-sky-600 font-mono">.ai</span>
             </div>
           </Link>
 
@@ -196,11 +201,19 @@ export function MarketingFooter() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
           {/* Brand Col */}
           <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="inline-flex items-center gap-2">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-tr from-sky-500 to-blue-600 text-white font-mono text-xs font-bold">
-                JN
+            <Link href="/" className="inline-flex items-center gap-2.5 group">
+              <Image 
+                src="/logo.png" 
+                alt="JobNinjas" 
+                width={28} 
+                height={28} 
+                className="size-7 object-contain transition-transform group-hover:scale-105" 
+                unoptimized 
+              />
+              <div className="flex items-baseline gap-0.5">
+                <span className="font-bold text-slate-900 tracking-tight text-base font-sans">jobNinjas</span>
+                <span className="text-[12px] font-bold text-sky-600 font-mono">.ai</span>
               </div>
-              <span className="font-bold text-slate-900 tracking-tight text-base">jobNinjas</span>
             </Link>
             <p className="mt-3 text-xs leading-relaxed text-slate-500 max-w-xs">
               The spatial intelligence canvas for autonomous recruiting agents and verifiable multi-round hiring pipelines.
