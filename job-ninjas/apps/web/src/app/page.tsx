@@ -27,6 +27,7 @@ import {
   Search
 } from "lucide-react";
 import { RoleWorkspace } from "@/components/marketing/role-workspace";
+import { MarketingShell } from "@/components/marketing-layout";
 import { TRIAL_HREF } from "@/lib/marketing/site";
 
 const COMPLEX_AGENTS = [
@@ -152,7 +153,8 @@ const CONNECTORS = [
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-24 sm:gap-32 pb-24 overflow-hidden font-sans">
+    <MarketingShell>
+      <div className="flex flex-col gap-24 sm:gap-32 pb-24 overflow-hidden font-sans">
       {/* 1. Hero Section (Miro + n8n Fusion: Open Spatial Canvas, Editorial Typography, Light Blue Theme) */}
       <section className="relative px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14">
         <div className="mx-auto max-w-5xl text-center">
@@ -412,5 +414,6 @@ export default function HomePage() {
         </div>
       </section>
     </div>
-  );
+  </MarketingShell>
+);
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, ArrowRight, Sparkles, Shield, Zap } from "lucide-react";
 import { pageSeo, TRIAL_HREF } from "@/lib/marketing/site";
+import { MarketingShell } from "@/components/marketing-layout";
 
 export const metadata: Metadata = pageSeo(
   "Transparent Pricing for Modern Hiring Teams",
@@ -72,7 +73,8 @@ const TIERS = [
 
 export default function PricingPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 font-sans">
+    <MarketingShell>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 font-sans">
       <div className="text-center max-w-3xl mx-auto">
         <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3.5 py-1 text-xs font-mono font-semibold text-blue-700 border border-sky-200">
           <Sparkles className="size-3 text-blue-600" /> TRANSPARENT REQUISITION PRICING
@@ -163,5 +165,6 @@ export default function PricingPage() {
         </p>
       </div>
     </div>
-  );
+  </MarketingShell>
+);
 }

@@ -79,13 +79,13 @@ export function MarketingNav() {
   }, [open]);
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-50 flex flex-col items-center px-4 pt-3.5 transition-all duration-300">
+    <header className="fixed top-0 right-0 left-0 z-[100] flex flex-col items-center px-3 sm:px-4 pt-3 sm:pt-3.5 transition-all duration-300">
       <nav 
         aria-label="Global navigation" 
-        className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between rounded-full border border-slate-200/90 bg-white/90 px-4 sm:px-6 shadow-xs backdrop-blur-md transition-shadow hover:shadow-md"
+        className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between rounded-full border border-slate-200/90 bg-white/95 px-3.5 sm:px-6 shadow-sm backdrop-blur-md transition-shadow hover:shadow-md"
       >
         {/* Left: Brand */}
-        <div className="flex items-center gap-7">
+        <div className="flex items-center gap-4 sm:gap-7">
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group" onClick={() => setOpen(false)}>
             <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
               <span className="font-mono text-xs font-black tracking-tight">JN</span>
@@ -110,35 +110,35 @@ export function MarketingNav() {
           </div>
         </div>
 
-        {/* Right CTAs */}
-        <div className="hidden md:flex items-center gap-3">
+        {/* Right CTAs - Always visible buttons */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/login"
-            className="rounded-full px-4 py-1.5 text-[13px] font-semibold text-slate-700 transition-colors hover:text-slate-950 hover:bg-slate-100/80"
+            className="hidden sm:inline-block rounded-full px-3.5 py-1.5 text-[13px] font-semibold text-slate-700 transition-colors hover:text-slate-950 hover:bg-slate-100/80"
           >
             Sign in
           </Link>
           <Link
             href={TRIAL_HREF}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 px-5 py-2 text-[13px] font-semibold text-white shadow-sm shadow-blue-500/20 transition-all hover:shadow-md active:scale-95"
+            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 px-4 sm:px-5 py-2 text-xs sm:text-[13px] font-semibold text-white shadow-sm shadow-blue-500/20 transition-all hover:shadow-md active:scale-95"
           >
-            <span>Get Started Free</span>
+            <span>Get Started</span>
             <ArrowRight className="size-3.5" />
           </Link>
-        </div>
 
-        {/* Mobile menu hamburger */}
-        <button
-          ref={buttonRef}
-          type="button"
-          aria-expanded={open}
-          aria-controls={menuId}
-          aria-label={open ? "Close navigation" : "Open navigation"}
-          onClick={() => setOpen(!open)}
-          className="flex size-9 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer"
-        >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+          {/* Mobile menu hamburger */}
+          <button
+            ref={buttonRef}
+            type="button"
+            aria-expanded={open}
+            aria-controls={menuId}
+            aria-label={open ? "Close navigation" : "Open navigation"}
+            onClick={() => setOpen(!open)}
+            className="flex size-9 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer ml-0.5"
+          >
+            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Drawer */}

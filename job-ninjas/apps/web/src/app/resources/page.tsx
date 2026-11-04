@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Code2, FileText, HelpCircle, Sparkles, Terminal } from "lucide-react";
 import { pageSeo, TRIAL_HREF } from "@/lib/marketing/site";
+import { MarketingShell } from "@/components/marketing-layout";
 
 export const metadata: Metadata = pageSeo(
   "Developer & Recruiter Documentation",
@@ -49,7 +50,8 @@ const DOC_SECTIONS = [
 
 export default function ResourcesPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 font-sans">
+    <MarketingShell>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 font-sans">
       <div className="text-center max-w-3xl mx-auto">
         <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3.5 py-1 text-xs font-mono font-semibold text-blue-700 border border-sky-200">
           <BookOpen className="size-3 text-blue-600" /> DOCUMENTATION & GUIDES
@@ -91,5 +93,6 @@ export default function ResourcesPage() {
         ))}
       </div>
     </div>
-  );
+  </MarketingShell>
+);
 }
