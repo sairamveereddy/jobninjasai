@@ -1,14 +1,14 @@
 export const TRIAL_HREF = "/api/auth/skip";
 export const SITE_URL = "https://jobninjas.ai";
-export const SITE_TITLE = "JobNinjas | The OS for one open role";
+export const SITE_TITLE = "JobNinjas | Autonomous AI Recruiting & Hiring Platform";
 export const SITE_DESCRIPTION =
-  "JobNinjas is the OS for one open role. One board holds the job, the resumes, and the agents that screen, plan, and write the decision.";
+  "JobNinjas is the autonomous AI recruiting operating system for hiring teams. Orchestrate 15 specialized agents across resume screening, technical interview analysis, candidate travel concierge, and hiring decisions on an infinite visual canvas.";
 
 export const OG_IMAGE = {
   url: "/og.png",
   width: 1200,
   height: 630,
-  alt: "JobNinjas, the OS for one open role",
+  alt: "JobNinjas - Autonomous AI Recruiting Platform",
 };
 
 export function pageSeo(title: string, description: string) {
