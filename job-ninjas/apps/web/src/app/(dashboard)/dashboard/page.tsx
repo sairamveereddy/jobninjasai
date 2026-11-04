@@ -117,7 +117,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/roles"
-          className="flex items-center gap-1.5 bg-[#ea4b71] hover:bg-[#df3860] text-white text-[13px] font-semibold px-4 py-2 rounded-full transition-all shadow-xs active:scale-95"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white text-[13px] font-semibold px-4 py-2 rounded-full transition-all shadow-sm shadow-blue-500/20 active:scale-95"
         >
           <Plus className="w-4 h-4" />
           Create New Role

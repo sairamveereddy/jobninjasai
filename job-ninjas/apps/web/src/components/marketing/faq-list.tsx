@@ -58,7 +58,7 @@ export function FaqList() {
                 <span className="font-semibold text-neutral-900">{item.q}</span>
                 <ChevronDown
                   className={`size-4 shrink-0 text-neutral-400 transition-transform duration-200 ${
-                    isOpen ? "rotate-180 text-[#ea4b71]" : ""
+                    isOpen ? "rotate-180 text-blue-600" : ""
                   }`}
                 />
               </button>

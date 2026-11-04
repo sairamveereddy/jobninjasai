@@ -51,14 +51,14 @@ export default function ResourcesPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 font-sans">
       <div className="text-center max-w-3xl mx-auto">
-        <span className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 text-xs font-mono font-semibold text-neutral-700">
-          <BookOpen className="size-3 text-[#ea4b71]" /> DOCUMENTATION & GUIDES
+        <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-3.5 py-1 text-xs font-mono font-semibold text-blue-700 border border-sky-200">
+          <BookOpen className="size-3 text-blue-600" /> DOCUMENTATION & GUIDES
         </span>
-        <h1 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight text-neutral-950">
+        <h1 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
           Everything you need to <br className="hidden sm:inline" />
           build and automate hiring.
         </h1>
-        <p className="mt-4 text-sm sm:text-base text-neutral-600 leading-relaxed">
+        <p className="mt-4 text-sm sm:text-base text-slate-600 leading-relaxed">
           Comprehensive guides, API specifications, and architectural documentation for recruiters, founders, and engineering leaders.
         </p>
       </div>
@@ -67,21 +67,21 @@ export default function ResourcesPage() {
         {DOC_SECTIONS.map((sec) => (
           <div
             key={sec.title}
-            className="rounded-3xl border border-neutral-200 bg-white p-8 sm:p-10 shadow-xs hover:border-neutral-300 transition-all"
+            className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-xs hover:border-sky-300 transition-all"
           >
-            <h3 className="text-xl font-bold text-neutral-950">{sec.title}</h3>
-            <p className="mt-2 text-xs sm:text-sm text-neutral-500 leading-relaxed">
+            <h3 className="text-xl font-bold text-slate-900">{sec.title}</h3>
+            <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
               {sec.desc}
             </p>
 
-            <ul className="mt-6 space-y-3 border-t border-neutral-100 pt-5">
+            <ul className="mt-6 space-y-3 border-t border-slate-100 pt-5">
               {sec.links.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-800 hover:text-[#ea4b71] transition-colors"
+                    className="inline-flex items-center gap-2 text-xs font-semibold text-slate-800 hover:text-blue-600 transition-colors"
                   >
-                    <ArrowRight className="size-3 text-neutral-400" />
+                    <ArrowRight className="size-3 text-slate-400" />
                     <span>{link.label}</span>
                   </Link>
                 </li>

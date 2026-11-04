@@ -19,7 +19,7 @@ export function LoginForm() {
           autoComplete="email"
           defaultValue="recruiter@jobninjas.ai"
           placeholder="you@company.com"
-          className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-[#ea4b71] focus:ring-1 focus:ring-[#ea4b71] outline-none transition-all shadow-2xs"
+          className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition-all shadow-2xs"
         />
       </div>
       <div>
@@ -32,7 +32,7 @@ export function LoginForm() {
           type="password"
           autoComplete="current-password"
           placeholder="••••••••••••"
-          className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-[#ea4b71] focus:ring-1 focus:ring-[#ea4b71] outline-none transition-all shadow-2xs"
+          className="w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition-all shadow-2xs"
         />
       </div>
       <button
