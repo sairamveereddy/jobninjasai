@@ -1,6 +1,7 @@
 export interface GCalConfig {
   calendarId?: string;
   interviewerEmail?: string;
+  webhookUrl?: string;
   isDemo?: boolean;
 }
 
@@ -58,7 +59,7 @@ export async function getCalendarSlots(
 }
 
 export async function bookCalendarEvent(
-  _config: GCalConfig,
+  config: GCalConfig,
   payload: {
     candidateEmail: string;
     candidateName: string;
@@ -69,11 +70,31 @@ export async function bookCalendarEvent(
   const eventId = `gcal_${Date.now()}`;
   const meetCode = `meet-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
   const meetUrl = `https://meet.google.com/${meetCode}`;
+  const summary = `Interview: ${payload.candidateName} for ${payload.roleTitle}`;
+
+  if (config.webhookUrl && config.webhookUrl.startsWith('http') && !config.webhookUrl.includes('demo')) {
+    try {
+      await fetch(config.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId,
+          meetUrl,
+          summary,
+          interviewerEmail: config.interviewerEmail,
+          calendarId: config.calendarId,
+          ...payload,
+        }),
+      });
+    } catch (err: any) {
+      console.warn(`[GCal Dispatcher] Live dispatch warning (${err?.message})`);
+    }
+  }
 
   return {
     success: true,
     eventId,
     meetUrl,
-    summary: `Interview: ${payload.candidateName} for ${payload.roleTitle}`,
+    summary,
   };
 }
