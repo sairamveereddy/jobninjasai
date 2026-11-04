@@ -3,7 +3,35 @@ import Link from "next/link";
 import { MarketingShell } from "@/components/marketing-layout";
 import { RoleWorkspace } from "@/components/marketing/role-workspace";
 import { FaqList } from "@/components/marketing/faq-list";
-import { AGENTS, OG_IMAGE, PLANS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL, TRIAL_HREF } from "@/lib/marketing/site";
+import { 
+  AGENTS, 
+  OG_IMAGE, 
+  PLANS, 
+  SITE_DESCRIPTION, 
+  SITE_TITLE, 
+  SITE_URL, 
+  TRIAL_HREF 
+} from "@/lib/marketing/site";
+import { 
+  ArrowRight, 
+  Sparkles, 
+  CheckCircle2, 
+  Workflow, 
+  Layers, 
+  Zap, 
+  ShieldCheck, 
+  Cpu, 
+  FileCheck, 
+  Calendar, 
+  Award, 
+  PlaneTakeoff, 
+  Terminal,
+  ChevronRight,
+  GitBranch,
+  Sliders,
+  Send,
+  MessageSquare
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: { absolute: SITE_TITLE },
@@ -23,44 +51,85 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
 };
 
-const STEPS = [
+const STATS = [
+  { value: "15", label: "Autonomous AI Agents", sub: "Screening to onboarding" },
+  { value: "<45s", label: "Pipeline Turnaround", sub: "Instant evidence scoring" },
+  { value: "100%", label: "Grounded In Evidence", sub: "Zero gut-feel hallucinations" },
+  { value: "0", label: "Rigid Workflows", sub: "Infinite visual canvas" },
+];
+
+const BENTO_FEATURES = [
   {
-    n: "01",
-    title: "Open the role",
-    body: "Create one board for the job you are actually hiring. The title, the hiring manager, and the job description live there.",
+    title: "Visual Agent Orchestration",
+    category: "Workflow Engine",
+    description: "Design hiring pipelines like n8n workflows. Wire resume screeners, interview synthesizers, and travel concierges on an infinite reactive canvas.",
+    icon: Workflow,
+    gradient: "from-blue-500/20 to-indigo-500/10",
+    border: "border-blue-500/30",
+    badge: "Drag & Wire",
   },
   {
-    n: "02",
-    title: "Bring the inputs",
-    body: "Add resumes, paste a transcript, or import candidates from a Greenhouse job. Everyone stays attached to this requisition.",
+    title: "Objective Interview Evidence",
+    category: "Signal Extraction",
+    description: "Scores candidate dialogue against real job rubrics. Cites direct quotes, evaluates technical trade-offs, and highlights open questions.",
+    icon: Sparkles,
+    gradient: "from-[#ff6d5a]/20 to-orange-500/10",
+    border: "border-[#ff6d5a]/30",
+    badge: "Quoted Citations",
   },
   {
-    n: "03",
-    title: "Run the agents",
-    body: "The same pipeline runs for each person: parse the job and the resume, score the match, then shortlist, draft outreach, schedule, analyze the interview, and write a recommendation. You choose who advances.",
+    title: "Human-in-the-Loop Gates",
+    category: "Governance & Quality",
+    description: "AI assists, but your team decides. Pause execution at Shortlist and Final Offer gates for human review and sign-off.",
+    icon: ShieldCheck,
+    gradient: "from-emerald-500/20 to-teal-500/10",
+    border: "border-emerald-500/30",
+    badge: "You Make The Call",
+  },
+  {
+    title: "Candidate Concierge via Ophelia OS",
+    category: "Candidate Experience",
+    description: "Automate flights, boutique hotel search, welcome dinners, and on-site schedules for traveling candidates automatically.",
+    icon: PlaneTakeoff,
+    gradient: "from-purple-500/20 to-indigo-500/10",
+    border: "border-purple-500/30",
+    badge: "VIP Travel",
+  },
+  {
+    title: "Real Production Connectors",
+    category: "Ecosystem Integrations",
+    description: "Live Slack alerts, one-click Google Calendar meeting invites, and bidirectional Greenhouse Harvest ATS candidate synchronization.",
+    icon: Zap,
+    gradient: "from-amber-500/20 to-yellow-500/10",
+    border: "border-amber-500/30",
+    badge: "Slack · GCal · ATS",
   },
 ];
 
 const USES = [
   {
     href: "/use-cases/technical",
-    title: "Technical hiring",
-    body: "One engineering req, a stack of resumes, and interview questions aimed at the gaps.",
+    title: "Technical & Systems Engineering",
+    body: "Parse complex stacks, evaluate architecture trade-offs from interview transcripts, and audit GitHub repositories.",
+    tag: "High Bar",
   },
   {
     href: "/use-cases/high-volume",
-    title: "A full slate",
-    body: "Import many candidates onto one role and compare them against the same job description.",
+    title: "High-Volume Sourcing Slates",
+    body: "Import batches of candidate resumes from Greenhouse. Score everyone against the exact same rubric with zero bias.",
+    tag: "Fast Turnaround",
   },
   {
     href: "/use-cases/executive",
-    title: "A short senior search",
-    body: "Fewer people, a written recommendation, and interview times you send yourself.",
+    title: "Executive & Senior Leadership",
+    body: "Personalized outreach, white-glove candidate travel concierge, and rigorous strategic synthesis for hiring executives.",
+    tag: "White Glove",
   },
   {
     href: "/use-cases/campus",
-    title: "A campus cohort",
-    body: "One intern or new-grad role, one screen, and the same interview plan for every interviewer.",
+    title: "Campus & Early Career Cohorts",
+    body: "Standardize campus evaluation with consistent interview rubrics and collaborative candidate scorecards.",
+    tag: "Objective Calibration",
   },
 ];
 
@@ -68,212 +137,269 @@ export default function Home() {
   return (
     <MarketingShell>
       <main>
-        <section className="mx-auto max-w-6xl px-5 pb-16 pt-16 sm:pb-24 sm:pt-24">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">
-              The operating system for one open role
-            </p>
-            <h1 className="mt-4 text-[40px] font-medium leading-[1.05] tracking-[-0.02em] text-white sm:text-[64px]">
-              One board. One role. Agents that run the hire.
+        {/* n8n-Style Grand Hero Section */}
+        <section className="relative mx-auto max-w-7xl px-6 pt-16 pb-20 sm:pt-24 sm:pb-28">
+          {/* Top subtle glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-[#ff6d5a]/15 via-[#7d52ff]/10 to-transparent blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 mx-auto max-w-4xl text-center">
+            {/* Announcement Pill Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#ff6d5a]/30 bg-[#ff6d5a]/10 px-3.5 py-1.5 text-xs font-semibold text-[#ff806f] shadow-xs backdrop-blur-md mb-6 hover:bg-[#ff6d5a]/15 transition-colors">
+              <Sparkles className="size-3.5 text-[#ff6d5a]" />
+              <span>JobNinjas 2.0: Autonomous AI Agents for Recruiting</span>
+              <ChevronRight className="size-3 text-[#ff806f]" />
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl leading-[1.08]">
+              Automate hiring workflows with{" "}
+              <span className="bg-gradient-to-r from-[#ff6d5a] via-[#ff8878] to-[#9b72ff] bg-clip-text text-transparent">
+                autonomous AI agents.
+              </span>
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-[16px] leading-relaxed text-[#b1b3b8] sm:text-[18px]">
-              JobNinjas gives every requisition its own workspace. Put the job description and the resumes in one place.
-              Agents parse the job and the resumes, score each candidate, and write a hiring recommendation your team can defend.
+
+            {/* Lede Subtitle */}
+            <p className="mx-auto mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-slate-300">
+              The fair-code inspired operating system for open roles. Wire together 15 specialized agents for resume screening, interview scoring, travel concierge, and offer decisions on an interactive visual canvas.
             </p>
+
+            {/* CTA Buttons */}
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href={TRIAL_HREF}
-                className="inline-flex h-11 w-full items-center justify-center rounded-[4px] bg-[#5e6ad2] px-5 text-[14px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] hover:bg-[#6d78d8] sm:w-auto"
+                className="group relative inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff6d5a] via-[#ff5844] to-[#f03d27] px-6 text-sm font-bold text-white shadow-xl shadow-[#ff6d5a]/25 transition-all hover:brightness-110 active:scale-95 sm:w-auto"
               >
-                Try a role
+                <span>Open Live Role Workspace</span>
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 href="#pipeline"
-                className="inline-flex h-11 w-full items-center justify-center rounded-[4px] border border-white/[0.15] px-5 text-[14px] font-medium text-white hover:bg-white/[0.04] sm:w-auto"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.15] bg-white/[0.04] px-6 text-sm font-semibold text-white shadow-xs backdrop-blur-md hover:bg-white/[0.08] hover:border-white/30 transition-all sm:w-auto"
               >
-                See the pipeline
+                <Workflow className="size-4 text-[#ff7a68]" />
+                <span>Explore Agent Pipeline</span>
               </Link>
             </div>
           </div>
-          <div className="mx-auto mt-14 max-w-5xl">
+
+          {/* Interactive Live Workflow Canvas Simulator */}
+          <div className="relative mx-auto mt-14 max-w-6xl">
             <RoleWorkspace />
           </div>
         </section>
 
-        <section id="how" className="border-t border-white/[0.08]">
-          <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 sm:py-24 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-            <div>
-              <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">How it works</p>
-              <h2 className="mt-3 text-[32px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[40px]">
-                Three steps on the requisition.
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-[#b1b3b8]">
-                The board is the open role: the job description, the people in process, their documents, and the agents working that hire.
-              </p>
-            </div>
-            <ol className="space-y-4">
-              {STEPS.map((step) => (
-                <li key={step.n} className="rounded-[8px] border border-white/[0.08] bg-[#111214] p-5">
-                  <p className="text-[12px] font-medium tabular-nums text-[#8b90d6]">{step.n}</p>
-                  <h3 className="mt-2 text-[18px] font-medium tracking-[-0.02em]">{step.title}</h3>
-                  <p className="mt-2 text-[14px] leading-relaxed text-[#b1b3b8]">{step.body}</p>
-                </li>
+        {/* Stats Strip */}
+        <section className="border-y border-white/[0.08] bg-[#07080c]/60 backdrop-blur-md">
+          <div className="mx-auto max-w-7xl px-6 py-10">
+            <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+              {STATS.map((stat) => (
+                <div key={stat.label} className="flex flex-col items-center text-center">
+                  <p className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                    {stat.value}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-slate-200">{stat.label}</p>
+                  <p className="text-xs text-slate-500">{stat.sub}</p>
+                </div>
               ))}
-            </ol>
+            </div>
           </div>
         </section>
 
-        <section className="border-t border-white/[0.08]">
-          <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-            <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">Not a whiteboard</p>
-            <h2 className="mt-3 max-w-3xl text-[32px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[40px]">
-              Miro-class tools do not run a hire.
+        {/* Bento Grid: Core Platform Features */}
+        <section className="relative mx-auto max-w-7xl px-6 py-20 sm:py-28">
+          <div className="max-w-2xl mb-14">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#ff7a68] mb-2">
+              <Workflow className="size-3.5" />
+              <span>Platform Capabilities</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+              Designed for high-conviction hiring teams.
             </h2>
-            <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-[#b1b3b8]">
-              A whiteboard stores stickies. JobNinjas runs agents on one open role. JD Parser, Screen & Score, Outreach, and Hiring Recommendation each take an input and write an output. Nothing on the role is there just to be arranged.
+            <p className="mt-3 text-slate-400 text-sm sm:text-base leading-relaxed">
+              Replace disconnected spreadsheets, subjective interview notes, and rigid ATS lock-in with a flexible, autonomous agent pipeline.
             </p>
           </div>
-        </section>
 
-        <section id="pipeline" className="border-t border-white/[0.08]">
-          <div className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
-            <div className="max-w-2xl">
-              <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">The agent pipeline</p>
-              <h2 className="mt-3 text-[32px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[40px]">
-                Each agent reads something and writes something back.
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-[#b1b3b8]">
-                These are the agents on the role, with the same names as the product. Interview Planning writes the guide that Interview Schedule and Interview Analysis read. The sequence runs per candidate.
-              </p>
-            </div>
-            <ol className="mt-10 space-y-3">
-              {AGENTS.map((agent, index) => (
-                <li key={agent.name} className="grid gap-4 rounded-[8px] border border-white/[0.08] bg-[#111214] p-4 sm:grid-cols-[220px_minmax(0,1fr)] sm:p-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {BENTO_FEATURES.map((feat) => {
+              const Icon = feat.icon;
+              return (
+                <div
+                  key={feat.title}
+                  className={`group relative rounded-2xl border ${feat.border} bg-[#0e1017]/80 p-6 backdrop-blur-md shadow-lg shadow-black/40 hover:bg-[#12141f] transition-all duration-200 flex flex-col justify-between`}
+                >
                   <div>
-                    <p className="text-[12px] tabular-nums text-[#94969c]">{String(index + 1).padStart(2, "0")}</p>
-                    <h3 className="mt-1 text-[16px] font-medium tracking-[-0.02em]">{agent.name}</h3>
-                    <p className="mt-2 text-[13px] leading-relaxed text-[#b1b3b8]">{agent.summary}</p>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[4px] bg-[#0d0e10] p-3">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#94969c]">Inputs</p>
-                      <ul className="mt-2 space-y-1">
-                        {agent.inputs.map((item) => (
-                          <li key={item} className="text-[13px] text-[#b1b3b8]">{item}</li>
-                        ))}
-                      </ul>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`size-10 rounded-xl bg-gradient-to-tr ${feat.gradient} border ${feat.border} flex items-center justify-center text-white`}>
+                        <Icon className="size-5 text-[#ff806f]" />
+                      </div>
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-300 border border-white/[0.1] font-semibold">
+                        {feat.badge}
+                      </span>
                     </div>
-                    <div className="rounded-[4px] bg-[#0d0e10] p-3">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#94969c]">Outputs</p>
-                      <ul className="mt-2 space-y-1">
-                        {agent.outputs.map((item) => (
-                          <li key={item} className="text-[13px] text-white">{item}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      {feat.category}
+                    </span>
+                    <h3 className="text-lg font-bold text-white group-hover:text-[#ff806f] transition-colors mt-0.5">
+                      {feat.title}
+                    </h3>
+                    <p className="mt-2.5 text-xs sm:text-sm text-slate-400 leading-relaxed">
+                      {feat.description}
+                    </p>
                   </div>
-                </li>
-              ))}
-            </ol>
+                </div>
+              );
+            })}
           </div>
         </section>
 
-        <section className="border-t border-white/[0.08]">
-          <div className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
-            <div className="max-w-2xl">
-              <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">Use cases</p>
-              <h2 className="mt-3 text-[32px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[40px]">
-                Different searches. Same shape: one role.
+        {/* The 15 Agents Pipeline Showcase */}
+        <section id="pipeline" className="border-t border-white/[0.08] bg-[#07080d]/80 py-20 sm:py-28 relative">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#ff7a68] mb-2">
+                  <Cpu className="size-3.5" />
+                  <span>The Agent Ecosystem</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+                  15 specialized agents. One coordinated pipeline.
+                </h2>
+                <p className="mt-3 text-slate-400 text-sm sm:text-base leading-relaxed">
+                  Every step has explicit inputs, contracts, and validated artifacts. The pipeline executes sequentially per candidate with full auditability.
+                </p>
+              </div>
+              <Link
+                href="/templates"
+                className="inline-flex items-center gap-2 text-xs font-bold text-[#ff7a68] hover:text-[#ff9282] transition-colors"
+              >
+                <span>Browse all agent templates</span>
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {AGENTS.map((agent, index) => (
+                <div
+                  key={agent.name}
+                  className="rounded-2xl border border-white/[0.08] bg-[#0e1017]/90 p-5 hover:border-white/[0.18] transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[11px] font-mono font-bold text-[#ff7a68] bg-[#ff6d5a]/10 px-2 py-0.5 rounded-md border border-[#ff6d5a]/20">
+                        Agent #{String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="size-2 rounded-full bg-emerald-400" />
+                    </div>
+                    <h3 className="text-base font-bold text-white tracking-tight">
+                      {agent.name}
+                    </h3>
+                    <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+                      {agent.summary}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-white/[0.06] grid grid-cols-2 gap-3 text-[11px]">
+                    <div>
+                      <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Inputs</p>
+                      <p className="text-slate-300 mt-1 font-mono text-[10.5px] truncate">
+                        {agent.inputs[0]}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Outputs</p>
+                      <p className="text-emerald-400 mt-1 font-mono text-[10.5px] truncate">
+                        {agent.outputs[0]}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Use Cases Section */}
+        <section className="border-t border-white/[0.08] py-20 sm:py-28 relative">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="max-w-2xl mb-12">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#ff7a68] mb-2">Use Cases</p>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+                Built for every hiring stage & scale.
               </h2>
             </div>
-            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               {USES.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-[8px] border border-white/[0.08] bg-[#111214] p-5 transition-colors hover:bg-[#1a1b1e]"
+                  className="group rounded-2xl border border-white/[0.08] bg-[#0e1017]/70 p-5 hover:bg-[#121420] hover:border-white/20 transition-all flex flex-col justify-between"
                 >
-                  <h3 className="text-[16px] font-medium tracking-[-0.02em]">{item.title}</h3>
-                  <p className="mt-2 text-[14px] leading-relaxed text-[#b1b3b8]">{item.body}</p>
-                  <p className="mt-4 text-[13px] text-[#8b90d6]">Read the use case</p>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/[0.06] text-slate-300 border border-white/[0.08]">
+                      {item.tag}
+                    </span>
+                    <h3 className="text-base font-bold text-white group-hover:text-[#ff806f] transition-colors mt-3">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+                      {item.body}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-[#ff7a68] font-semibold">
+                    <span>Explore blueprint</span>
+                    <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-1" />
+                  </div>
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="pricing" className="border-t border-white/[0.08]">
-          <div className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
-            <div className="max-w-2xl">
-              <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">Pricing</p>
-              <h2 className="mt-3 text-[32px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[40px]">
-                Start with one role.
+        {/* Grand CTA Banner (n8n Style) */}
+        <section className="mx-auto max-w-7xl px-6 py-16 sm:py-24">
+          <div className="relative rounded-3xl border border-[#ff6d5a]/40 bg-gradient-to-tr from-[#121422] via-[#1a1c2e] to-[#251b29] p-8 sm:p-14 overflow-hidden shadow-2xl shadow-black/60">
+            {/* Background radiant mesh */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 size-96 rounded-full bg-[#ff6d5a]/20 blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 size-96 rounded-full bg-[#7d52ff]/20 blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 max-w-2xl">
+              <span className="text-xs font-mono font-bold tracking-wider text-[#ff806f] uppercase bg-[#ff6d5a]/15 px-3 py-1 rounded-full border border-[#ff6d5a]/30">
+                Start Building Today
+              </span>
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mt-4">
+                Ready to build your first autonomous hiring workflow?
               </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-[#b1b3b8]">
-                Starter is one open role. Team is $49 a month for the workspace, not per person.
+              <p className="mt-4 text-slate-300 text-sm sm:text-base leading-relaxed">
+                Open a demo role board in seconds. Add candidates, wire your interview pipeline, and let AI agents do the heavy lifting while you make the call.
               </p>
-            </div>
-            <div className="mt-10 grid gap-4 lg:grid-cols-3">
-              {PLANS.map((plan) => (
-                <article
-                  key={plan.name}
-                  className={`flex flex-col rounded-[8px] border p-5 ${
-                    plan.featured ? "border-[#5e6ad2] bg-[#5e6ad2]" : "border-white/[0.08] bg-[#111214]"
-                  }`}
+              <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
+                <Link
+                  href={TRIAL_HREF}
+                  className="group inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff6d5a] to-[#f03d27] px-6 text-sm font-bold text-white shadow-xl shadow-[#ff6d5a]/30 hover:brightness-110 active:scale-95 transition-all"
                 >
-                  <p className={`text-[12px] font-medium uppercase tracking-[0.14em] ${plan.featured ? "text-white" : "text-[#94969c]"}`}>
-                    {plan.name}
-                  </p>
-                  <p className="mt-3 text-[36px] font-medium tracking-[-0.02em]">{plan.price}</p>
-                  <p className={`text-[13px] ${plan.featured ? "text-white" : "text-[#94969c]"}`}>{plan.period}</p>
-                  <p className={`mt-4 text-[14px] leading-relaxed ${plan.featured ? "text-white" : "text-[#b1b3b8]"}`}>{plan.blurb}</p>
-                  <ul className="mt-5 flex-1 space-y-2">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className={`text-[13px] ${plan.featured ? "text-white" : "text-[#b1b3b8]"}`}>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={plan.href}
-                    className={`mt-6 inline-flex h-10 items-center justify-center rounded-[4px] text-[13px] font-medium ${
-                      plan.featured ? "bg-white text-[#1c2148] hover:bg-white/90" : "bg-white/[0.06] text-white hover:bg-white/[0.1]"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
-                </article>
-              ))}
+                  <span>Open Free Role Board</span>
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-xl border border-white/20 bg-white/[0.06] px-6 text-sm font-semibold text-white hover:bg-white/[0.1] transition-all"
+                >
+                  <span>View Pricing & Limits</span>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="faq" className="border-t border-white/[0.08]">
-          <div className="mx-auto grid max-w-6xl gap-8 px-5 py-16 sm:py-24 lg:grid-cols-[0.7fr_1.3fr]">
-            <div>
-              <p className="text-[12px] font-medium uppercase tracking-[0.16em] text-[#8b90d6]">FAQ</p>
-              <h2 className="mt-3 text-[32px] font-medium leading-[1.15] tracking-[-0.02em]">Questions recruiters actually ask.</h2>
-            </div>
+        {/* FAQ Section */}
+        <section className="border-t border-white/[0.08] py-16 sm:py-20">
+          <div className="mx-auto max-w-4xl px-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-8 text-center">
+              Frequently Asked Questions
+            </h2>
             <FaqList />
-          </div>
-        </section>
-
-        <section className="border-t border-white/[0.08]">
-          <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-            <div className="rounded-[8px] border border-white/[0.08] bg-[#111214] px-6 py-10 sm:px-10">
-              <h2 className="max-w-xl text-[32px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[40px]">
-                Open a role and run the first resume.
-              </h2>
-              <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[#b1b3b8]">
-                The demo workspace drops you into the product. Create a requisition, add candidates, and run the pipeline.
-              </p>
-              <Link
-                href={TRIAL_HREF}
-                className="mt-6 inline-flex h-11 items-center justify-center rounded-[4px] bg-[#5e6ad2] px-5 text-[14px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] hover:bg-[#6d78d8]"
-              >
-                Try a role
-              </Link>
-            </div>
           </div>
         </section>
       </main>
