@@ -1841,7 +1841,7 @@ export const Canvas = ({
       )}
       
       {/* Top Bar Actions: Positioned at top-right to never overlap candidate selector */}
-      <div className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto max-w-[calc(100vw-360px)] flex-wrap justify-end">
+      <div className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto max-w-[calc(100vw-360px)] flex-wrap justify-end bg-white/95 backdrop-blur-xl p-1.5 rounded-2xl border border-slate-200/90 shadow-sm">
         <BoardHelp />
         {runQueue && (
           <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/95 px-3 py-2 text-xs text-indigo-900 shadow-sm backdrop-blur-md animate-pulse">

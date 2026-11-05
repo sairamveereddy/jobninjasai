@@ -26,7 +26,7 @@ import {
   MessageSquare,
   Search
 } from "lucide-react";
-import { RoleWorkspace } from "@/components/marketing/role-workspace";
+import { BoardVideoScreen } from "@/components/marketing/board-video-screen";
 import { MarketingShell } from "@/components/marketing-layout";
 import { TRIAL_HREF } from "@/lib/marketing/site";
 
@@ -205,9 +205,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Hero Spatial Canvas (Miro Spatial Canvas + n8n Executable Simulator) */}
-        <div className="mt-14 mx-auto max-w-6xl">
-          <RoleWorkspace />
+        {/* Hero Spatial Canvas: Interactive Product Video Walkthrough & Spatial Hiring Board */}
+        <div id="pipeline" className="mt-14 mx-auto max-w-6xl scroll-mt-32">
+          <BoardVideoScreen />
         </div>
       </section>
 

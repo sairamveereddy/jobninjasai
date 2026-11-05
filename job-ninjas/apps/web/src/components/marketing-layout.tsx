@@ -79,7 +79,7 @@ export function MarketingNav() {
   }, [open]);
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-[100] flex flex-col items-center px-3 sm:px-4 pt-3 sm:pt-3.5 transition-all duration-300">
+    <header className="fixed top-0 right-0 left-0 z-[100] flex flex-col items-center px-3 sm:px-4 pt-3 pb-2 sm:pb-3 bg-gradient-to-b from-[#f8fafc] via-[#f8fafc]/95 to-transparent backdrop-blur-[4px] transition-all duration-300">
       <nav 
         aria-label="Global navigation" 
         className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between rounded-full border border-slate-200/90 bg-white/95 px-3.5 sm:px-6 shadow-sm backdrop-blur-md transition-shadow hover:shadow-md"
@@ -277,7 +277,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
       <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-sky-100/60 via-blue-50/30 to-transparent blur-3xl -z-10" />
 
       <MarketingNav />
-      <main className="relative z-10 pt-20">{children}</main>
+      <main className="relative z-10 pt-28 sm:pt-32">{children}</main>
       <MarketingFooter />
     </div>
   );
