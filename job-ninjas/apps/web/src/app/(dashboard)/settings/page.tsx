@@ -18,7 +18,9 @@ import {
   Loader2, 
   Send, 
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  CreditCard,
+  Check
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
@@ -443,6 +445,43 @@ export default function SettingsPage() {
                     <Moon className={`w-6 h-6 ${theme === 'dark' ? 'text-blue-500' : 'text-muted-foreground'}`} />
                     <span className="text-sm font-medium text-foreground">Dark</span>
                   </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Subscription & Plan Section */}
+          <section className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-border bg-muted/30 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-blue-500" />
+                Subscription & Workspace Plan
+              </h2>
+              <span className="rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-mono text-xs font-bold px-3 py-0.5 border border-blue-200 dark:border-blue-800">
+                Team Pro Plan Active
+              </span>
+            </div>
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-muted/20">
+                <div>
+                  <h3 className="font-bold text-foreground text-base">Team Pro Subscription</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    $49 per active open role / month · Unlimited candidate screening & multi-agent pipelines
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><Check className="size-3.5 text-emerald-600" /> 15 Specialized AI Agents</span>
+                    <span className="flex items-center gap-1.5"><Check className="size-3.5 text-emerald-600" /> Ophelia Travel Concierge</span>
+                    <span className="flex items-center gap-1.5"><Check className="size-3.5 text-emerald-600" /> Live Board Sharing</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <Link
+                    href="/pricing"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm transition-all shadow-xs"
+                  >
+                    Manage / Upgrade Tier
+                  </Link>
                 </div>
               </div>
             </div>
