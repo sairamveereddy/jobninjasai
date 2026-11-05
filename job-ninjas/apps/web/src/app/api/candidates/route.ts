@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
+import { resolveRole } from "@/lib/role-resolver";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const roleId = searchParams.get('roleId');
+    const rawRoleId = searchParams.get('roleId');
     const candidateId = searchParams.get('candidateId');
+
+    let roleId = rawRoleId;
+    if (rawRoleId) {
+      const resolved = await resolveRole(rawRoleId);
+      if (resolved) {
+        roleId = resolved.id;
+      }
+    }
 
     if (candidateId) {
       const candidate = await prisma.candidate.findUnique({
@@ -73,17 +82,20 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { roleId, firstName, lastName, email, location, travelBudget, stage } = data;
+    const { roleId: rawRoleId, firstName, lastName, email, location, travelBudget, stage } = data;
 
-    if (!roleId || !firstName || !lastName || !email) {
+    if (!rawRoleId || !firstName || !lastName || !email) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields: roleId, firstName, lastName, email' },
         { status: 400 }
       );
     }
 
+    const resolved = await resolveRole(rawRoleId);
+    const roleId = resolved?.id || rawRoleId;
+
     // Resolve organizationId from role or fallback to first organization
-    const role = await prisma.role.findUnique({
+    const role = resolved || await prisma.role.findUnique({
       where: { id: roleId },
     });
 

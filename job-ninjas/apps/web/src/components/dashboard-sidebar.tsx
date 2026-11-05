@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Briefcase, Users, Workflow, Plug,
+  LayoutDashboard, Briefcase, Users, UserCheck, Workflow, Plug,
   BarChart2, Settings, Star, Clock, ChevronDown,
   Plus, Search, Bell, HelpCircle, Video, Hash, ChevronRight,
   Shield, LogOut, CreditCard, Sparkles, ExternalLink
@@ -14,7 +14,8 @@ import { useState, useEffect } from "react";
 const mainNav = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Roles & Boards", href: "/roles", icon: Briefcase },
-  { name: "Candidates", href: "/candidates", icon: Users },
+  { name: "Teams", href: "/teams", icon: Users },
+  { name: "Candidates", href: "/candidates", icon: UserCheck },
   { name: "Workflows", href: "/workflows", icon: Workflow },
 ];
 

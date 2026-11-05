@@ -7,10 +7,12 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { slugifyRole } from "@/lib/slug";
 
 interface RoleRecord {
   id: string;
   title: string;
+  slug?: string;
   department: string;
   location: string;
   hiringManager: string;
@@ -134,7 +136,7 @@ export default function RolesPage() {
           hiringManager: "",
           jobDescription: "",
         });
-        router.push(`/roles/${data.role.id}/board`);
+        router.push(`/roles/${data.role.slug || slugifyRole(data.role.title)}/board`);
       } else {
         alert(data.error || 'Failed to create role');
       }
@@ -252,7 +254,7 @@ export default function RolesPage() {
                     className="grid grid-cols-[2.5fr_1fr_1fr_1fr_1fr_40px] gap-4 px-4 py-3.5 border-b border-slate-50 hover:bg-slate-50/70 transition-colors group items-center">
 
                     {/* Name */}
-                    <Link href={`/roles/${role.id}/board`} className="flex items-center gap-3 min-w-0">
+                    <Link href={`/roles/${role.slug || slugifyRole(role.title)}/board`} className="flex items-center gap-3 min-w-0">
                       <div className={`w-9 h-9 rounded-xl ${getBoardColor(role.department)} flex items-center justify-center text-white text-[12px] font-bold shrink-0 shadow-sm`}>
                         {role.title.charAt(0)}
                       </div>
@@ -307,7 +309,7 @@ export default function RolesPage() {
               </button>
 
               {filtered.map((role) => (
-                <Link key={role.id} href={`/roles/${role.id}/board`}
+                <Link key={role.id} href={`/roles/${role.slug || slugifyRole(role.title)}/board`}
                   className="aspect-[4/3] rounded-xl border border-slate-200 bg-white overflow-hidden hover:shadow-md hover:border-slate-300 transition-all group flex flex-col">
                   <div className={`flex-1 ${getBoardColor(role.department)} opacity-85 flex items-center justify-center relative p-4 text-white`}>
                     <span className="text-4xl font-extrabold opacity-30 absolute">{role.title.charAt(0)}</span>

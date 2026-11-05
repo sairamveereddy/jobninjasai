@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { resolveRole } from '@/lib/role-resolver';
+import { slugifyRole } from '@/lib/slug';
 
 export async function GET(
   request: Request,
@@ -7,15 +9,19 @@ export async function GET(
 ) {
   try {
     const { roleId } = await params;
+    const resolvedRole = await resolveRole(roleId);
+    const targetRoleId = resolvedRole?.id || roleId;
 
     const board = await prisma.board.findUnique({
-      where: { roleId },
+      where: { roleId: targetRoleId },
     });
 
     if (!board) {
       // Return a clean, empty canvas layout ready for the recruiter to build
       return NextResponse.json({
-        roleId,
+        roleId: targetRoleId,
+        roleTitle: resolvedRole?.title || '',
+        slug: resolvedRole ? slugifyRole(resolvedRole.title) : targetRoleId,
         layers: {},
         layerIds: [],
         edges: {},
@@ -39,6 +45,9 @@ export async function GET(
 
     return NextResponse.json({
       ...board,
+      roleId: targetRoleId,
+      roleTitle: resolvedRole?.title || '',
+      slug: resolvedRole ? slugifyRole(resolvedRole.title) : targetRoleId,
       layers: rawLayers,
       intake: __intake,
       activity: __activity,
@@ -61,6 +70,9 @@ export async function POST(
 ) {
   try {
     const { roleId } = await params;
+    const resolvedRole = await resolveRole(roleId);
+    const targetRoleId = resolvedRole?.id || roleId;
+
     const body = await request.json();
     const { layers, layerIds, edges, edgeIds, intake, activity } = body;
     const storedLayers: Record<string, any> = { ...(layers || {}) };
@@ -71,8 +83,8 @@ export async function POST(
 
     // Resolve organizationId from role or fallback to default organization
     let organizationId: string | null = null;
-    const role = await prisma.role.findUnique({
-      where: { id: roleId },
+    const role = resolvedRole || await prisma.role.findUnique({
+      where: { id: targetRoleId },
     });
 
     if (role) {
@@ -91,7 +103,7 @@ export async function POST(
     }
 
     const board = await prisma.board.upsert({
-      where: { roleId },
+      where: { roleId: targetRoleId },
       update: {
         layers: JSON.stringify(storedLayers),
         layerIds: JSON.stringify(layerIds || []),
@@ -99,8 +111,8 @@ export async function POST(
         edgeIds: JSON.stringify(edgeIds || []),
       },
       create: {
-        roleId,
         organizationId,
+        roleId: targetRoleId,
         layers: JSON.stringify(storedLayers),
         layerIds: JSON.stringify(layerIds || []),
         edges: JSON.stringify(edges || {}),
@@ -108,7 +120,16 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({ success: true, boardId: board.id });
+    return NextResponse.json({
+      success: true,
+      board: {
+        ...board,
+        layers: storedLayers,
+        layerIds,
+        edges,
+        edgeIds,
+      },
+    });
   } catch (error: any) {
     console.error('Error saving board:', error);
     return NextResponse.json(

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { slugifyRole } from '@/lib/slug';
 
 export async function GET() {
   try {
-    const roles = await prisma.role.findMany({
+    const rawRoles = await prisma.role.findMany({
       include: {
         candidates: {
           select: {
@@ -25,6 +26,11 @@ export async function GET() {
         createdAt: 'desc',
       },
     });
+
+    const roles = rawRoles.map((r) => ({
+      ...r,
+      slug: slugifyRole(r.title),
+    }));
 
     return NextResponse.json({ success: true, roles });
   } catch (error: any) {
@@ -83,7 +89,13 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, role });
+    return NextResponse.json({ 
+      success: true, 
+      role: {
+        ...role,
+        slug: slugifyRole(role.title),
+      }
+    });
   } catch (error: any) {
     console.error('Error creating role:', error);
     return NextResponse.json(
@@ -100,12 +112,12 @@ export async function PATCH(req: Request) {
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: 'Role ID is required for update' },
+        { success: false, error: 'Role ID is required' },
         { status: 400 }
       );
     }
 
-    const updatedRole = await prisma.role.update({
+    const updated = await prisma.role.update({
       where: { id },
       data: {
         ...(title !== undefined ? { title } : {}),
@@ -117,7 +129,13 @@ export async function PATCH(req: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, role: updatedRole });
+    return NextResponse.json({ 
+      success: true, 
+      role: {
+        ...updated,
+        slug: slugifyRole(updated.title),
+      }
+    });
   } catch (error: any) {
     console.error('Error updating role:', error);
     return NextResponse.json(

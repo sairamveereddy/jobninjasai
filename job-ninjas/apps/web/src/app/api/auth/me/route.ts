@@ -17,12 +17,12 @@ export async function GET() {
 
   // Fallback demo user
   const user = {
-    email: 'recruiter@jobninjas.ai',
-    name: 'Sarah Lin',
-    role: 'Lead Technical Recruiter',
-    org: demoCookie?.value || 'Acme AI Hiring',
-    plan: 'Team Pro',
-    isAdmin: false,
+    email: 'demo@jobninjas.ai',
+    name: 'Demo User (Hiring Operations Lead)',
+    role: 'Head of Talent & Hiring Operations',
+    org: demoCookie?.value || 'JobNinjas AI Demo',
+    plan: 'Enterprise Pro',
+    isAdmin: true,
   };
 
   return NextResponse.json({ authenticated: true, user });

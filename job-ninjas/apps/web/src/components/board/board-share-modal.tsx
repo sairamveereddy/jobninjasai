@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { slugifyRole } from "@/lib/slug";
 import { 
   Share2, 
   Copy, 
@@ -63,8 +64,10 @@ export function BoardShareModal({ isOpen, onClose, roleId, roleTitle }: BoardSha
 
   if (!isOpen) return null;
 
+  const slug = roleTitle ? slugifyRole(roleTitle) : roleId;
   const currentUrl = typeof window !== "undefined" ? window.location.href.split("?")[0] : "";
-  const shareableUrl = `${currentUrl}?role=${inviteRole}`;
+  const baseWithSlug = currentUrl.replace(/\/roles\/[^/]+\/board/, `/roles/${slug}/board`);
+  const shareableUrl = `${baseWithSlug}?role=${inviteRole}`;
 
   const copyToClipboard = () => {
     if (typeof navigator !== "undefined") {

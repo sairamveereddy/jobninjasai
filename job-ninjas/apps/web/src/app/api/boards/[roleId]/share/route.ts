@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { resolveRole } from '@/lib/role-resolver';
+import { slugifyRole } from '@/lib/slug';
 
 export interface BoardCollaborator {
   id: string;
@@ -14,8 +16,8 @@ export interface BoardCollaborator {
 const DEFAULT_COLLABORATORS: BoardCollaborator[] = [
   {
     id: 'owner-1',
-    email: 'hiring-manager@jobninjas.ai',
-    name: 'You (Hiring Manager)',
+    email: 'demo@jobninjas.ai',
+    name: 'You (Demo Hiring Lead)',
     role: 'owner',
     invitedAt: new Date().toISOString(),
     status: 'active',
@@ -44,8 +46,12 @@ export async function GET(
 ) {
   try {
     const { roleId } = await params;
+    const resolvedRole = await resolveRole(roleId);
+    const targetRoleId = resolvedRole?.id || roleId;
+    const slug = resolvedRole ? slugifyRole(resolvedRole.title) : targetRoleId;
+
     const board = await prisma.board.findUnique({
-      where: { roleId },
+      where: { roleId: targetRoleId },
     });
 
     let collaborators = DEFAULT_COLLABORATORS;
@@ -57,19 +63,22 @@ export async function GET(
       }
     }
 
-    const { searchParams } = new URL(request.url);
     const host = request.headers.get('host') || 'jobninjas.ai';
     const protocol = host.includes('localhost') ? 'http' : 'https';
 
+    const baseUrl = `${protocol}://${host}/roles/${slug}/board`;
+
     return NextResponse.json({
       success: true,
-      roleId,
+      roleId: targetRoleId,
+      roleTitle: resolvedRole?.title || '',
+      slug,
       collaborators,
-      shareLink: `${protocol}://${host}/roles/${roleId}/board`,
+      shareLink: baseUrl,
       inviteTokens: {
-        viewer: `${protocol}://${host}/roles/${roleId}/board?role=viewer`,
-        editor: `${protocol}://${host}/roles/${roleId}/board?role=editor`,
-        owner: `${protocol}://${host}/roles/${roleId}/board?role=owner`,
+        viewer: `${baseUrl}?role=viewer`,
+        editor: `${baseUrl}?role=editor`,
+        owner: `${baseUrl}?role=owner`,
       },
     });
   } catch (error: any) {
@@ -83,6 +92,9 @@ export async function POST(
 ) {
   try {
     const { roleId } = await params;
+    const resolvedRole = await resolveRole(roleId);
+    const targetRoleId = resolvedRole?.id || roleId;
+
     const body = await request.json();
     const { email, role = 'viewer', name } = body;
 
@@ -91,7 +103,7 @@ export async function POST(
     }
 
     const board = await prisma.board.findUnique({
-      where: { roleId },
+      where: { roleId: targetRoleId },
     });
 
     let currentLayers: Record<string, any> = {};
@@ -105,10 +117,11 @@ export async function POST(
     }
 
     // Check if already invited
-    const existingIndex = collaborators.findIndex((c) => c.email.toLowerCase() === email.toLowerCase());
+    const cleanEmail = email.trim().toLowerCase();
+    const existingIndex = collaborators.findIndex((c) => c.email.toLowerCase() === cleanEmail);
     const newCollab: BoardCollaborator = {
       id: existingIndex >= 0 ? collaborators[existingIndex].id : `collab-${Date.now()}`,
-      email,
+      email: cleanEmail,
       name: name || email.split('@')[0],
       role: role as 'owner' | 'editor' | 'viewer',
       invitedAt: new Date().toISOString(),
@@ -125,7 +138,7 @@ export async function POST(
 
     if (board) {
       await prisma.board.update({
-        where: { roleId },
+        where: { roleId: targetRoleId },
         data: {
           layers: currentLayers,
         },
@@ -148,6 +161,9 @@ export async function DELETE(
 ) {
   try {
     const { roleId } = await params;
+    const resolvedRole = await resolveRole(roleId);
+    const targetRoleId = resolvedRole?.id || roleId;
+
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
 
@@ -156,7 +172,7 @@ export async function DELETE(
     }
 
     const board = await prisma.board.findUnique({
-      where: { roleId },
+      where: { roleId: targetRoleId },
     });
 
     if (board && board.layers) {
@@ -167,7 +183,7 @@ export async function DELETE(
         );
 
         await prisma.board.update({
-          where: { roleId },
+          where: { roleId: targetRoleId },
           data: { layers: currentLayers },
         });
 
