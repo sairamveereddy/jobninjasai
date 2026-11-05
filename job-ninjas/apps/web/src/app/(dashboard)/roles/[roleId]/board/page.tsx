@@ -26,7 +26,7 @@ import {
   Sparkles 
 } from "lucide-react";
 
-export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: string }> | { roleId: string } }) {
+export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: string }> }) {
   const router = useRouter();
   const routeParams = useParams();
   const searchParams = useSearchParams();
