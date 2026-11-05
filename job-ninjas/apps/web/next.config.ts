@@ -23,6 +23,20 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'images.trvl-media.com' },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'admin\\..*',
+          },
+        ],
+        destination: '/admin/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
