@@ -162,7 +162,13 @@ function orderedAgentIds(layerIds: string[], layers: Record<string, { type?: Lay
   return order;
 }
 
-export const Canvas = ({ boardId }: { boardId: string }) => {
+export const Canvas = ({ 
+  boardId,
+  topRightExtra 
+}: { 
+  boardId: string; 
+  topRightExtra?: React.ReactNode; 
+}) => {
   const layerIds = useBoardStore(state => state.layerIds);
   const layers = useBoardStore(state => state.layers);
   const insertLayer = useBoardStore(state => state.insertLayer);
@@ -1835,7 +1841,7 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
       )}
       
       {/* Top Bar Actions: Positioned at top-right to never overlap candidate selector */}
-      <div className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto">
+      <div className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto max-w-[calc(100vw-360px)] flex-wrap justify-end">
         <BoardHelp />
         {runQueue && (
           <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/95 px-3 py-2 text-xs text-indigo-900 shadow-sm backdrop-blur-md animate-pulse">
@@ -1874,6 +1880,11 @@ export const Canvas = ({ boardId }: { boardId: string }) => {
           {isRunning ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
           {isRunning ? 'Stop' : 'Run pipeline'}
         </button>
+        {topRightExtra && (
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200/80">
+            {topRightExtra}
+          </div>
+        )}
       </div>
 
       {/* Grid Pattern and Arrowhead */}

@@ -317,6 +317,50 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
 
   const activeRoleId = resolvedRoleId || rawParamId;
 
+  const collaborationToolbar = (
+    <div className="flex items-center gap-2">
+      {/* Collaborators Facepile */}
+      <div 
+        onClick={() => setShareOpen(true)}
+        title="Manage board access and collaborators"
+        className="hidden md:flex items-center -space-x-2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/80 shadow-xs cursor-pointer hover:border-blue-300 transition-colors"
+      >
+        {collaborators.slice(0, 3).map((collab, idx) => {
+          const colors = ["bg-blue-600", "bg-purple-600", "bg-emerald-600", "bg-amber-600"];
+          const initials = collab.name ? collab.name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase() : collab.email.slice(0, 2).toUpperCase();
+          return (
+            <div 
+              key={collab.id || idx} 
+              title={`${collab.name} (${collab.email}) - ${collab.role}`}
+              className={`size-6 rounded-full ${colors[idx % colors.length]} text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white`}
+            >
+              {initials}
+            </div>
+          );
+        })}
+        <span className="pl-3 text-[11px] font-medium text-slate-600">
+          {collaborators.length} member{collaborators.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Role Badge */}
+      <div className="hidden sm:flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl border border-slate-200/80 shadow-xs text-xs font-semibold text-slate-700">
+        <Shield className="size-3.5 text-blue-600" />
+        <span className="capitalize">{effectiveRole}</span>
+      </div>
+
+      {/* Share & Add People Button */}
+      <button
+        type="button"
+        onClick={() => setShareOpen(true)}
+        className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-2xl shadow-sm shadow-blue-500/20 font-semibold text-xs transition-all cursor-pointer active:scale-95 shrink-0"
+      >
+        <UserPlus className="size-3.5" />
+        <span>Share & Access</span>
+      </button>
+    </div>
+  );
+
   return (
     <div className="absolute inset-0 bg-[#f6f8fa] font-sans">
       
@@ -344,48 +388,6 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
       </div>
 
       {/* Top Right Collaboration & Share Toolbar */}
-      <div className={`absolute ${isReadOnly ? 'top-10' : 'top-4'} right-4 z-40 flex items-center gap-2 pointer-events-auto transition-all`}>
-        {/* Collaborators Facepile */}
-        <div 
-          onClick={() => setShareOpen(true)}
-          title="Manage board access and collaborators"
-          className="hidden sm:flex items-center -space-x-2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/80 shadow-xs cursor-pointer hover:border-blue-300 transition-colors"
-        >
-          {collaborators.slice(0, 3).map((collab, idx) => {
-            const colors = ["bg-blue-600", "bg-purple-600", "bg-emerald-600", "bg-amber-600"];
-            const initials = collab.name ? collab.name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase() : collab.email.slice(0, 2).toUpperCase();
-            return (
-              <div 
-                key={collab.id || idx} 
-                title={`${collab.name} (${collab.email}) - ${collab.role}`}
-                className={`size-6 rounded-full ${colors[idx % colors.length]} text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white`}
-              >
-                {initials}
-              </div>
-            );
-          })}
-          <span className="pl-3 text-[11px] font-medium text-slate-600">
-            {collaborators.length} member{collaborators.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-
-        {/* Role Badge */}
-        <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl border border-slate-200/80 shadow-xs text-xs font-semibold text-slate-700">
-          <Shield className="size-3.5 text-blue-600" />
-          <span className="capitalize">{effectiveRole}</span>
-        </div>
-
-        {/* Share & Add People Button */}
-        <button
-          type="button"
-          onClick={() => setShareOpen(true)}
-          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-2xl shadow-sm shadow-blue-500/20 font-semibold text-xs transition-all cursor-pointer active:scale-95"
-        >
-          <UserPlus className="size-3.5" />
-          <span>Share & Access</span>
-        </button>
-      </div>
-
       {activeRoleId && (
         <RoleSurface
           roleId={activeRoleId}
@@ -460,7 +462,7 @@ export default function RoleBoardPage({ params }: { params?: Promise<{ roleId: s
       )}
 
       {/* Canvas */}
-      <Canvas boardId={activeRoleId} />
+      <Canvas boardId={activeRoleId} topRightExtra={collaborationToolbar} />
 
       {/* Board Share & Access Modal */}
       <BoardShareModal
