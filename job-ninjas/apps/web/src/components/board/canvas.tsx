@@ -9,7 +9,8 @@ import { ZoomControls } from './zoom-controls';
 import { LibraryModal } from './library-modal';
 import { getStroke } from 'perfect-freehand';
 import Link from 'next/link';
-import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles, Square , Maximize2 } from 'lucide-react';
+import { Play, Loader2, Plus, X, Trash2, Upload, Plug, Workflow, FileText, ArrowLeft, Presentation, Maximize, Sparkles, Square , Maximize2, Trophy } from 'lucide-react';
+import { BatchLeaderboardModal } from './batch-leaderboard-modal';
 import { getNodeSpec } from '@/lib/agents/node-specs';
 import { collectUpstreamOutputs, dataTypeLabel, documentKind, isSharedStep, jobDescriptionText, localRunBlockers, outputForCandidate, plainLanguage, stepHealth, summarizeAgentOutput, validateConnection } from '@/lib/agents/contracts';
 import { SelectionBox } from './selection-box';
@@ -218,6 +219,7 @@ export const Canvas = ({
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 });
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const stopPipelineRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
   const notePeopleRef = useRef<BoardPerson[]>([]);
@@ -626,6 +628,12 @@ export const Canvas = ({
     window.addEventListener('candidateChanged', refreshPeople);
     return () => window.removeEventListener('candidateChanged', refreshPeople);
   }, [boardId]);
+
+  useEffect(() => {
+    const handleOpenLeaderboard = () => setIsLeaderboardOpen(true);
+    window.addEventListener('openLeaderboard', handleOpenLeaderboard);
+    return () => window.removeEventListener('openLeaderboard', handleOpenLeaderboard);
+  }, []);
 
   const runWorkflow = async () => {
     if (isRunning) {
@@ -1820,6 +1828,20 @@ export const Canvas = ({
       <LibraryModal isOpen={isTemplatesOpen} onClose={() => setIsTemplatesOpen(false)} camera={camera} />
       <ZoomControls camera={camera} setCamera={setCamera} />
       <InspectorPanel boardId={boardId} />
+      <BatchLeaderboardModal
+        isOpen={isLeaderboardOpen}
+        onClose={() => setIsLeaderboardOpen(false)}
+        roleId={boardId || ''}
+        roleTitle={currentRole?.title}
+        candidates={notePeople}
+        onSelectCandidate={(candId) => {
+          setActiveCandidateId(candId);
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('activeCandidateId', candId);
+            window.dispatchEvent(new CustomEvent('candidateChanged', { detail: { candidate: notePeople.find((p) => p.id === candId) } }));
+          }
+        }}
+      />
       
       {/* Top Left Header / Home Bar (Only shown in standalone new-workflow mode to avoid duplicate header) */}
       {boardId === 'new-workflow' && (
@@ -1843,6 +1865,21 @@ export const Canvas = ({
       {/* Top Bar Actions: Positioned at top-right to never overlap candidate selector */}
       <div className="absolute top-4 right-4 z-40 flex items-center gap-2 pointer-events-auto max-w-[calc(100vw-360px)] flex-wrap justify-end bg-white/95 backdrop-blur-xl p-1.5 rounded-2xl border border-slate-200/90 shadow-sm">
         <BoardHelp />
+        <button
+          type="button"
+          aria-label="View ranked candidate leaderboard and batch evaluation"
+          onClick={() => setIsLeaderboardOpen(true)}
+          className="flex items-center gap-1.5 rounded-xl border border-amber-200/90 bg-amber-50/80 hover:bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-900 shadow-2xs transition-colors cursor-pointer"
+          title="Ranked Candidate Leaderboard & Batch Runner"
+        >
+          <Trophy className="w-3.5 h-3.5 text-amber-600" />
+          <span>Leaderboard</span>
+          {notePeople.length > 0 && (
+            <span className="text-[10px] font-mono font-bold bg-amber-200/70 text-amber-900 px-1.5 py-0.2 rounded-full">
+              {notePeople.length}
+            </span>
+          )}
+        </button>
         {runQueue && (
           <div className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50/95 px-3 py-2 text-xs text-indigo-900 shadow-sm backdrop-blur-md animate-pulse">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />

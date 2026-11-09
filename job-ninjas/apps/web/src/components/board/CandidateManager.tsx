@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { 
   Users, Plus, Upload, CheckCircle2, FileText, ChevronDown, 
-  ChevronUp, Loader2, Database, AlertCircle, X, Check, ArrowRight
+  ChevronUp, Loader2, Database, AlertCircle, X, Check, ArrowRight, Trophy
 } from "lucide-react";
 import { GreenhouseImportModal } from "./greenhouse-import-modal";
 
@@ -266,6 +266,23 @@ export default function CandidateManager({ roleId, roleTitle }: { roleId: string
               </div>
             ) : (
               <div className="flex flex-col gap-2">
+                {/* Candidate List Header with Leaderboard Link */}
+                <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold px-0.5 mb-1">
+                  <span>Applicants ({candidates.length})</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsExpanded(false);
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('openLeaderboard'));
+                      }
+                    }}
+                    className="text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trophy className="w-3 h-3" />
+                    <span>View Leaderboard</span>
+                  </button>
+                </div>
                 {/* Candidate List / Switcher */}
                 <div className="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto pr-1">
                   {candidates.map(c => {
