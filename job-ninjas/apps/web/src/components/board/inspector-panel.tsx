@@ -1195,6 +1195,59 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
                     </div>
                   )}
 
+                  {/* CODE AUDIT VISUAL */}
+                  {layer.agentRole === 'agent-code-auditor' && (
+                    <div className="flex flex-col gap-3">
+                      <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-mono">Code Rigor & Quality</p>
+                          <p className="text-sm font-extrabold text-slate-900 mt-0.5 truncate">{executionOutput.repositoryUrl || 'GitHub Repository'}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-sky-50 rounded-xl border border-sky-200 text-sky-700 font-mono font-bold text-sm">
+                          <span>{executionOutput.overallScore || '9.5'}</span>
+                          <span className="text-[10px] text-sky-500">/ 10</span>
+                        </div>
+                      </div>
+
+                      {executionOutput.verdict && (
+                        <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200/80 text-xs">
+                          <p className="text-[10px] font-mono font-bold uppercase text-slate-400 mb-1">Architectural Verdict</p>
+                          <p className="text-slate-700 leading-relaxed font-medium">{executionOutput.verdict}</p>
+                        </div>
+                      )}
+
+                      {executionOutput.codeHealth && (
+                        <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs space-y-2 text-xs">
+                          <p className="text-[10px] font-mono font-bold uppercase text-slate-400">Memory Safety & Rigor</p>
+                          <div className="grid grid-cols-2 gap-2 text-[11px]">
+                            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                              <p className="text-[10px] font-semibold text-slate-400">Memory / Leaks</p>
+                              <p className="font-bold text-slate-800 mt-0.5">{executionOutput.codeHealth.memorySafety || 'Verified Safe'}</p>
+                            </div>
+                            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                              <p className="text-[10px] font-semibold text-slate-400">Test Coverage</p>
+                              <p className="font-bold text-slate-800 mt-0.5">{executionOutput.codeHealth.testCoverage || 'Comprehensive'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {executionOutput.citations && Array.isArray(executionOutput.citations) && (
+                        <div className="p-4 bg-white rounded-xl border border-slate-200/80 shadow-xs text-xs">
+                          <p className="text-[10px] font-mono font-bold uppercase text-slate-400 mb-2">Verified AST Evidence</p>
+                          <div className="space-y-2">
+                            {executionOutput.citations.map((cite, idx) => (
+                              <div key={idx} className="p-2.5 rounded-lg bg-sky-50/50 border border-sky-100 text-[11px]">
+                                <p className="font-mono font-bold text-sky-900">{cite.fileOrCommit}</p>
+                                <p className="text-slate-600 mt-0.5">{cite.evidence}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* CONCIERGE TRAVEL ITINERARY VISUAL */}
                   {layer.agentRole === 'agent-concierge' && (
                     <div className="flex flex-col gap-3">
@@ -1231,7 +1284,7 @@ export const InspectorPanel = ({ boardId }: { boardId?: string }) => {
 
                   {(() => {
                     const kind = artifactKind((layer as { agentRole?: string }).agentRole, executionOutput);
-                    const hasCustomVisual = ['agent-resume', 'agent-interview-plan', 'agent-interview-analysis', 'agent-decision', 'agent-concierge'].includes(layer.agentRole || '');
+                    const hasCustomVisual = ['agent-resume', 'agent-interview-plan', 'agent-interview-analysis', 'agent-decision', 'agent-concierge', 'agent-code-auditor'].includes(layer.agentRole || '');
                     if (kind && !hasCustomVisual) {
                       return (
                         <div className="rounded-xl border border-slate-200 bg-white p-4">

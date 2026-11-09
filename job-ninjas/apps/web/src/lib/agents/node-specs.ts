@@ -27,6 +27,26 @@ export interface NodeDescription {
 
 export const NODE_SPECS: Record<string, NodeDescription> = {
   // ─── AI AGENTS ───
+  'agent-code-auditor': {
+    role: 'agent-code-auditor',
+    displayName: 'GitHub Code Auditor',
+    subtitle: 'Audits candidate codebases, commit cleanliness & AST concurrency',
+    description: 'Parses candidate public pull requests and repositories to verify AST structure, concurrency safety, test suite rigor, and clean commit history against engineering rubrics.',
+    category: 'agent',
+    color: 'text-sky-600',
+    bg: 'bg-sky-50 border-sky-200',
+    inputs: [
+      { name: 'Candidate', type: 'CandidateProfile', artifactType: 'CandidateProfile', description: 'Who the repository belongs to.', required: false, source: 'candidate' },
+      { name: 'Resume', type: 'Resume', artifactType: 'Resume', description: 'Candidate resume with GitHub/portfolio links.', required: false, source: 'candidate' },
+      { name: 'Job description', type: 'JobDescription', artifactType: 'JobDescription', description: 'Target technical requirements.', required: true, source: 'board' },
+    ],
+    outputs: [
+      { name: 'Code audit', type: 'CodeAudit', artifactType: 'CodeAudit', description: 'Code quality score, commit cleanliness, and verifiable citations.' },
+      { name: 'Scorecard', type: 'Scorecard', artifactType: 'Scorecard', description: 'Quantitative code review scorecard.' },
+    ],
+    defaultModel: 'openai/gpt-oss-120b',
+    defaultPrompt: 'You are a Principal Software Architect. Audit the candidate GitHub repositories and commit history against production engineering standards.',
+  },
   'agent-resume': {
     role: 'agent-resume',
     displayName: 'Resume Intelligence',

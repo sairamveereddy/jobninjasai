@@ -18,6 +18,7 @@ export const DATA_TYPE_LABELS: Record<string, string> = {
   Transcript: 'Transcript',
   InterviewAnalysis: 'Interview analysis',
   CandidateDecision: 'Hiring recommendation',
+  CodeAudit: 'Code audit',
   Itinerary: 'Travel itinerary',
   Approval: 'Approval',
   Role: 'Role',
@@ -508,6 +509,7 @@ export const AGENT_PLAIN_LANGUAGE: Record<string, string> = {
   'agent-interview-analysis': 'Scores the transcript against the interview plan.',
   'agent-decision': 'Turns the scorecard and the interview into hire or no-hire advice. You still decide.',
   'agent-concierge': 'Drafts travel after you have a hiring recommendation.',
+  'agent-code-auditor': 'Audits the candidate’s GitHub code, pull requests, AST structure, and concurrency safety.',
   'gate-shortlist': 'A person approves the scorecard before interviews start.',
 };
 
@@ -600,6 +602,8 @@ export function summarizeAgentOutput(agentRole: string | undefined, output: any)
       return output.fullName ? `Profile · ${output.fullName}` : 'Candidate profile ready';
     case 'agent-interview-plan':
       return `${output.sections?.length || 0} sections · ${output.durationMinutes || 60}m`;
+    case 'agent-code-auditor':
+      return (output as any).overallScore ? `Code score: ${(output as any).overallScore}/10` : 'Code audit ready';
     case 'agent-offer-draft':
       return output.baseSalary ? `Offer: ${output.baseSalary}` : 'Offer draft ready';
     case 'agent-rejection-draft':

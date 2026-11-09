@@ -13,8 +13,13 @@ import { ShortlistAgent } from './implementations/shortlist';
 import { OfferDraftAgent } from './implementations/offer-draft';
 import { RejectionDraftAgent } from './implementations/rejection-draft';
 import { OnboardingHandoffAgent } from './implementations/onboarding-handoff';
+import { CodeAuditorAgent } from './implementations/code-auditor';
 
 export const AgentRegistry: Record<string, AgentDefinition> = {
+  'agent-code-auditor': CodeAuditorAgent,
+  'code-auditor': CodeAuditorAgent,
+  'agent-ast-auditor': CodeAuditorAgent,
+  'ast-auditor': CodeAuditorAgent,
   'agent-jd-parser': JdParserAgent,
   'jd-parser': JdParserAgent,
 
