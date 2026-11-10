@@ -18,8 +18,7 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
+    setLoading(false);
   }, []);
 
   if (loading) return <LoadingScreen />;

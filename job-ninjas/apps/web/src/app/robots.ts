@@ -5,7 +5,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/'],
+      disallow: [
+        '/api/',
+        '/admin',
+        '/roles/*/board',
+        '/teams',
+        '/candidates/*',
+        '/settings',
+      ],
     },
     sitemap: 'https://jobninjas.ai/sitemap.xml',
   };

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Play, 
   Pause, 
@@ -149,10 +150,25 @@ export function BoardVideoScreen() {
   const [isMuted, setIsMuted] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState<1 | 1.5 | 2>(1);
   const [showInspector, setShowInspector] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(true);
+
+  // Pause playback when scrolled out of view to save CPU and battery
+  useEffect(() => {
+    if (!containerRef.current || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   // Auto-play progress loop
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || !isInView) return;
 
     const interval = setInterval(() => {
       setCurrentTime((prev) => {
@@ -165,7 +181,7 @@ export function BoardVideoScreen() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isPlaying, playbackSpeed]);
+  }, [isPlaying, isInView, playbackSpeed]);
 
   // Sync active chapter with current time
   useEffect(() => {
@@ -194,7 +210,7 @@ export function BoardVideoScreen() {
   const progressPercent = (currentTime / TOTAL_DURATION) * 100;
 
   return (
-    <div className="w-full font-sans select-none">
+    <div className="w-full font-sans select-none" ref={containerRef}>
       
       {/* 1. Main Video Mockup Frame */}
       <div className="relative rounded-3xl border-2 border-slate-800 bg-[#0c111d] shadow-2xl shadow-blue-900/20 overflow-hidden ring-1 ring-white/10">
@@ -253,7 +269,7 @@ export function BoardVideoScreen() {
             {/* Left: Brand & Candidate Selector */}
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
-                <img src="/logo.png" alt="JobNinjas" className="size-5 object-contain" />
+                <Image src="/logo.png" alt="JobNinjas" width={20} height={20} className="size-5 object-contain" unoptimized />
                 <span className="text-xs font-black text-slate-900 tracking-tight">JobNinjas</span>
               </div>
               <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs text-xs">
